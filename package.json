@@ -1,0 +1,68 @@
+{
+  "name": "plm",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./src/main.js",
+  "scripts": {
+    "test": "node ./tests/test.js"
+  },
+  "author": "John Andrew Tyler Pearson",
+  "license": "MIT",
+  "eslintConfig": {
+    "globals": {},
+    "parserOptions": {
+      "ecmaVersion": 8,
+      "impliedStrict": true
+    },
+    "env": {
+      "es6": true,
+      "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "indent": [
+        "error",
+        2,
+        {
+          "SwitchCase": 1
+        }
+      ],
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "quotes": [
+        "error",
+        "single"
+      ],
+      "semi": [
+        "error",
+        "always"
+      ],
+      "no-console": [
+        "error",
+        {
+          "allow": [
+            "info",
+            "warn",
+            "error"
+          ]
+        }
+      ],
+      "no-unused-vars": [
+        "warn",
+        "all"
+      ]
+    }
+  },
+  "eslintIgnore": [
+    "dist"
+  ],
+  "dependencies": {
+    "serialport": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.5.0",
+    "jsdoc": "^3.5.4"
+  }
+}
