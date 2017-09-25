@@ -2,7 +2,6 @@
 const EventEmitter = require('events');
 const SerialPort = require('serialport');
 const IPP = require('../lib/insteon-packet-parser');
-const {promisify} = require('util');
 
 /* PLM Class */
 module.exports = class PLM extends EventEmitter{
@@ -10,14 +9,11 @@ module.exports = class PLM extends EventEmitter{
     /* Constructing super class */
     super();
 
-    /* Public Variables */
-    this.ready = true;    
+    /* Internal Variables */
+    this._commandQueue = [];
+    this._commandInFlight = false;
     this.powerLincLinks = [];
     this.deviceLinks = [];
-
-    /* Internal Variables */
-    this._commandQueue = [];    
-    this._led = false;
 
     /* Opening serial port */
     this.port = new SerialPort(portPath, {
@@ -40,12 +36,44 @@ module.exports = class PLM extends EventEmitter{
     });
 
     /* On Packet */
-    this.parser.on('data', (packet)=> this.emit('packet', packet));
+    this.parser.on('data', (packet)=>{
+      /* Checking if packet is command echo */
+      if(packet.id == 80){
+        this._gotCommandEcho(packet);
+      }
+
+      this.emit('packet', packet);
+    });
   }
 
+  /* Modem Info */
+  info(){
+    /* Allocating command buffer */
+    const commandBuffer = Buffer.alloc(2);
+
+    /* Creating command */
+    commandBuffer.writeUInt8(0x02, 0); //PLM Command
+    commandBuffer.writeUInt8(0x60, 1); //Get IM Configuration
+
+    /* Sending command */
+    this.execute(commandBuffer);
+  }
+  config(){
+    /* Allocating command buffer */
+    const commandBuffer = Buffer.alloc(2);
+
+    /* Creating command */
+    commandBuffer.writeUInt8(0x02, 0); //PLM Command
+    commandBuffer.writeUInt8(0x73, 1); //Get IM Configuration
+
+    /* Sending command */
+    this.execute(commandBuffer);
+  }
+
+  /* Modem LED */
   get led(){
     return this._led;
-  };
+  }
   set led(state){
     /* Allocating command buffer */
     const commandBuffer = Buffer.alloc(2);
@@ -59,19 +87,18 @@ module.exports = class PLM extends EventEmitter{
 
     /* Sending command */
     this.execute(commandBuffer);
-  };
-
+  }
 
   syncLinks(callback){
 
     /* Handling Responses */
-    self.port.on('packet', (packet)=>{
+    this.port.on('packet', (packet)=>{
       /* Checking to make sure this is the packet we're looking for */
       if(packet.type == 'ALL-Link Record Response'){
         //console.log(packet);
 
         /* Saving Device Link */
-        self.deviceLinks[packet.allLinkGroup] = self.deviceLinks[packet.allLinkGroup] || [];
+        this.deviceLinks[packet.allLinkGroup] = this.deviceLinks[packet.allLinkGroup] || [];
 
         const link = {
           type: packet.recordType,
@@ -83,13 +110,13 @@ module.exports = class PLM extends EventEmitter{
 
         // console.log(packet);
 
-        self.deviceLinks[packet.allLinkGroup].push(link);
+        this.deviceLinks[packet.allLinkGroup].push(link);
       }
       if(packet.type == 'Get First ALL-Link Record' || packet.type == 'Get Next ALL-Link Record'){
         /* If there is another record avaliable */
         if(packet.success){
           /* Getting next link */
-          self.getNextLink();
+          this.getNextLink();
         }
         else{
           callback();
@@ -97,7 +124,7 @@ module.exports = class PLM extends EventEmitter{
       }
     });
 
-    self.getFirstLink();
+    this.getFirstLink();
   }
   getFirstLink(){
     /* Allocating command buffer */
@@ -117,31 +144,6 @@ module.exports = class PLM extends EventEmitter{
     /* Creating command */
     commandBuffer.writeUInt8(0x02, 0); //PLM Command
     commandBuffer.writeUInt8(0x6A, 1); //Get IM Configuration
-
-    /* Sending command */
-    this.execute(commandBuffer);
-  }
-
-
-  /* Modem Info */
-  getInfo(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(2);
-
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x60, 1); //Get IM Configuration
-
-    /* Sending command */
-    this.execute(commandBuffer);
-  }
-  getConfig(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(2);
-    
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x73, 1); //Get IM Configuration
 
     /* Sending command */
     this.execute(commandBuffer);
@@ -254,7 +256,6 @@ module.exports = class PLM extends EventEmitter{
     }
     
     /* Pulling address out and making new array */
-    
     const address = data.slice(1,5);
     const commandBuffer = this._createSwitchCommand(address, command, state);
 
@@ -262,19 +263,10 @@ module.exports = class PLM extends EventEmitter{
     this.execute(commandBuffer);
   }
 
-  /* Raw Command execute */
   async execute(commandBuffer){
-    /* Marking modem as inuse */
-    this.commandInFlight = true;
+    this._commandQueue.push(commandBuffer);
 
-    /* Try to write command to modem */
-    try{
-      /* Writing buffer to port */
-      await this.port.write(commandBuffer);
-    }
-    catch(error){
-      console.error(error);
-    }
+    this._flush();
   }
 
   /* Internal Commands */
@@ -301,7 +293,7 @@ module.exports = class PLM extends EventEmitter{
     else if(address.length === 4){
       /* Allocating command buffer */
       commandBuffer = Buffer.alloc(22);
-
+      
       /* Creating command */
       commandBuffer.writeUInt8(0x02, 0);                 //PLM Command
       commandBuffer.writeUInt8(0x62, 1);                 //Extended Length Message
@@ -340,5 +332,33 @@ module.exports = class PLM extends EventEmitter{
 
     /* Return completed packet buffer */
     return commandBuffer;
+  }
+  _gotCommandEcho(){
+    /* Checking we are actually waiting for a packet echo */
+    if(this._commandInFlight){
+      /* Marking we have an echo */
+      this._commandInFlight = false;
+
+      setTimeout(this._flush.bind(this), 150);
+    }
+  }
+  async _flush(){
+    /* Checking we have a request and a command is not in progress */
+    if(this._commandQueue[0] && !this._commandInFlight){
+
+      /* Removing command from queue */
+      const nextRequest = this._commandQueue.shift();
+
+      /* Marking command in flight */
+      this._commandInFlight = true;
+
+      try{
+        /* Writing command to modem */
+        await this.port.write(nextRequest);
+      }
+      catch(error){
+        console.error(error);
+      }
+    }
   }
 };

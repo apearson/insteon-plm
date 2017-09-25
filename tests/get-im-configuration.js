@@ -1,5 +1,5 @@
 const SerialPort = require('serialport');
-const IPP = require('insteon-packet-parser');
+const IPP = require('../lib/insteon-packet-parser');
 
 /* Open serial port */
 const port = new SerialPort('/dev/tty.usbserial-A60336ZZ', {
