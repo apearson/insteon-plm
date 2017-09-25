@@ -14,6 +14,7 @@ module.exports = class PLM extends EventEmitter{
     this._commandInFlight = false;
     this.powerLincLinks = [];
     this.deviceLinks = [];
+    this._flushTimeout = 150;
 
     /* Opening serial port */
     this.port = new SerialPort(portPath, {
@@ -37,17 +38,23 @@ module.exports = class PLM extends EventEmitter{
 
     /* On Packet */
     this.parser.on('data', (packet)=>{
-      /* Checking if packet is command echo */
-      if(packet.id == 80){
-        this._gotCommandEcho(packet);
+      /* Checking if we need to do anything special with packet */
+      switch(packet.id){
+        case 80:
+          this._gotCommandEcho(packet); break;
+        case 96:
+          this._gotInfoEcho(packet); break;
+        case 115:
+          this._gotConfigEcho(packet); break;
       }
 
+      /* Emitting packet for others to use */
       this.emit('packet', packet);
     });
   }
 
   /* Modem Info */
-  info(){
+  updateInfo(){
     /* Allocating command buffer */
     const commandBuffer = Buffer.alloc(2);
 
@@ -333,15 +340,6 @@ module.exports = class PLM extends EventEmitter{
     /* Return completed packet buffer */
     return commandBuffer;
   }
-  _gotCommandEcho(){
-    /* Checking we are actually waiting for a packet echo */
-    if(this._commandInFlight){
-      /* Marking we have an echo */
-      this._commandInFlight = false;
-
-      setTimeout(this._flush.bind(this), 150);
-    }
-  }
   async _flush(){
     /* Checking we have a request and a command is not in progress */
     if(this._commandQueue[0] && !this._commandInFlight){
@@ -361,4 +359,49 @@ module.exports = class PLM extends EventEmitter{
       }
     }
   }
+
+  /* Echo Functions */
+  _gotInfoEcho(packet){
+    /* Marking we have an echo */
+    this._commandInFlight = false;
+    
+    /* Constucting info */
+    this.info = {
+      devcat: packet.devcat,
+      subcat: packet.subcat,
+      firmware: packet.firmware
+    };
+
+    /* Emitting updated info */
+    this.emit('info', this.info);
+    
+    /* Flushing next command */
+    setTimeout(this._flush.bind(this), this._flushTimeout);
+  }
+  _gotConfigEcho(packet){
+    /* Marking we have an echo */
+    this._commandInFlight = false;
+
+    /* Constucting config */
+    this.config = {
+      autoLinking: packet.autoLinking,
+      monitorMode: packet.monitorMode,
+      autoLED: packet.autoLED,
+      deadman: packet.deadman
+    }
+
+    /* Emitting updated info */
+    this.emit('config', this.config);
+
+    /* Flushing next command */
+    setTimeout(this._flush.bind(this), this._flushTimeout);
+  }
+  _gotCommandEcho(){
+    /* Marking we have an echo */
+    this._commandInFlight = false;
+
+    /* Flushing next command */
+    setTimeout(this._flush.bind(this), this._flushTimeout);
+  }
+
 };
