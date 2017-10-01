@@ -10,11 +10,12 @@ module.exports = class PLM extends EventEmitter{
     super();
 
     /* Internal Variables */
-    this._commandQueue = [];
-    this._commandInFlight = false;
+    this._requestQueue = [];
+    this._requestInFlight = false;
     this.powerLincLinks = [];
     this.deviceLinks = [];
-    this._flushTimeout = 150;
+    this._flushTimeout = 250;
+    this._config = null;
 
     /* Opening serial port */
     this.port = new SerialPort(portPath, {
@@ -39,13 +40,8 @@ module.exports = class PLM extends EventEmitter{
     /* On Packet */
     this.parser.on('data', (packet)=>{
       /* Checking if we need to do anything special with packet */
-      switch(packet.id){
-        case 80:
-          this._gotCommandEcho(packet); break;
-        case 96:
-          this._gotInfoEcho(packet); break;
-        case 115:
-          this._gotConfigEcho(packet); break;
+      if(this._requestInFlight){
+        this._handleResponse(packet);
       }
 
       /* Emitting packet for others to use */
@@ -54,225 +50,259 @@ module.exports = class PLM extends EventEmitter{
   }
 
   /* Modem Info */
-  updateInfo(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(2);
+  syncInfo(){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(2);
 
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x60, 1); //Get IM Configuration
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);
+      commandBuffer.writeUInt8(0x60, 1);
 
-    /* Sending command */
-    this.execute(commandBuffer);
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x60,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
   }
-  config(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(2);
+  syncConfig(){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(2);
 
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x73, 1); //Get IM Configuration
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);
+      commandBuffer.writeUInt8(0x73, 1);
 
-    /* Sending command */
-    this.execute(commandBuffer);
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x73,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
+
+  /* Modem Config */
+  get info(){
+    return this._info;
+  }
+  get config(){
+    return this._config;
   }
 
   /* Modem LED */
   get led(){
     return this._led;
   }
-  set led(state){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(2);
-    
-    /* State */
-    const stateByte = state ? 0x6D:0x6E;
+  setLed(state){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(2);
 
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0);      //PLM Command
-    commandBuffer.writeUInt8(stateByte, 1); //Set LED state byte
+      /* Determining command */
+      let command = state ? 0x6D:0x6E;
 
-    /* Sending command */
-    this.execute(commandBuffer);
-  }
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);
+      commandBuffer.writeUInt8(command, 1);
 
-  syncLinks(callback){
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: command,
+        command: commandBuffer,
+      };
 
-    /* Handling Responses */
-    this.port.on('packet', (packet)=>{
-      /* Checking to make sure this is the packet we're looking for */
-      if(packet.type == 'ALL-Link Record Response'){
-        //console.log(packet);
-
-        /* Saving Device Link */
-        this.deviceLinks[packet.allLinkGroup] = this.deviceLinks[packet.allLinkGroup] || [];
-
-        const link = {
-          type: packet.recordType,
-          device: packet.from.map((id)=> id.toString(16)),
-          data: packet.linkData
-        };
-
-        //console.log(link);
-
-        // console.log(packet);
-
-        this.deviceLinks[packet.allLinkGroup].push(link);
-      }
-      if(packet.type == 'Get First ALL-Link Record' || packet.type == 'Get Next ALL-Link Record'){
-        /* If there is another record avaliable */
-        if(packet.success){
-          /* Getting next link */
-          this.getNextLink();
-        }
-        else{
-          callback();
-        }
-      }
+      /* Sending command */
+      this.execute(request);
     });
-
-    this.getFirstLink();
-  }
-  getFirstLink(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(2);
-
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x69, 1); //Get IM Configuration
-
-    /* Sending command */
-    this.execute(commandBuffer);
-  }
-  getNextLink(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(2);
-
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x6A, 1); //Get IM Configuration
-
-    /* Sending command */
-    this.execute(commandBuffer);
   }
 
   /* Modem Control */
   setConfig(autoLinking, monitorMode, autoLED, deadman){
-    /* Configuration byte */
-    let flagByte = 0x00;
-    
-    if(!autoLinking) flagByte |= 0x80;  //1000 0000
-    if(!monitorMode) flagByte |= 0x40;  //0100 0000
-    if(!autoLED)     flagByte |= 0x20;  //0010 0000
-    if(!deadman)     flagByte |= 0x10;  //0001 0000
+    return new Promise((resolve, reject)=>{
+      /* Configuration byte */
+      let flagByte = 0x00;
+      
+      if(!autoLinking) flagByte |= 0x80;  //1000 0000
+      if(!monitorMode) flagByte |= 0x40;  //0100 0000
+      if(!autoLED)     flagByte |= 0x20;  //0010 0000
+      if(!deadman)     flagByte |= 0x10;  //0001 0000
 
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(3);
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(3);
 
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0);     //PLM Command
-    commandBuffer.writeUInt8(0x6B, 1);     //Set IM Configuration
-    commandBuffer.writeUInt8(flagByte, 2); //IM Configuration Flags
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);     //PLM Command
+      commandBuffer.writeUInt8(0x6B, 1);     //Set IM Configuration
+      commandBuffer.writeUInt8(flagByte, 2); //IM Configuration Flags
 
-    /* Sending command */
-    this.execute(commandBuffer);
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x6B,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
   }
   sleep(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(4);
-  
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x72, 1); //RF Sleep Byte
-    commandBuffer.writeUInt8(0x00, 2); //Command 1 (Not Used)
-    commandBuffer.writeUInt8(0x00, 3); //Command 2 (Not Used)
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(4);
+    
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0); //PLM Command
+      commandBuffer.writeUInt8(0x72, 1); //RF Sleep Byte
+      commandBuffer.writeUInt8(0x00, 2); //Command 1 (Not Used)
+      commandBuffer.writeUInt8(0x00, 3); //Command 2 (Not Used)
 
-    /* Sending command */
-    this.execute(commandBuffer);
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x72,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
   }
   wake(){
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(1);
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(1);
+    
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0); //PLM Command
 
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
+      /* Creating Request */
+      const request = {
+        resolve: null,
+        reject: reject,
+        type: 0x72,
+        command: commandBuffer,
+      };
 
-    /* Sending command */
-    this.execute(commandBuffer);
+      /* Responding after wake up */
+      setTimeout(()=>{
+        this._requestInFlight = false;
+
+        resolve(true);
+      }, 40);
+
+      /* Sending command */
+      this.execute(request);
+    });
   }
   close(){
-    this.port.close();
+    return this.port.close();
   }
 
   /* Device Info */
   status(deviceID){
-    /* Parsing out device ID */
-    const id = deviceID.split('.').map((byte)=> parseInt(byte, 16));
+    return new Promise((resolve, reject)=>{      
+      /* Parsing out device ID */
+      const id = deviceID.split('.').map((byte)=> parseInt(byte, 16));
 
-    /* Allocating command buffer */
-    const commandBuffer = Buffer.alloc(8);
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(8);
 
-    /* Creating command */
-    commandBuffer.writeUInt8(0x02, 0); //PLM Command
-    commandBuffer.writeUInt8(0x62, 1); //Standard Length Message
-    commandBuffer.writeUInt8(id[0], 2); //Device High Address Byte
-    commandBuffer.writeUInt8(id[1], 3); //Device Middle Address Byte
-    commandBuffer.writeUInt8(id[2], 4); //Device Low Address Byte
-    commandBuffer.writeUInt8(0x07, 5); //Message Flag Byte
-    commandBuffer.writeUInt8(0x19, 6); //Command Byte 1
-    commandBuffer.writeUInt8(0x00, 7); //Command Byte 2
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0); //PLM Command
+      commandBuffer.writeUInt8(0x62, 1); //Standard Length Message
+      commandBuffer.writeUInt8(id[0], 2); //Device High Address Byte
+      commandBuffer.writeUInt8(id[1], 3); //Device Middle Address Byte
+      commandBuffer.writeUInt8(id[2], 4); //Device Low Address Byte
+      commandBuffer.writeUInt8(0x07, 5); //Message Flag Byte
+      commandBuffer.writeUInt8(0x19, 6); //Command Byte 1
+      commandBuffer.writeUInt8(0x00, 7); //Command Byte 2
 
-    /* Sending command */
-    this.execute(commandBuffer);
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x62,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
   }
   /* Device Control */
   switch(deviceID, state, fast=false){
-    /* Parsing out device ID */
-    const regex = /([A-F0-9]{2}).([A-F0-9]{2}).([A-F0-9]{2}):?(\d)?/gi;
+    return new Promise((resolve, reject)=>{
+      /* Parsing out device ID */
+      const regex = /([A-F0-9]{2}).([A-F0-9]{2}).([A-F0-9]{2}):?(\d)?/gi;
 
-    /* Searching deviceID for parts */
-    const data = regex.exec(deviceID);
+      /* Searching deviceID for parts */
+      const data = regex.exec(deviceID);
 
-    /* Validating data */
-    if(!(data.length === 4 || data.length === 5)){
-      throw 'Device ID Invalid';
-    }
-    if(typeof state !== 'boolean' || typeof state !== 'number'){
-      new TypeError('State is not a boolean or number'); 
-    }
-    if(typeof state === 'number' && (state < 0 || state > 100)){
-      throw new RangeError('State Out of Range');
-    }
+      /* Validating data */
+      if(!(data.length === 4 || data.length === 5)){
+        throw 'Device ID Invalid';
+      }
+      if(typeof state !== 'boolean' || typeof state !== 'number'){
+        new TypeError('State is not a boolean or number'); 
+      }
+      if(typeof state === 'number' && (state < 0 || state > 100)){
+        throw new RangeError('State Out of Range');
+      }
 
-    /* Determing state to set */
-    if(typeof state === 'boolean'){
-      state = state ? 0xFF : 0x00;
-    }
-    else if(typeof state === 'number'){
-      /* Extending range from 0-100 to 0-255 */
-      state = Math.floor(state * 2.55);
-    }
+      /* Determing state to set */
+      if(typeof state === 'boolean'){
+        state = state ? 0xFF : 0x00;
+      }
+      else if(typeof state === 'number'){
+        /* Extending range from 0-100 to 0-255 */
+        state = Math.floor(state * 2.55);
+      }
 
-    /* Determing how fast/what command to use */
-    let command =  0x11;
-    if(state > 0){
-      command =  fast ? 0x12:0x11; 
-    }
-    else{
-      command =  fast ? 0x14:0x13; 
-    }
-    
-    /* Pulling address out and making new array */
-    const address = data.slice(1,5);
-    const commandBuffer = this._createSwitchCommand(address, command, state);
+      /* Determing how fast/what command to use */
+      let command =  0x11;
+      if(state > 0){
+        command =  fast ? 0x12:0x11; 
+      }
+      else{
+        command =  fast ? 0x14:0x13; 
+      }
+      
+      /* Pulling address out and making new array */
+      const address = data.slice(1,5);
+      const commandBuffer = this._createSwitchCommand(address, command, state);
 
-    /* Sending command */
-    this.execute(commandBuffer);
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: command,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
   }
 
-  async execute(commandBuffer){
-    this._commandQueue.push(commandBuffer);
-
+  async execute(request){
+    this._requestQueue.push(request);
     this._flush();
   }
 
@@ -342,17 +372,13 @@ module.exports = class PLM extends EventEmitter{
   }
   async _flush(){
     /* Checking we have a request and a command is not in progress */
-    if(this._commandQueue[0] && !this._commandInFlight){
-
-      /* Removing command from queue */
-      const nextRequest = this._commandQueue.shift();
-
+    if(this._requestQueue[0] && !this._requestInFlight){
       /* Marking command in flight */
-      this._commandInFlight = true;
+      this._requestInFlight = true;
 
       try{
         /* Writing command to modem */
-        await this.port.write(nextRequest);
+        await this.port.write(this._requestQueue[0].command);
       }
       catch(error){
         console.error(error);
@@ -360,48 +386,85 @@ module.exports = class PLM extends EventEmitter{
     }
   }
 
-  /* Echo Functions */
-  _gotInfoEcho(packet){
-    /* Marking we have an echo */
-    this._commandInFlight = false;
-    
-    /* Constucting info */
-    this.info = {
-      devcat: packet.devcat,
-      subcat: packet.subcat,
-      firmware: packet.firmware
-    };
+  /* Response Functions */
+  _handleResponse(packet){
+    let request;
+    let response;
 
-    /* Emitting updated info */
-    this.emit('info', this.info);
-    
-    /* Flushing next command */
-    setTimeout(this._flush.bind(this), this._flushTimeout);
-  }
-  _gotConfigEcho(packet){
-    /* Marking we have an echo */
-    this._commandInFlight = false;
+    /* Determining Request and Response */
+    if(packet.id === 0x50 && [0x11, 0x12, 0x13, 0x14].includes(this._requestQueue[0].type)){
+      /* Getting request from queue */
+      request = this._requestQueue.shift();
+      response = request.meaning;
+    }
+    else if(packet.id === 0x51 && [0x11, 0x12, 0x13, 0x14].includes(this._requestQueue[0].type)){
+      /* Getting request from queue */
+      request = this._requestQueue.shift();
+      response = request.meaning;
+    }
+    else if(packet.id === 0x73 && this._requestQueue[0].type === 0x73){
+      request = this._requestQueue.shift();
+      this._config = {
+        autoLinking: packet.autoLinking,
+        monitorMode: packet.monitorMode,
+        autoLED: packet.autoLED,
+        deadman: packet.deadman
+      };
 
-    /* Constucting config */
-    this.config = {
-      autoLinking: packet.autoLinking,
-      monitorMode: packet.monitorMode,
-      autoLED: packet.autoLED,
-      deadman: packet.deadman
+      response = this._config;
+    }
+    else if(packet.id === 0x60 && this._requestQueue[0].type === 0x60){
+      request = this._requestQueue.shift();
+      this._info = {
+        id: packet.ID,
+        devcat: packet.devcat,
+        subcat: packet.subcat,
+        firmware: packet.firmware,
+      };
+
+      response = this._info;
+    }
+    else if(packet.id === 0x6B && this._requestQueue[0].type === 0x6B){
+      request = this._requestQueue.shift();
+      this._config = {
+        autoLinking: packet.autoLinking,
+        monitorMode: packet.monitorMode,
+        autoLED: packet.autoLED,
+        deadman: packet.deadman
+      };
+
+      response = this._config;
+    }
+    else if(packet.id === 0x72 && this._requestQueue[0].type === 0x72){
+      request = this._requestQueue.shift();
+      response = packet.success;
+    }
+    else if(packet.id === 0x62 && this._requestQueue[0].type === 0x62){
+      request = this._requestQueue.shift();
+      response = packet.cmd2;
+    }
+    else if([0x6D, 0x6E].includes(packet.id) && [0x6D, 0x6E].includes(this._requestQueue[0].type)){
+      request = this._requestQueue.shift();
+      response = packet.success;
     }
 
-    /* Emitting updated info */
-    this.emit('config', this.config);
-
-    /* Flushing next command */
-    setTimeout(this._flush.bind(this), this._flushTimeout);
+    /* Finishing request */
+    if(request != null){
+      this._finishRequest(request, response);
+    }
   }
-  _gotCommandEcho(){
-    /* Marking we have an echo */
-    this._commandInFlight = false;
+  _finishRequest(request, response){
+    /* Resolving request */
+    request.resolve(response);
 
-    /* Flushing next command */
-    setTimeout(this._flush.bind(this), this._flushTimeout);
+    /* Flushing next command after cool down */
+    setTimeout(()=>{
+      /* Marking we have an echo */
+      this._requestInFlight = false;
+
+      /* Flushing next command */
+      this._flush();
+    }, this._flushTimeout);
   }
 
 };
