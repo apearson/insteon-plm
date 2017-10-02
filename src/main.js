@@ -225,14 +225,14 @@ module.exports = class PLM extends EventEmitter{
       const commandBuffer = Buffer.alloc(8);
 
       /* Creating command */
-      commandBuffer.writeUInt8(0x02, 0); //PLM Command
-      commandBuffer.writeUInt8(0x62, 1); //Standard Length Message
+      commandBuffer.writeUInt8(0x02, 0);  //PLM Command
+      commandBuffer.writeUInt8(0x62, 1);  //Standard Length Message
       commandBuffer.writeUInt8(id[0], 2); //Device High Address Byte
       commandBuffer.writeUInt8(id[1], 3); //Device Middle Address Byte
       commandBuffer.writeUInt8(id[2], 4); //Device Low Address Byte
-      commandBuffer.writeUInt8(0x07, 5); //Message Flag Byte
-      commandBuffer.writeUInt8(0x19, 6); //Command Byte 1
-      commandBuffer.writeUInt8(0x00, 7); //Command Byte 2
+      commandBuffer.writeUInt8(0x07, 5);  //Message Flag Byte
+      commandBuffer.writeUInt8(0x19, 6);  //Command Byte 1
+      commandBuffer.writeUInt8(0x01, 7);  //Command Byte 2
 
       /* Creating Request */
       const request = {
@@ -388,8 +388,8 @@ module.exports = class PLM extends EventEmitter{
 
   /* Response Functions */
   _handleResponse(packet){
-    let request;
-    let response;
+    /* Defining request and response objects */
+    let request, response;
 
     /* Determining Request and Response */
     if(packet.id === 0x50 && [0x11, 0x12, 0x13, 0x14].includes(this._requestQueue[0].type)){
@@ -439,13 +439,13 @@ module.exports = class PLM extends EventEmitter{
       request = this._requestQueue.shift();
       response = packet.success;
     }
-    else if(packet.id === 0x62 && this._requestQueue[0].type === 0x62){
-      request = this._requestQueue.shift();
-      response = packet.cmd2;
-    }
     else if([0x6D, 0x6E].includes(packet.id) && [0x6D, 0x6E].includes(this._requestQueue[0].type)){
       request = this._requestQueue.shift();
       response = packet.success;
+    }
+    else if(packet.id === 0x50 && this._requestQueue[0].type === 0x62){
+      request = this._requestQueue.shift();
+      response = packet.cmd2;
     }
 
     /* Finishing request */
