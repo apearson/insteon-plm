@@ -3,6 +3,9 @@ const EventEmitter = require('events');
 const SerialPort = require('serialport');
 const IPP = require('../lib/insteon-packet-parser');
 
+/* Request Handlers */
+const handlers = require('./handlers.js');
+
 /* PLM Class */
 module.exports = class PLM extends EventEmitter{
   constructor(portPath){
@@ -90,6 +93,34 @@ module.exports = class PLM extends EventEmitter{
 
       /* Sending command */
       this.execute(request);
+    });
+  }
+  syncAllLink(){
+    return new Promise(async (resolve, reject)=>{
+      let records = [];
+
+      /* Getting first record */
+      let record = await this.getFirstAllLinkRecord();
+
+      /* Checking if first record exists */
+      if(record !== false){
+        records.push(record);
+      }
+
+      /* While there are more records get them */
+      while(record !== false){
+        record = await this.getNextAllLinkRecord();
+
+        /* Checking if retrieved record exists */
+        if(record !== false){
+          records.push(record);
+        }
+      }
+
+      /* Saving all link database */
+      this.deviceLinks = records;
+
+      resolve(this.deviceLinks);
     });
   }
 
@@ -213,6 +244,50 @@ module.exports = class PLM extends EventEmitter{
   }
   close(){
     return this.port.close();
+  }
+
+  /* All Link Command */
+  getFirstAllLinkRecord(){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(2);
+
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);
+      commandBuffer.writeUInt8(0x69, 1);
+
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x57,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
+  getNextAllLinkRecord(){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(2);
+
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);
+      commandBuffer.writeUInt8(0x6A, 1);
+
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x57,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
   }
 
   /* Device Info */
@@ -388,65 +463,8 @@ module.exports = class PLM extends EventEmitter{
 
   /* Response Functions */
   _handleResponse(packet){
-    /* Defining request and response objects */
-    let request, response;
-
     /* Determining Request and Response */
-    if(packet.id === 0x50 && [0x11, 0x12, 0x13, 0x14].includes(this._requestQueue[0].type)){
-      /* Getting request from queue */
-      request = this._requestQueue.shift();
-      response = request.meaning;
-    }
-    else if(packet.id === 0x51 && [0x11, 0x12, 0x13, 0x14].includes(this._requestQueue[0].type)){
-      /* Getting request from queue */
-      request = this._requestQueue.shift();
-      response = request.meaning;
-    }
-    else if(packet.id === 0x73 && this._requestQueue[0].type === 0x73){
-      request = this._requestQueue.shift();
-      this._config = {
-        autoLinking: packet.autoLinking,
-        monitorMode: packet.monitorMode,
-        autoLED: packet.autoLED,
-        deadman: packet.deadman
-      };
-
-      response = this._config;
-    }
-    else if(packet.id === 0x60 && this._requestQueue[0].type === 0x60){
-      request = this._requestQueue.shift();
-      this._info = {
-        id: packet.ID,
-        devcat: packet.devcat,
-        subcat: packet.subcat,
-        firmware: packet.firmware,
-      };
-
-      response = this._info;
-    }
-    else if(packet.id === 0x6B && this._requestQueue[0].type === 0x6B){
-      request = this._requestQueue.shift();
-      this._config = {
-        autoLinking: packet.autoLinking,
-        monitorMode: packet.monitorMode,
-        autoLED: packet.autoLED,
-        deadman: packet.deadman
-      };
-
-      response = this._config;
-    }
-    else if(packet.id === 0x72 && this._requestQueue[0].type === 0x72){
-      request = this._requestQueue.shift();
-      response = packet.success;
-    }
-    else if([0x6D, 0x6E].includes(packet.id) && [0x6D, 0x6E].includes(this._requestQueue[0].type)){
-      request = this._requestQueue.shift();
-      response = packet.success;
-    }
-    else if(packet.id === 0x50 && this._requestQueue[0].type === 0x62){
-      request = this._requestQueue.shift();
-      response = packet.cmd2;
-    }
+    let [request, response] = handlers[packet.id](this._requestQueue, packet);
 
     /* Finishing request */
     if(request != null){
