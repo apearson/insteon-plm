@@ -59,6 +59,7 @@
     "dist"
   ],
   "dependencies": {
+    "insteon-packet-parser": "^2.1.0",
     "serialport": "^5.0.0"
   },
   "devDependencies": {
