@@ -15,8 +15,7 @@ module.exports = class PLM extends EventEmitter{
     /* Internal Variables */
     this._requestQueue = [];
     this._requestInFlight = false;
-    this.powerLincLinks = [];
-    this.deviceLinks = [];
+    this._allLinks = [];
     this._flushTimeout = 250;
     this._config = null;
 
@@ -36,7 +35,16 @@ module.exports = class PLM extends EventEmitter{
     this.port.pipe(this.parser);
 
     /* Waiting for serial port to open */
-    this.port.on('open', () => {
+    this.port.on('open', async () => {
+      /* Emitting connected and syncing */
+      this.emit('connected');
+
+      /* Inital Sync of info */
+      this._info   = await this.syncInfo();
+      this._config = await this.syncConfig();
+      await this.syncAllLink();
+
+      /* Emitting ready */
       this.emit('ready');
     });
 
@@ -97,14 +105,15 @@ module.exports = class PLM extends EventEmitter{
   }
   syncAllLink(){
     return new Promise(async (resolve, reject)=>{
-      let records = [];
+      /* Creating an array of 255 groups filled with empty arrays */
+      let groups = [...Array(255).keys()].map(i => Array(0));
 
       /* Getting first record */
       let record = await this.getFirstAllLinkRecord();
 
       /* Checking if first record exists */
       if(record !== false){
-        records.push(record);
+        groups[record.group].push(record);        
       }
 
       /* While there are more records get them */
@@ -113,14 +122,14 @@ module.exports = class PLM extends EventEmitter{
 
         /* Checking if retrieved record exists */
         if(record !== false){
-          records.push(record);
+          groups[record.group].push(record);          
         }
       }
 
       /* Saving all link database */
-      this.deviceLinks = records;
+      this._allLinks = groups;
 
-      resolve(this.deviceLinks);
+      resolve(this._allLinks);
     });
   }
 
@@ -130,6 +139,9 @@ module.exports = class PLM extends EventEmitter{
   }
   get config(){
     return this._config;
+  }
+  get allLinks(){
+    return this._allLinks;
   }
 
   /* Modem LED */
