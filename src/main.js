@@ -1,6 +1,7 @@
 /* Libraries */
 const EventEmitter = require('events');
-const SerialPort = require('serialport');
+const SerialPort   = require('serialport');
+const emptyPromise = require('empty-promise');
 const IPP = require('../lib/insteon-packet-parser');
 
 /* Request Handlers */
@@ -14,9 +15,14 @@ module.exports = class PLM extends EventEmitter{
 
     /* Internal Variables */
     this._requestQueue = [];
+    this._deviceQueues = {};
     this._requestInFlight = false;
+    this._flushTimeout = 700;
+    
+    this._allLinking = false;    
     this._allLinks = [];
-    this._flushTimeout = 250;
+
+    this._info = null;
     this._config = null;
 
     /* Opening serial port */
@@ -40,8 +46,8 @@ module.exports = class PLM extends EventEmitter{
       this.emit('connected');
 
       /* Inital Sync of info */
-      this._info   = await this.syncInfo();
-      this._config = await this.syncConfig();
+      //this._info   = await this.syncInfo();
+      //this._config = await this.syncConfig();
       //await this.syncAllLink();
 
       /* Emitting ready */
@@ -50,10 +56,7 @@ module.exports = class PLM extends EventEmitter{
 
     /* On Packet */
     this.parser.on('data', (packet)=>{
-      /* Checking if we need to do anything special with packet */
-      if(this._requestInFlight){
-        this._handleResponse(packet);
-      }
+      this._handleResponse(packet);
 
       /* Emitting packet for others to use */
       this.emit('packet', packet);
@@ -119,7 +122,7 @@ module.exports = class PLM extends EventEmitter{
       /* While there are more records get them */
       while(record !== false){
         record = await this.getNextAllLinkRecord();
-
+        
         /* Checking if retrieved record exists */
         if(record !== false){
           groups[record.group].push(record);          
@@ -259,6 +262,50 @@ module.exports = class PLM extends EventEmitter{
   }
 
   /* All Link Command */
+  startLinking(type, group){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(4);
+    
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0); //PLM Command
+      commandBuffer.writeUInt8(0x64, 1); //Start Linking Byte
+      commandBuffer.writeUInt8(type, 2); //Link Code
+      commandBuffer.writeUInt8(group, 3); //Group
+
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x64,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
+  cancelLinking(){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(2);
+    
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0); //PLM Command
+      commandBuffer.writeUInt8(0x65, 1); //Start Linking Byte
+
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x65,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
   getFirstAllLinkRecord(){
     return new Promise((resolve, reject)=>{
       /* Allocating command buffer */
@@ -303,6 +350,41 @@ module.exports = class PLM extends EventEmitter{
   }
 
   /* Device Info */
+  getID(deviceID){
+    return new Promise((resolve, reject)=>{      
+      /* Parsing out device ID */
+      const id = deviceID.split('.').map((byte)=> parseInt(byte, 16));
+
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(8);
+
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);  //PLM Command
+      commandBuffer.writeUInt8(0x62, 1);  //Standard Length Message
+      commandBuffer.writeUInt8(id[0], 2); //Device High Address Byte
+      commandBuffer.writeUInt8(id[1], 3); //Device Middle Address Byte
+      commandBuffer.writeUInt8(id[2], 4); //Device Low Address Byte
+      commandBuffer.writeUInt8(0x07, 5);  //Message Flag Byte
+      commandBuffer.writeUInt8(0x10, 6);  //Command Byte 1
+      commandBuffer.writeUInt8(0x01, 7);  //Command Byte 2
+
+      /* Handler */
+      const handler = (packet)=>{
+        console.log('Got packet', packet);
+      };
+
+      /* Creating Request */
+      const request = {
+        resolve: handler,
+        reject: reject,
+        type: 0x62,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
   status(deviceID){
     return new Promise((resolve, reject)=>{      
       /* Parsing out device ID */
@@ -379,7 +461,7 @@ module.exports = class PLM extends EventEmitter{
       const request = {
         resolve: resolve,
         reject: reject,
-        type: command,
+        type: 0x62,
         command: commandBuffer,
       };
 
@@ -389,7 +471,32 @@ module.exports = class PLM extends EventEmitter{
   }
 
   async execute(request){
+    /* Checking if request is device command */
+    if(request.type === 0x62 || request.type === 0x57){
+      /* Setting inital device as modem */
+      let deviceIndex = 0;
+
+      /* Checking if command is for actual device and not modem */
+      if(request.type === 0x62){
+        /* Converting to field to string for device queuing */
+        //deviceIndex = request.command.readUIntBE(2, 5);
+        const toBuffer = request.command.slice(2,5);
+        deviceIndex = toBuffer.readUIntBE(0, 3);
+      }
+
+      /* Checking we need initalize the device's queue */
+      if(this._deviceQueues[deviceIndex] == null){
+        this._deviceQueues[deviceIndex] = [];
+      }
+
+      /* Pushing request onto device queue */
+      this._deviceQueues[deviceIndex].push(request);
+    }
+
+    /* Pushing request onto modem queue */
     this._requestQueue.push(request);
+
+    /* Flushing queue */
     this._flush();
   }
 
@@ -476,17 +583,14 @@ module.exports = class PLM extends EventEmitter{
   /* Response Functions */
   _handleResponse(packet){
     /* Determining Request and Response */
-    let [request, response] = handlers[packet.id](this._requestQueue, packet);
+    let requiresFinishing = handlers[packet.id](this._requestQueue, this._deviceQueues, packet);
 
     /* Finishing request */
-    if(request != null){
-      this._finishRequest(request, response);
+    if(requiresFinishing){
+      this._finishRequest();
     }
   }
-  _finishRequest(request, response){
-    /* Resolving request */
-    request.resolve(response);
-
+  _finishRequest(){    
     /* Flushing next command after cool down */
     setTimeout(()=>{
       /* Marking we have an echo */

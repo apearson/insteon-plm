@@ -1,118 +1,256 @@
 /* Packet Handling Classes */
 module.exports = {
-  0x50: (requestQueue, packet)=>{
-    /* Checking request queue for correct packet */
-    if([0x11, 0x12, 0x13, 0x14].includes(requestQueue[0].type)){
-      const request = requestQueue.shift();
+  /** IM to Host **/
+  /* Standard Message Received */
+  0x50: (requestQueue, deviceQueues, packet)=>{
+    /* Converting from field to string for device queuing */
+    const fromBuffer = Buffer.from(packet.from);
+    const deviceIndex = fromBuffer.readUIntBE(0, 3);
 
-      return [request, request.meaning];
-    }
-    else if(requestQueue[0].type === 0x62){
-      const request = requestQueue.shift();
+    /* Checking if device queue contains request */
+    if(deviceQueues[deviceIndex][0].type === 0x62){
+      const request = deviceQueues[deviceIndex].shift();
 
-      return [request, packet.cmd2];
+      /* Resolving request */
+      request.resolve(packet);
     }
+
+    /* Returning that the request does not need finishing */
+    return false;
   },
-  0x51: (requestQueue, packet)=>{
-    /* Checking request queue for correct packet */
-    if([0x11, 0x12, 0x13, 0x14].includes(requestQueue[0].type)){
-      const request = requestQueue.shift();
-      
-      return [request, request.meaning];
-    }
-  },
-  0x57: (requestQueue, packet)=>{
-    if(requestQueue[0].type === 0x57){
-      const request = requestQueue.shift();
+  /* Extended Message Received */
+  0x51: (requestQueue, deviceQueues, packet)=>{
+    /* Converting from field to string for device queuing */
+    const fromBuffer = Buffer.from(packet.from);
+    const deviceIndex = fromBuffer.readUIntBE(0, 3);
 
-      return [request, {
+    /* Checking if device queue contains request */
+    if(deviceQueues[deviceIndex][0].type === 0x62){
+      const request = deviceQueues[deviceIndex].shift();
+
+      /* Resolving request */
+      request.resolve(packet);
+    }
+
+    /* Returning that the request does not need finishing */
+    return false;
+  },
+  /* ALL-Link Record Response */
+  0x57: (requestQueue, deviceQueues, packet)=>{
+    if(deviceQueues[0][0].type === 0x57){
+      const request = deviceQueues[0].shift();
+
+      /* Resolving request */
+      request.resolve({
         type: packet.recordType,
         group: packet.allLinkGroup,
         from: packet.from,
         linkData: packet.linkData
-      }];
+      });
     }
+
+    /* Returning that the request does not need finishing */
+    return false;
   },
-  0x60: (requestQueue, packet)=>{
+
+  /** Host to IM **/
+  /* Get IM Info */
+  0x60: (requestQueue, deviceQueues, packet)=>{
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x60){
       const request = requestQueue.shift();
 
-      return [request, {
+      /* Resolving request */
+      request.resolve({
         id: packet.ID,
         devcat: packet.devcat,
         subcat: packet.subcat,
         firmware: packet.firmware,
-      }];
+      });
+      
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
     }
   },
-  0x62: (requestQueue, packet)=>{
-    return [null, null];
+  /* Send Standard or Extended Message */
+  0x62: (requestQueue, deviceQueues, packet)=>{
+    /* Checking request queue for correct packet */
+    if(requestQueue[0].type === 0x62){
+      const request = requestQueue.shift();
+      
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
+    }
   },
-  0x69: (requestQueue, packet)=>{
-    if(requestQueue[0].type === 0x57 && !packet.success){
+  /* Start ALL-Linking */
+  0x64: (requestQueue, deviceQueues, packet)=>{
+    if(requestQueue[0].type === 0x64){
       const request = requestQueue.shift();
 
-      return [request, false];
+      /* Resolving request */
+      request.resolve(packet.success);
+      
+      /* Returning that the request was handled */
+      return true;
     }
-    return [null, null];
+    else{
+      /* Returning that the request was not handled */
+      return false;
+    }
   },
-  0x6A: (requestQueue, packet)=>{
-    if(requestQueue[0].type === 0x57 && !packet.success){
+  /* Cancel ALL-Linking */
+  0x65: (requestQueue, deviceQueues, packet)=>{
+    if(requestQueue[0].type === 0x65){
       const request = requestQueue.shift();
 
-      return [request, false];
+      /* Resolving request */
+      request.resolve(packet.success);
+      
+      /* Returning that the request was handled */
+      return true;
     }
-    return [null, null];
+    else{
+      /* Returning that the request was not handled */
+      return false;
+    }
   },
-  0x6B: (requestQueue, packet)=>{
+  /* Get First ALL-Link Record */
+  0x69: (requestQueue, deviceQueues, packet)=>{
+    if(requestQueue[0].type === 0x57){
+      const request = requestQueue.shift();
+
+      /* If request did not ack successfully */
+      if(!packet.success){
+        request.resolve(false);
+      }
+
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
+    }
+  },
+  /* Get Next ALL-Link Record */
+  0x6A: (requestQueue, deviceQueues, packet)=>{
+    if(requestQueue[0].type === 0x57){
+      const request = requestQueue.shift();
+
+      /* If request did not ack successfully */
+      if(!packet.success){
+        request.resolve(false);
+      }
+
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
+    }
+  },
+  /* Set IM Configuration */
+  0x6B: (requestQueue, deviceQueues, packet)=>{
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x6B){
       const request = requestQueue.shift();
       
-      return [request, {
+      /* Resolving request */
+      request.resolve({
         autoLinking: packet.autoLinking,
         monitorMode: packet.monitorMode,
         autoLED: packet.autoLED,
         deadman: packet.deadman
-      }];
+      });
+
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
     }
   },
-  0x6D: (requestQueue, packet)=>{
+  /* LED On */
+  0x6D: (requestQueue, deviceQueues, packet)=>{
     /* Checking request queue for correct packet */
-    if([0x6D, 0x6E].includes(requestQueue[0].type)){
+    if(requestQueue[0].type === 0x6D){
       const request = requestQueue.shift();
       
-      return [request, packet.success];
+      /* Resolving request */
+      request.resolve(packet.success);
+      
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
     }
   },
-  0x6E: (requestQueue, packet)=>{
+  /* LED Off */
+  0x6E: (requestQueue, deviceQueues, packet)=>{
     /* Checking request queue for correct packet */
-    if([0x6D, 0x6E].includes(requestQueue[0].type)){
+    if(requestQueue[0].type === 0x6E){
       const request = requestQueue.shift();
       
-      return [request, packet.success];
+      /* Resolving request */
+      request.resolve(packet.success);
+      
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
     }
   },
-  0x72: (requestQueue, packet)=>{
+  /* RF Sleep */
+  0x72: (requestQueue, deviceQueues, packet)=>{
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x72){
       const request = requestQueue.shift();
-      
-      return [request, packet.success];
+
+      /* Resolving request */
+      request.resolve(packet.success);
+
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
     }
   },
-  0x73: (requestQueue, packet)=>{
+  /* Get IM Configuration */
+  0x73: (requestQueue, deviceQueues, packet)=>{
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x73){
       const request = requestQueue.shift();
-      
-      return [request, {
+
+      /* Resolving request */
+      request.resolve({
         autoLinking: packet.autoLinking,
         monitorMode: packet.monitorMode,
         autoLED: packet.autoLED,
         deadman: packet.deadman
-      }];
+      });
+
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
     }
   },
 };

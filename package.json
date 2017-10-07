@@ -59,6 +59,7 @@
     "dist"
   ],
   "dependencies": {
+    "empty-promise": "^1.2.0",
     "insteon-packet-parser": "^2.1.0",
     "serialport": "^5.0.0"
   },
