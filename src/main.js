@@ -42,7 +42,7 @@ module.exports = class PLM extends EventEmitter{
       /* Inital Sync of info */
       this._info   = await this.syncInfo();
       this._config = await this.syncConfig();
-      await this.syncAllLink();
+      //await this.syncAllLink();
 
       /* Emitting ready */
       this.emit('ready');
@@ -180,7 +180,7 @@ module.exports = class PLM extends EventEmitter{
       let flagByte = 0x00;
       
       if(!autoLinking) flagByte |= 0x80;  //1000 0000
-      if(!monitorMode) flagByte |= 0x40;  //0100 0000
+      if(monitorMode)  flagByte |= 0x40;  //0100 0000
       if(!autoLED)     flagByte |= 0x20;  //0010 0000
       if(!deadman)     flagByte |= 0x10;  //0001 0000
 
