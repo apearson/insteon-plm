@@ -392,14 +392,9 @@ module.exports = class PLM extends EventEmitter{
       commandBuffer.writeUInt8(0x10, 6);  //Command Byte 1
       commandBuffer.writeUInt8(0x01, 7);  //Command Byte 2
 
-      /* Handler */
-      const handler = (packet)=>{
-        console.log('Got packet', packet);
-      };
-
       /* Creating Request */
       const request = {
-        resolve: handler,
+        resolve: resolve,
         reject: reject,
         type: 0x62,
         command: commandBuffer,
