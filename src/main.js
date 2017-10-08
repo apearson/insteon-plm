@@ -46,9 +46,9 @@ module.exports = class PLM extends EventEmitter{
       this.emit('connected');
 
       /* Inital Sync of info */
-      this._info   = await this.syncInfo();
-      this._config = await this.syncConfig();
-      await this.syncAllLink();
+      // this._info   = await this.syncInfo();
+      // this._config = await this.syncConfig();
+      // await this.syncAllLink();
 
       /* Emitting ready */
       this.emit('ready');
@@ -579,15 +579,23 @@ module.exports = class PLM extends EventEmitter{
 
       /* Checking we need initalize the device's queue */
       if(this._deviceQueues[deviceIndex] == null){
-        this._deviceQueues[deviceIndex] = [];
+        console.log('Creating device queue', deviceIndex);
+        /* Creating queue object */
+        this._deviceQueues[deviceIndex] = {
+          inFlight: false,
+          queue: []
+        };
       }
 
+      console.log('Pushing onto device queue', deviceIndex);
       /* Pushing request onto device queue */
-      this._deviceQueues[deviceIndex].push(request);
+      this._deviceQueues[deviceIndex].queue.push(request);
     }
-
-    /* Pushing request onto modem queue */
-    this._requestQueue.push(request);
+    else{
+      console.log('Pushing onto request queue');
+      /* Pushing request onto modem queue */
+      this._requestQueue.push(request);
+    }
 
     /* Flushing queue */
     this._flush();
@@ -658,6 +666,16 @@ module.exports = class PLM extends EventEmitter{
     return commandBuffer;
   }
   async _flush(){
+    /* Checking if any device queues are ready to be moved to modem queue */
+    Object.keys(this._deviceQueues).forEach((key)=>{
+      /* If there is not a command in flight */
+      if(this._deviceQueues[key].queue[0] && !this._deviceQueues[key].inFlight){
+        console.log('Moving from device queue',key, 'to request queue');
+        this._deviceQueues[key].inFlight = true;
+        this._requestQueue.push(this._deviceQueues[key].queue[0]);
+      }
+    });
+
     /* Checking we have a request and a command is not in progress */
     if(this._requestQueue[0] && !this._requestInFlight){
       /* Marking command in flight */
@@ -680,10 +698,14 @@ module.exports = class PLM extends EventEmitter{
 
     /* Finishing request */
     if(requiresFinishing){
-      this._finishRequest();
+      /* Marking we have an echo */
+      this._requestInFlight = false;
     }
+
+    /* Flushing next command */
+    this._flush();
   }
-  _finishRequest(){    
+  _finishRequest(){
     /* Flushing next command after cool down */
     setTimeout(()=>{
       /* Marking we have an echo */

@@ -8,11 +8,12 @@ module.exports = {
     const deviceIndex = fromBuffer.readUIntBE(0, 3);
 
     /* Checking if device queue contains request */
-    if(deviceQueues[deviceIndex] != null && deviceQueues[deviceIndex][0].type === 0x62){
-      const request = deviceQueues[deviceIndex].shift();
+    if(deviceQueues[deviceIndex] != null && deviceQueues[deviceIndex].queue[0].type === 0x62){
+      const request = deviceQueues[deviceIndex].queue.shift();
+      deviceQueues[deviceIndex].inFlight = false;
 
       /* Resolving request */
-      setTimeout(()=> request.resolve(packet), 150);
+      request.resolve(packet);      
     }
 
     /* Returning that the request does not need finishing */
@@ -25,8 +26,9 @@ module.exports = {
     const deviceIndex = fromBuffer.readUIntBE(0, 3);
 
     /* Checking if device queue contains request */
-    if(deviceQueues[deviceIndex][0].type === 0x62){
-      const request = deviceQueues[deviceIndex].shift();
+    if(deviceQueues[deviceIndex] != null && deviceQueues[deviceIndex].queue[0].type === 0x62){
+      const request = deviceQueues[deviceIndex].queue.shift();
+      deviceQueues[deviceIndex].inFlight = false;
 
       /* Resolving request */
       request.resolve(packet);
@@ -37,8 +39,9 @@ module.exports = {
   },
   /* ALL-Link Record Response */
   0x57: (requestQueue, deviceQueues, packet)=>{
-    if(deviceQueues[0][0].type === 0x57){
-      const request = deviceQueues[0].shift();
+    if(deviceQueues[0].queue[0].type === 0x57){
+      const request = deviceQueues[0].queue.shift();
+      deviceQueues[0].inFlight = false;
 
       /* Resolving request */
       request.resolve({
