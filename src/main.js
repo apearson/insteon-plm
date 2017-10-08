@@ -17,7 +17,7 @@ module.exports = class PLM extends EventEmitter{
     this._requestQueue = [];
     this._deviceQueues = {};
     this._requestInFlight = false;
-    this._flushTimeout = 700;
+    this._flushTimeout = 0;
     
     this._allLinking = false;    
     this._allLinks = [];
@@ -46,9 +46,9 @@ module.exports = class PLM extends EventEmitter{
       this.emit('connected');
 
       /* Inital Sync of info */
-      //this._info   = await this.syncInfo();
-      //this._config = await this.syncConfig();
-      //await this.syncAllLink();
+      this._info   = await this.syncInfo();
+      this._config = await this.syncConfig();
+      await this.syncAllLink();
 
       /* Emitting ready */
       this.emit('ready');
@@ -200,6 +200,30 @@ module.exports = class PLM extends EventEmitter{
         resolve: resolve,
         reject: reject,
         type: 0x6B,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
+  setCategory(cat, subcat){
+    return new Promise((resolve, reject)=>{
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(5);
+    
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02,   0); //PLM Command
+      commandBuffer.writeUInt8(0x66,   1); //Set Cat and Subcat
+      commandBuffer.writeUInt8(cat,    2); //Cat
+      commandBuffer.writeUInt8(subcat, 3); //Subcat
+      commandBuffer.writeUInt8(0xff,   4); //Legacy Firmware version
+
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x66,
         command: commandBuffer,
       };
 
@@ -456,6 +480,80 @@ module.exports = class PLM extends EventEmitter{
       /* Pulling address out and making new array */
       const address = data.slice(1,5);
       const commandBuffer = this._createSwitchCommand(address, command, state);
+
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x62,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
+  sendStandardCommand(deviceID, flags, cmd1, cmd2){
+    return new Promise((resolve, reject)=>{      
+      /* Parsing out device ID */
+      const id = deviceID.split('.').map((byte)=> parseInt(byte, 16));
+
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(8);
+
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);  //PLM Command
+      commandBuffer.writeUInt8(0x62, 1);  //Standard Length Message
+      commandBuffer.writeUInt8(id[0], 2); //Device High Address Byte
+      commandBuffer.writeUInt8(id[1], 3); //Device Middle Address Byte
+      commandBuffer.writeUInt8(id[2], 4); //Device Low Address Byte
+      commandBuffer.writeUInt8(flags || 0x0F, 5); //Message Flag Byte
+      commandBuffer.writeUInt8(cmd1 || 0x00, 6);  //Command Byte 1
+      commandBuffer.writeUInt8(cmd2 || 0x00, 7);  //Command Byte 2
+
+      /* Creating Request */
+      const request = {
+        resolve: resolve,
+        reject: reject,
+        type: 0x62,
+        command: commandBuffer,
+      };
+
+      /* Sending command */
+      this.execute(request);
+    });
+  }
+  sendExtendedCommand(deviceID, flags, cmd1, cmd2, userData){
+    return new Promise((resolve, reject)=>{      
+      /* Parsing out device ID */
+      const id = deviceID.split('.').map((byte)=> parseInt(byte, 16));
+
+      /* Allocating command buffer */
+      const commandBuffer = Buffer.alloc(22);
+
+      /* Creating command */
+      commandBuffer.writeUInt8(0x02, 0);  //PLM Command
+      commandBuffer.writeUInt8(0x62, 1);  //Standard Length Message
+      commandBuffer.writeUInt8(id[0], 2); //Device High Address Byte
+      commandBuffer.writeUInt8(id[1], 3); //Device Middle Address Byte
+      commandBuffer.writeUInt8(id[2], 4); //Device Low Address Byte
+      commandBuffer.writeUInt8(flags || 0x0F, 5); //Message Flag Byte
+      commandBuffer.writeUInt8(cmd1 || 0x00, 6);  //Command Byte 1
+      commandBuffer.writeUInt8(cmd2 || 0x00, 7);  //Command Byte 2
+      commandBuffer.writeUInt8(userData[0]  || 0x00, 8);  //User Data 1
+      commandBuffer.writeUInt8(userData[1]  || 0x00, 9);  //User Data 2
+      commandBuffer.writeUInt8(userData[2]  || 0x00, 10);  //User Data 3
+      commandBuffer.writeUInt8(userData[3]  || 0x00, 11);  //User Data 4
+      commandBuffer.writeUInt8(userData[4]  || 0x00, 12);  //User Data 5
+      commandBuffer.writeUInt8(userData[5]  || 0x00, 13);  //User Data 6
+      commandBuffer.writeUInt8(userData[6]  || 0x00, 14);  //User Data 7
+      commandBuffer.writeUInt8(userData[7]  || 0x00, 15);  //User Data 8
+      commandBuffer.writeUInt8(userData[8]  || 0x00, 16);  //User Data 9
+      commandBuffer.writeUInt8(userData[9]  || 0x00, 17);  //User Data 10
+      commandBuffer.writeUInt8(userData[10] || 0x00, 18);  //User Data 11
+      commandBuffer.writeUInt8(userData[11] || 0x00, 19);  //User Data 12
+      commandBuffer.writeUInt8(userData[12] || 0x00, 20);  //User Data 13
+      commandBuffer.writeUInt8(userData[13] || 0x00, 21);  //User Data 14
 
       /* Creating Request */
       const request = {

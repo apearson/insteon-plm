@@ -8,11 +8,11 @@ module.exports = {
     const deviceIndex = fromBuffer.readUIntBE(0, 3);
 
     /* Checking if device queue contains request */
-    if(deviceQueues[deviceIndex][0].type === 0x62){
+    if(deviceQueues[deviceIndex] != null && deviceQueues[deviceIndex][0].type === 0x62){
       const request = deviceQueues[deviceIndex].shift();
 
       /* Resolving request */
-      request.resolve(packet);
+      setTimeout(()=> request.resolve(packet), 150);
     }
 
     /* Returning that the request does not need finishing */
@@ -113,6 +113,21 @@ module.exports = {
 
       /* Resolving request */
       request.resolve(packet.success);
+      
+      /* Returning that the request was handled */
+      return true;
+    }
+    else{
+      /* Returning that the request was not handled */
+      return false;
+    }
+  },
+  0x66: (requestQueue, deviceQueues, packet)=>{
+    if(requestQueue[0].type === 0x65){
+      const request = requestQueue.shift();
+
+      /* Resolving request */
+      request.resolve(packet);
       
       /* Returning that the request was handled */
       return true;
