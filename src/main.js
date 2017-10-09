@@ -18,6 +18,7 @@ module.exports = class PLM extends EventEmitter{
     this._deviceQueues = {};
     this._requestInFlight = false;
     this._flushTimeout = 0;
+    this._commandTimeout = 1000;
     
     this._allLinking = false;    
     this._allLinks = [];
@@ -56,10 +57,10 @@ module.exports = class PLM extends EventEmitter{
 
     /* On Packet */
     this.parser.on('data', (packet)=>{
-      this._handleResponse(packet);
-
       /* Emitting packet for others to use */
       this.emit('packet', packet);
+
+      this._handleResponse(packet);
     });
   }
 
@@ -579,7 +580,6 @@ module.exports = class PLM extends EventEmitter{
 
       /* Checking we need initalize the device's queue */
       if(this._deviceQueues[deviceIndex] == null){
-        console.log('Creating device queue', deviceIndex);
         /* Creating queue object */
         this._deviceQueues[deviceIndex] = {
           inFlight: false,
@@ -587,12 +587,10 @@ module.exports = class PLM extends EventEmitter{
         };
       }
 
-      console.log('Pushing onto device queue', deviceIndex);
       /* Pushing request onto device queue */
       this._deviceQueues[deviceIndex].queue.push(request);
     }
     else{
-      console.log('Pushing onto request queue');
       /* Pushing request onto modem queue */
       this._requestQueue.push(request);
     }
@@ -670,7 +668,6 @@ module.exports = class PLM extends EventEmitter{
     Object.keys(this._deviceQueues).forEach((key)=>{
       /* If there is not a command in flight */
       if(this._deviceQueues[key].queue[0] && !this._deviceQueues[key].inFlight){
-        console.log('Moving from device queue',key, 'to request queue');
         this._deviceQueues[key].inFlight = true;
         this._requestQueue.push(this._deviceQueues[key].queue[0]);
       }
@@ -692,9 +689,9 @@ module.exports = class PLM extends EventEmitter{
   }
 
   /* Response Functions */
-  _handleResponse(packet){
+  async _handleResponse(packet){
     /* Determining Request and Response */
-    let requiresFinishing = handlers[packet.id](this._requestQueue, this._deviceQueues, packet);
+    let requiresFinishing = await handlers[packet.id](this._requestQueue, this._deviceQueues, packet);
 
     /* Finishing request */
     if(requiresFinishing){
@@ -705,15 +702,4 @@ module.exports = class PLM extends EventEmitter{
     /* Flushing next command */
     this._flush();
   }
-  _finishRequest(){
-    /* Flushing next command after cool down */
-    setTimeout(()=>{
-      /* Marking we have an echo */
-      this._requestInFlight = false;
-
-      /* Flushing next command */
-      this._flush();
-    }, this._flushTimeout);
-  }
-
 };
