@@ -1,7 +1,9 @@
 /* Library */
-import {ModemRequest} from './main';
+import {PLM, ModemRequest} from './main';
 import {Packets, PacketID} from '../../insteon-packet-parser/dist/main';
+import {EventEmitter} from 'events';
 
+/* Exports */
 export interface handlers{
   [key: number]: any;
 }
@@ -10,9 +12,13 @@ export interface handlers{
 export const handlers: handlers = {
   /** IM to Host **/
   /* Standard Message Received */
-  0x50: async (requestQueue: ModemRequest[], packet: Packets.StandardMessageRecieved)=>{
+  0x50: async (requestQueue: ModemRequest[], packet: Packets.StandardMessageRecieved, modem: PLM)=>{
+    /* Emitting device packet */
+    const deviceID = packet.from.map((byte)=> ('0'+(byte).toString(16)).slice(-2).toUpperCase()).join(':');
+    modem.emit(deviceID, packet);
+
     /* Checking request queue for correct packet */
-    if(requestQueue[0].type === 0x50){
+    if(requestQueue[0] != null && requestQueue[0].type === 0x50){
       const request = requestQueue.shift();
 
       /* Resolving request */
@@ -82,7 +88,7 @@ export const handlers: handlers = {
 
       /* Resolving request */
       request.resolve(packet);
-      
+
       /* Handled */
       return true;
     }
@@ -181,7 +187,7 @@ export const handlers: handlers = {
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x6B){
       const request = requestQueue.shift();
-      
+
       /* Resolving request */
       request.resolve(packet);
 
@@ -197,7 +203,7 @@ export const handlers: handlers = {
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x6D){
       const request = requestQueue.shift();
-      
+
       /* Resolving request */
       request.resolve(packet);
 
@@ -213,7 +219,7 @@ export const handlers: handlers = {
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x6E){
       const request = requestQueue.shift();
-      
+
       /* Resolving request */
       request.resolve(packet);
 

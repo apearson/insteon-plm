@@ -1,17 +1,20 @@
 /* Libraries */
 import {EventEmitter} from 'events';
 import * as SerialPort from 'serialport';
-import {InsteonParser, PacketID, Packets} from '../../insteon-packet-parser/dist/main';
+import {InsteonParser, PacketID, Packets} from '../../insteon-packet-parser/src/main';
+
+/* Library Exports */
+export {Packets, PacketID};
+
+/* Types */
+import {Byte} from './typings/typings';
 
 /* Devices */
-import {InsteonDevice} from './devices/InsteonDevice';
+export {InsteonDevice} from './devices/InsteonDevice';
 export {KeypadLincRelay} from './devices/KeypadLincRelay';
 export {OutletLinc} from './devices/OutletLinc';
 export {SwitchLincDimmer} from './devices/SwitchLincDimmer';
 export {SwitchLincRelay} from './devices/SwitchLincRelay';
-
-/* Exports */
-export {InsteonDevice}
 
 /* Request Handlers */
 import {handlers} from './handlers';
@@ -49,11 +52,11 @@ export class PLM extends EventEmitter{
 	private _links: Packets.AllLinkRecordResponse[][] = [];
 
 	/* Internal Data holder */
-	private _info:ModemInfo = { 
+	private _info:ModemInfo = {
 		id: [0x00,0x00,0x00],
 		devcat: 0x00,
 		subcat: 0x00,
-		firmware: 0x00 
+		firmware: 0x00
 	};
 	private _config: ModemConfig = {
 		autoLinking: false,
@@ -70,7 +73,7 @@ export class PLM extends EventEmitter{
 	constructor(portPath: string){
 		/* Constructing super class */
 		super();
-		
+
 		/* Opening serial port */
 		this._port = new SerialPort(portPath, {
 			lock: false,
@@ -81,7 +84,7 @@ export class PLM extends EventEmitter{
 		});
 
 		/* Creating new parser */
-		this._parser = new InsteonParser();
+		this._parser = new InsteonParser({debug: false, objectMode: true});
 
 		/* Porting serial port to parser */
 		this._port.pipe(this._parser);
@@ -170,7 +173,7 @@ export class PLM extends EventEmitter{
 			/* While there are more records get them */
 			while(typeof record != 'boolean'){
 				record = await this.getNextAllLinkRecord();
-				
+
 				/* Checking if retrieved record exists */
 				if(typeof record != 'boolean'){
 					groups[record.allLinkGroup].push(record);
@@ -230,7 +233,7 @@ export class PLM extends EventEmitter{
 		return new Promise((resolve, reject)=>{
 			/* Configuration byte */
 			let flagByte = 0x00;
-			
+
 			if(!autoLinking) flagByte |= 0x80;  //1000 0000
 			if(monitorMode)  flagByte |= 0x40;  //0100 0000
 			if(!autoLED)     flagByte |= 0x20;  //0010 0000
@@ -261,7 +264,7 @@ export class PLM extends EventEmitter{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(5);
-		
+
 			/* Creating command */
 			commandBuffer.writeUInt8(0x02,   0); //PLM Command
 			commandBuffer.writeUInt8(0x66,   1); //Set Cat and Subcat
@@ -286,7 +289,7 @@ export class PLM extends EventEmitter{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(4);
-		
+
 			/* Creating command */
 			commandBuffer.writeUInt8(0x02, 0); //PLM Command
 			commandBuffer.writeUInt8(0x72, 1); //RF Sleep Byte
@@ -310,7 +313,7 @@ export class PLM extends EventEmitter{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(1);
-		
+
 			/* Creating command */
 			commandBuffer.writeUInt8(0x02, 0); //PLM Command
 
@@ -343,7 +346,7 @@ export class PLM extends EventEmitter{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(4);
-		
+
 			/* Creating command */
 			commandBuffer.writeUInt8(0x02, 0); //PLM Command
 			commandBuffer.writeUInt8(0x64, 1); //Start Linking Byte
@@ -367,7 +370,7 @@ export class PLM extends EventEmitter{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
-		
+
 			/* Creating command */
 			commandBuffer.writeUInt8(0x02, 0); //PLM Command
 			commandBuffer.writeUInt8(0x65, 1); //Start Linking Byte
@@ -542,7 +545,7 @@ export class PLM extends EventEmitter{
 	/* Response Functions */
 	async _handleResponse(packet: Packets.Packet){
 		/* Determining Request and Response */
-		let requestHandled = await handlers[packet.id](this._requestQueue, packet) as boolean;
+		let requestHandled = await handlers[packet.id](this._requestQueue, packet, this) as boolean;
 
 		/* Finishing request */
 		if(requestHandled){
