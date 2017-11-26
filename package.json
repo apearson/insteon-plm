@@ -4,67 +4,19 @@
   "description": "",
   "main": "./src/main.js",
   "scripts": {
-    "test": "node ./tests/test.js"
+    "test": "npm run build && node ./tests/test.js",
+    "build": "tsc"
   },
   "author": "John Andrew Tyler Pearson",
   "license": "MIT",
-  "eslintConfig": {
-    "globals": {},
-    "parserOptions": {
-      "ecmaVersion": 8,
-      "impliedStrict": true
-    },
-    "env": {
-      "es6": true,
-      "node": true
-    },
-    "extends": "eslint:recommended",
-    "rules": {
-      "indent": [
-        "error",
-        2,
-        {
-          "SwitchCase": 1
-        }
-      ],
-      "linebreak-style": [
-        "error",
-        "unix"
-      ],
-      "quotes": [
-        "error",
-        "single"
-      ],
-      "semi": [
-        "error",
-        "always"
-      ],
-      "no-console": [
-        "error",
-        {
-          "allow": [
-            "info",
-            "warn",
-            "error"
-          ]
-        }
-      ],
-      "no-unused-vars": [
-        "warn",
-        "all"
-      ]
-    }
-  },
-  "eslintIgnore": [
-    "dist"
-  ],
   "dependencies": {
-    "empty-promise": "^1.2.0",
-    "insteon-packet-parser": "^2.1.0",
-    "serialport": "^5.0.0"
+    "insteon-packet-parser": "^2.2.0",
+    "serialport": "^6.0.0"
   },
   "devDependencies": {
-    "eslint": "^4.5.0",
-    "jsdoc": "^3.5.4"
+    "@types/node": "^8.0.34",
+    "@types/serialport": "^4.0.10",
+    "tslint": "^5.7.0",
+    "typescript": "^2.5.3"
   }
 }
