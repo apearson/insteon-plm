@@ -6,11 +6,21 @@ import {PLM, ModemRequest} from '../main';
 /* Types */
 import {Byte} from '../typings/typings';
 
+/* Interface */
+export interface DeviceRequest{
+	resolve: (data?: any)=> void;
+	reject: (error?: Error)=> void;
+	command: Buffer;
+}
+
 /* Abstract class for Insteon Devices */
 export abstract class InsteonDevice extends EventEmitter{
 	/* Class Info */
 	protected _address: Byte[];
 	protected _addressString: string;
+
+	/* Inernal Variaables */
+	protected _requestQueue: ModemRequest[] = [];
 	protected _modem: PLM;
 
 	/* Constucture */
