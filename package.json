@@ -10,8 +10,9 @@
   "author": "John Andrew Tyler Pearson",
   "license": "MIT",
   "dependencies": {
+    "eventemitter2": "^5.0.0",
     "insteon-packet-parser": "^2.2.0",
-    "serialport": "^6.0.0",
+    "serialport": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^8.0.34",

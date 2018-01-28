@@ -7,9 +7,9 @@ import {Byte} from '../typings/typings';
 
 /* Class */
 export class SwitchLincRelay extends InsteonDevice{
-  constructor(deviceID: Byte[], modem: PLM){
-    super(deviceID, modem);
+	constructor(deviceID: Byte[], modem: PLM){
+		super(deviceID, modem);
 
 
-  }
+	}
 }

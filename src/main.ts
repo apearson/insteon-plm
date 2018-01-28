@@ -1,5 +1,5 @@
 /* Libraries */
-import {EventEmitter} from 'events';
+import {EventEmitter2} from 'eventemitter2';
 import * as SerialPort from 'serialport';
 import {InsteonParser, PacketID, Packets} from '../../insteon-packet-parser/src/main';
 
@@ -15,6 +15,7 @@ export {KeypadLincRelay} from './devices/KeypadLincRelay';
 export {OutletLinc} from './devices/OutletLinc';
 export {SwitchLincDimmer} from './devices/SwitchLincDimmer';
 export {SwitchLincRelay} from './devices/SwitchLincRelay';
+export {MiniRemote} from './devices/MiniRemote';
 
 /* Request Handlers */
 import {handlers} from './handlers';
@@ -41,7 +42,7 @@ export interface ModemConfig{
 }
 
 /* PLM Class */
-export class PLM extends EventEmitter{
+export class PLM extends EventEmitter2{
 	/* Internal Variables */
 	private _requestQueue: ModemRequest[] = [];
 	private _busy: boolean = false;
@@ -72,7 +73,7 @@ export class PLM extends EventEmitter{
 
 	constructor(portPath: string){
 		/* Constructing super class */
-		super();
+		super({wildcard: true});
 
 		/* Opening serial port */
 		this._port = new SerialPort(portPath, {
@@ -107,6 +108,12 @@ export class PLM extends EventEmitter{
 		this._parser.on('data', (packet: Packets.Packet)=>{
 			/* Emitting packet for others to use */
 			this.emit('packet', packet);
+
+			/* Checking if packet if from a device */
+			if(packet.type === 80){
+				const eventID = [packet.from.map((num: number)=> num.toString(16).toUpperCase()).join(':'), packet.type.toString()];
+				this.emit(eventID, packet);
+			}
 
 			this._handleResponse(packet);
 		});
@@ -161,12 +168,22 @@ export class PLM extends EventEmitter{
 		return new Promise(async (resolve, reject)=>{
 			/* Creating an array of 255 groups filled with empty arrays */
 			let groups = [...Array(255).keys()].map(i => Array(0));
+			let index = 0;
 
 			/* Getting first record */
 			let record = await this.getFirstAllLinkRecord();
 
 			/* Checking if first record exists */
 			if(typeof record != 'boolean'){
+				/* Removing extra data */
+				record.type = undefined;
+				record.typeDesc = undefined;
+
+				/* Adding extra data */
+				record.index = index;
+				index++;
+
+				/* Adding record to group */
 				groups[record.allLinkGroup].push(record);
 			}
 
@@ -176,6 +193,15 @@ export class PLM extends EventEmitter{
 
 				/* Checking if retrieved record exists */
 				if(typeof record != 'boolean'){
+					/* Removing extra data */
+					record.type = undefined;
+					record.typeDesc = undefined;
+
+					/* Adding extra data */
+					record.index = index;
+					index++;
+
+					/* Adding record to group */
 					groups[record.allLinkGroup].push(record);
 				}
 			}
@@ -341,7 +367,38 @@ export class PLM extends EventEmitter{
 		return this._port.close();
 	}
 
-	/* All Link Command */
+	/* All Link Command TODO */
+	manageAllLinkRecord(): Promise<void>{
+		return new Promise((resolve, reject)=>{
+			/* Allocating command buffer */
+			const commandBuffer = Buffer.alloc(11);
+
+			/* Creating command */
+			commandBuffer.writeUInt8(0x02, 0); //PLM Command
+			commandBuffer.writeUInt8(0x6F, 1); //Modify All link record
+			commandBuffer.writeUInt8(0x40, 2); //Modify First Controller Found or Add
+			commandBuffer.writeUInt8(0x42, 3); //Flags
+			commandBuffer.writeUInt8(0x02, 4); //Group
+			commandBuffer.writeUInt8(0x41, 5); //ID
+			commandBuffer.writeUInt8(0xD4, 6); //ID
+			commandBuffer.writeUInt8(0xFF, 7); //ID
+			commandBuffer.writeUInt8(0x00, 8); //Link Data 1
+			commandBuffer.writeUInt8(0x00, 9); //Link Data 2
+			commandBuffer.writeUInt8(0x00, 10); //Link Data 3
+
+			/* Creating Request */
+			const request: ModemRequest = {
+				resolve: resolve,
+				reject: reject,
+				type: 0x6F,
+				command: commandBuffer,
+				retries: 3,
+			};
+
+			/* Sending command */
+			this.execute(request);
+		});
+	}
 	startLinking(type: Byte, group: Byte): Promise<void>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
@@ -517,9 +574,6 @@ export class PLM extends EventEmitter{
 
 	/* Internal command functions */
 	execute(request: ModemRequest){
-		/* Setting indiviual device queue to ready */
-		this._busy == false;
-
 		/* Pushing request onto modem queue */
 		this._requestQueue.push(request);
 
@@ -545,7 +599,7 @@ export class PLM extends EventEmitter{
 	/* Response Functions */
 	async _handleResponse(packet: Packets.Packet){
 		/* Determining Request and Response */
-		let requestHandled = await handlers[packet.id](this._requestQueue, packet, this) as boolean;
+		let requestHandled = await handlers[packet.type](this._requestQueue, packet, this) as boolean;
 
 		/* Finishing request */
 		if(requestHandled){

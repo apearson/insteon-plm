@@ -102,7 +102,7 @@ export const handlers: handlers = {
       const request = requestQueue.shift();
 
       /* Resolving request */
-      if(packet.success){
+      if(packet.ack){
         request.resolve(packet);
       }
       else{
@@ -122,7 +122,7 @@ export const handlers: handlers = {
       const request = requestQueue.shift();
 
       /* Resolving request */
-      if(packet.success){
+      if(packet.ack){
         request.resolve(packet);
       }
       else{
@@ -155,7 +155,7 @@ export const handlers: handlers = {
   0x69: async (requestQueue: ModemRequest[], packet: Packets.GetFirstAllLinkRecord)=>{
     if(requestQueue[0].type === 0x57){
       /* If request did not ack successfully */
-      if(!packet.success){
+      if(!packet.ack){
         const request = requestQueue.shift();
 
         request.resolve(false);
@@ -171,7 +171,7 @@ export const handlers: handlers = {
     if(requestQueue[0].type === 0x57){
 
       /* If request did not ack successfully */
-      if(!packet.success){
+      if(!packet.ack){
         const request = requestQueue.shift();
 
         request.resolve(false);
@@ -218,6 +218,22 @@ export const handlers: handlers = {
   0x6E: async (requestQueue: ModemRequest[], packet: Packets.LEDOff)=>{
     /* Checking request queue for correct packet */
     if(requestQueue[0].type === 0x6E){
+      const request = requestQueue.shift();
+
+      /* Resolving request */
+      request.resolve(packet);
+
+      /* Handled */
+      return true;
+    }
+
+    /* Not Handled */
+    return false;
+  },
+  /* Modify All link record */
+  0x6F: async (requestQueue: ModemRequest[], packet: Packets.ManageAllLinkRecord)=>{
+    /* Checking request queue for correct packet */
+    if(requestQueue[0].type === 0x6F){
       const request = requestQueue.shift();
 
       /* Resolving request */
