@@ -54,6 +54,13 @@ export const handlers: handlers = {
 	},
 
 	/* ALL-Link Record Response */
+	0x56: async (requestQueue: ModemRequest[], packet: Packets.AllLinkCleanupFailureReport, modem: PLM)=>{
+		/* Emitting status report */
+		modem.emit('ALl-Link Cleanup Failure Report', packet);
+
+		/* Handled */
+		return true;
+	},
 	0x57: async (requestQueue: ModemRequest[], packet: Packets.AllLinkRecordResponse)=>{
 		if(requestQueue[0].type === 0x57){
 			const request = requestQueue.shift();
