@@ -15,7 +15,6 @@ export {KeypadLincRelay} from './devices/KeypadLincRelay';
 export {OutletLinc} from './devices/OutletLinc';
 export {SwitchLincDimmer} from './devices/SwitchLincDimmer';
 export {SwitchLincRelay} from './devices/SwitchLincRelay';
-export {MiniRemote} from './devices/MiniRemote';
 
 /* Request Handlers */
 import {handlers} from './handlers';
@@ -88,7 +87,7 @@ export class PLM extends EventEmitter2{
 		this._parser = new InsteonParser({debug: false, objectMode: true});
 
 		/* Porting serial port to parser */
-		this._port.pipe(this._parser);
+		(this._port as any).pipe(this._parser);
 
 		/* Waiting for serial port to open */
 		this._port.on('open', async () => {
@@ -363,6 +362,35 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
+
+	/**
+	 *
+	 * Resets the Insteon PowerLinc Modem.
+	 *
+	 * WARNING: This erases all links and data!
+	 */
+	reset(): Promise<boolean>{
+		return new Promise((resolve, reject)=>{
+			/* Allocating command buffer */
+			const commandBuffer = Buffer.alloc(2);
+
+			/* Creating command */
+			commandBuffer.writeUInt8(0x02, 0); //PLM Command
+			commandBuffer.writeUInt8(0x67, 1); //Reset Byte
+
+			/* Creating Request */
+			const request: ModemRequest = {
+				resolve: resolve,
+				reject: reject,
+				type: 0x67,
+				command: commandBuffer,
+				retries: 3,
+			};
+
+			/* Sending command */
+			this.execute(request);
+		});
+	}
 	close(){
 		return this._port.close();
 	}
@@ -491,6 +519,31 @@ export class PLM extends EventEmitter2{
 	}
 
 	/* Send commands */
+	sendAllLinkCommand(group: Byte, cmd1: Byte, cmd2: Byte): Promise<boolean>{
+		return new Promise((resolve, reject)=>{
+			/* Allocating command buffer */
+			const commandBuffer = Buffer.alloc(5);
+
+			/* Creating command */
+			commandBuffer.writeUInt8(0x02,  0);  //PLM Command
+			commandBuffer.writeUInt8(0x61,  1);  //Standard Length Message
+			commandBuffer.writeUInt8(group, 2);  //Device High Address Byte
+			commandBuffer.writeUInt8(cmd1,  3);  //Device Middle Address Byte
+			commandBuffer.writeUInt8(cmd2,  4);  //Device Low Address Byte
+
+			/* Creating Request */
+			const request: ModemRequest = {
+				resolve: resolve,
+				reject: reject,
+				type: 0x61,
+				command: commandBuffer,
+				retries: 3,
+			};
+
+			/* Sending command */
+			this.execute(request);
+		});
+	}
 	sendStandardCommand(deviceID: string | Byte[], flags: Byte, cmd1: Byte, cmd2: Byte): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Parsing out device ID */

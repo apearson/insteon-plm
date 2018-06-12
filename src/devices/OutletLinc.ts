@@ -1,6 +1,5 @@
 /* Libraries */
 import {InsteonDevice} from './InsteonDevice';
-import * as SerialPort from 'serialport';
 import {PLM, Packets} from '../main';
 
 /* Types */
@@ -13,17 +12,15 @@ export class OutletLinc extends InsteonDevice{
 	}
 
 	/* Device Info */
-	async getID(deviceID: string){
+	async getID(){
 		return await this.sendCommand(0x07, 0x10, 0x01);
 	}
 
-	async status(deviceID: string){
+	async status(){
 		return await this.sendCommand(0x07, 0x19, 0x01);
 	}
 	/* Device Control */
 	switch(port: 1 | 2, state: boolean){ return new Promise(async (resolve, reject)=>{
-		console.log('Switching', port, state);
-
 		/* Determing standard packet or extended packet */
 		const extendedNeeded = (port == 2);
 

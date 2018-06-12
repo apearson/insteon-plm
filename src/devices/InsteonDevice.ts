@@ -63,7 +63,6 @@ export abstract class InsteonDevice extends EventEmitter{
 
 	/* Command Methods */
 	protected execute(request: DeviceRequest){
-		console.log('Attempting command execution', request);
 		/* Pushing request onto device queue */
 		this.requestQueue.push(request);
 
@@ -71,10 +70,8 @@ export abstract class InsteonDevice extends EventEmitter{
 		this.flush();
 	}
 	protected async flush(){
-		console.log('Attempting flush');
 		/* Checking if there is a request lined up and a command is not in progress */
 		if(this.requestQueue.length > 0 && !this.busy){
-			console.log('Flushing');
 			/* Marking command in flight */
 			this.busy = true;
 
