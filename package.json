@@ -4,7 +4,7 @@
   "description": "",
   "main": "./src/main.js",
   "scripts": {
-    "test": "ts-node ./tests/debug.ts",
+    "debug": "ts-node ./tests/debug.ts",
     "build": "tsc"
   },
   "author": "John Andrew Tyler Pearson",
