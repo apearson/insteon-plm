@@ -1,13 +1,10 @@
 /* Libraries */
 import {EventEmitter2} from 'eventemitter2';
 import * as SerialPort from 'serialport';
-import {InsteonParser, PacketID, Packets} from '../../insteon-packet-parser/src/main';
+import {InsteonParser, PacketID, Packets, Byte} from 'insteon-packet-parser';
 
 /* Library Exports */
 export {Packets, PacketID};
-
-/* Types */
-import {Byte} from './typings/typings';
 
 /* Devices */
 export {InsteonDevice} from './devices/InsteonDevice';

@@ -1,10 +1,9 @@
 /* Libraries */
 import {EventEmitter} from 'events';
-import * as SerialPort from 'serialport';
 import {PLM, ModemRequest} from '../main';
 
 /* Types */
-import {Byte} from '../typings/typings';
+import {Byte} from 'insteon-packet-parser';
 
 /* Interface */
 export interface DeviceRequest{

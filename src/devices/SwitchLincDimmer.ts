@@ -3,7 +3,7 @@ import {InsteonDevice} from './InsteonDevice';
 import {PLM} from '../main';
 
 /* Types */
-import {Byte} from '../typings/typings';
+import {Byte} from 'insteon-packet-parser';
 
 /* Class */
 export class SwitchLincDimmer extends InsteonDevice{

@@ -1,6 +1,6 @@
 /* Library */
 import {PLM, ModemRequest} from './main';
-import {Packets, PacketID} from '../../insteon-packet-parser/dist/main';
+import {Packets, PacketID} from 'insteon-packet-parser';
 
 /* Exports */
 export interface handlers{
