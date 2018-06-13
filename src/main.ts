@@ -44,15 +44,14 @@ export interface ModemConfig{
 export class PLM extends EventEmitter2{
 	/* Internal Variables */
 	private _requestQueue: ModemRequest[] = [];
-	private _busy: boolean = false;
-	private _commandTimeout: number = 1000;
+	private _busy: boolean = false; // TODO: Make Work
 
 	/* Linking */
-	private _linking: boolean = false;
+	private _linking: boolean = false; // TODO: Make Work
 	private _links: Packets.AllLinkRecordResponse[][] = [];
 
 	/* Internal Data holder */
-	private _info:ModemInfo = {
+	private _info: ModemInfo = {
 		id: [0x00,0x00,0x00],
 		devcat: 0x00,
 		subcat: 0x00,
@@ -64,7 +63,6 @@ export class PLM extends EventEmitter2{
 		deadman: false,
 		monitorMode: false
 	};
-	private _led:boolean = false;
 
 	/* Serial Port Options */
 	private _port: SerialPort;
@@ -95,9 +93,9 @@ export class PLM extends EventEmitter2{
 			this.emit('connected');
 
 			/* Inital Sync of info */
-			this._info   = await this.syncInfo();
-			this._config = await this.syncConfig();
-			await this.syncAllLinks();
+			await this.syncInfo();
+			await this.syncConfig();
+			await this.syncLinks();
 
 			/* Emitting ready */
 			this.emit('ready');
@@ -114,12 +112,46 @@ export class PLM extends EventEmitter2{
 				this.emit(eventID, packet);
 			}
 
-			this._handleResponse(packet);
+			this.handleResponse(packet);
 		});
 	}
 
+	/* Modem Metabata */
+	get info(){
+		return this._info;
+	}
+	get config(){
+		return this._config;
+	}
+	get links(){
+		return this._links;
+	}
+	get busy(){
+		return this._busy;
+	}
+	get linking(){
+		return this._linking;
+	}
+
+	/* Utility Methods */
+	async deleteLink(deviceID: string | Byte[], groupID: Byte, type: 1 | 0) {
+		/* Parsing out device ID */
+		if(typeof deviceID === 'string' ){
+			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
+		}
+
+		/* Deleting link from modem */
+		const status = await this.manageAllLinkRecord(deviceID, groupID, 0x80, type, [0x00, 0x00, 0x00]);
+
+		/* Resyncing links if successful */
+		status? await this.syncLinks():null;
+
+		/* Returning if delete was success or not */
+		return status;
+	}
+
 	/* Modem Info */
-	syncInfo(): Promise<ModemInfo>{
+	getInfo(): Promise<ModemInfo>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -141,7 +173,7 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	syncConfig(): Promise<ModemConfig>{
+	getConfig(): Promise<ModemConfig>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -163,7 +195,7 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	syncAllLinks(): Promise<Packets.AllLinkRecordResponse[][]>{
+	getAllLinks(): Promise<Packets.AllLinkRecordResponse[][]>{
 		return new Promise(async (resolve, reject)=>{
 			/* Creating an array of 255 groups filled with empty arrays */
 			let groups = [...Array(255).keys()].map(i => Array(0));
@@ -205,28 +237,28 @@ export class PLM extends EventEmitter2{
 				}
 			}
 
-			/* Saving all link database */
-			this._links = groups;
-
-			resolve(this._links);
+			resolve(groups);
 		});
 	}
 
-	/* Modem Config */
-	get info(){
-		return this._info;
+	/* Modem Sync Info */
+	async syncInfo(){
+		this._info = await this.getInfo();
+
+		return this.info;
 	}
-	get config(){
-		return this._config;
+	async syncConfig(){
+		this._config = await this.getConfig();
+
+		return this.config;
 	}
-	get links(){
-		return this._links;
+	async syncLinks(){
+		this._links = await this.getAllLinks();
+
+		return this.links;
 	}
 
 	/* Modem LED */
-	get led(){
-		return this._led;
-	}
 	setLed(state: boolean): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
@@ -362,7 +394,6 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-
 	/**
 	 *
 	 * Resets the Insteon PowerLinc Modem.
@@ -395,24 +426,32 @@ export class PLM extends EventEmitter2{
 		return this._port.close();
 	}
 
-	/* All Link Command TODO */
-	manageAllLinkRecord(): Promise<void>{
+	/* All Link Command */
+	manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: 1 | 0, linkData: Byte[] ): Promise<void>{
 		return new Promise((resolve, reject)=>{
+			/* Parsing out device ID */
+			if(typeof deviceID === 'string' ){
+				deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
+			}
+
+			/* Calulating flags needed */
+			const flags = 80 & (type << 6); //1000 0000 & 0100 0000
+
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(11);
 
 			/* Creating command */
-			commandBuffer.writeUInt8(0x02, 0); //PLM Command
-			commandBuffer.writeUInt8(0x6F, 1); //Modify All link record
-			commandBuffer.writeUInt8(0x40, 2); //Modify First Controller Found or Add
-			commandBuffer.writeUInt8(0x42, 3); //Flags
-			commandBuffer.writeUInt8(0x02, 4); //Group
-			commandBuffer.writeUInt8(0x41, 5); //ID
-			commandBuffer.writeUInt8(0xD4, 6); //ID
-			commandBuffer.writeUInt8(0xFF, 7); //ID
-			commandBuffer.writeUInt8(0x00, 8); //Link Data 1
-			commandBuffer.writeUInt8(0x00, 9); //Link Data 2
-			commandBuffer.writeUInt8(0x00, 10); //Link Data 3
+			commandBuffer.writeUInt8(0x02, 0);         //PLM Command
+			commandBuffer.writeUInt8(0x6F, 1);         //Modify All link record
+			commandBuffer.writeUInt8(operation, 2);    //Modify First Controller Found or Add
+			commandBuffer.writeUInt8(flags, 3);        //Flags
+			commandBuffer.writeUInt8(group, 4);        //Group
+			commandBuffer.writeUInt8(deviceID[0], 5);  //ID
+			commandBuffer.writeUInt8(deviceID[1], 6);  //ID
+			commandBuffer.writeUInt8(deviceID[2], 7);  //ID
+			commandBuffer.writeUInt8(linkData[0], 8);  //Link Data 1
+			commandBuffer.writeUInt8(linkData[1], 9);  //Link Data 2
+			commandBuffer.writeUInt8(linkData[2], 10); //Link Data 3
 
 			/* Creating Request */
 			const request: ModemRequest = {
@@ -631,9 +670,9 @@ export class PLM extends EventEmitter2{
 		this._requestQueue.push(request);
 
 		/* Flushing queue */
-		this._flush();
+		this.flush();
 	}
-	async _flush(){
+	private async flush(){
 		/* Checking we have a request and a command is not in progress */
 		if(this._requestQueue[0] && !this._busy){
 			/* Marking command in flight */
@@ -650,7 +689,7 @@ export class PLM extends EventEmitter2{
 	}
 
 	/* Response Functions */
-	async _handleResponse(packet: Packets.Packet){
+	private async handleResponse(packet: Packets.Packet){
 		/* Determining Request and Response */
 		let requestHandled = await handlers[packet.type](this._requestQueue, packet, this) as boolean;
 
@@ -661,6 +700,6 @@ export class PLM extends EventEmitter2{
 		}
 
 		/* Flushing next command */
-		this._flush();
+		this.flush();
 	}
 };

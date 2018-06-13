@@ -61,15 +61,20 @@ export const handlers: handlers = {
 		/* Handled */
 		return true;
 	},
-	0x57: async (requestQueue: ModemRequest[], packet: Packets.AllLinkRecordResponse)=>{
-		if(requestQueue[0].type === 0x57){
-			const request = requestQueue.shift();
+	0x57: async (requestQueue: ModemRequest[], packet: Packets.AllLinkRecordResponse, modem: PLM)=>{
+		if(requestQueue.length > 0){
+			if(requestQueue[0].type === 0x57){
+				const request = requestQueue.shift();
 
-			/* Resolving request */
-			request.resolve(packet);
+				/* Resolving request */
+				request.resolve(packet);
 
-			/* Handled */
-			return true;
+				/* Handled */
+				return true;
+			}
+		}
+		else{
+			modem.emit('AllLinkRecordResponse', packet);
 		}
 
 		/* Not Handled */
@@ -254,6 +259,22 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+	0x6C: async (requestQueue: ModemRequest[], packet: Packets.GetAllLinkRecordforSender)=>{
+		if(requestQueue[0].type === 0x67){
+			/* Removing request from queue */
+			const request = requestQueue.shift();
+
+			/* Resolving request */
+			packet.ack? request.resolve(packet.ack): request.reject();
+
+			/* Handled */
+			return true;
+		}
+
+		/* Not Handled */
+		return false;
+	},
+
 	/* LED On */
 	0x6D: async (requestQueue: ModemRequest[], packet: Packets.LEDOn)=>{
 		/* Checking request queue for correct packet */
