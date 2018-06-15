@@ -17,7 +17,7 @@ export const handlers: handlers = {
 		modem.emit(deviceID, packet);
 
 		/* Checking request queue for correct packet */
-		if(requestQueue[0] != null && requestQueue[0].type === 0x50){
+		if(requestQueue[0] != null && requestQueue[0].type === PacketID.StandardMessageReceived){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -33,7 +33,7 @@ export const handlers: handlers = {
 	/* Extended Message Received */
 	0x51: async (requestQueue: ModemRequest[], packet: Packets.ExtendedMessageRecieved)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x51){
+		if(requestQueue[0].type === PacketID.ExtendedMessageReceived){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -63,7 +63,7 @@ export const handlers: handlers = {
 	},
 	0x57: async (requestQueue: ModemRequest[], packet: Packets.AllLinkRecordResponse, modem: PLM)=>{
 		if(requestQueue.length > 0){
-			if(requestQueue[0].type === 0x57){
+			if(requestQueue[0].type === PacketID.AllLinkRecordResponse){
 				const request = requestQueue.shift();
 
 				/* Resolving request */
@@ -92,7 +92,7 @@ export const handlers: handlers = {
 	/* Get IM Info */
 	0x60: async (requestQueue: ModemRequest[], packet: Packets.GetIMInfo)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x60){
+		if(requestQueue[0].type === PacketID.GetIMInfo){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -109,7 +109,7 @@ export const handlers: handlers = {
 	/* ALL Link Command */
 	0x61: async (requestQueue: ModemRequest[], packet: Packets.SendAllLinkCommand)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x61){
+		if(requestQueue[0].type === PacketID.SendAllLinkCommand){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -126,7 +126,7 @@ export const handlers: handlers = {
 	/* Send Standard or Extended Message */
 	0x62: async (requestQueue: ModemRequest[], packet: Packets.SendInsteonMessage)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x62){
+		if(requestQueue[0].type === PacketID.SendInsteonMessage){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -141,7 +141,7 @@ export const handlers: handlers = {
 	},
 	/* Start ALL-Linking */
 	0x64: async (requestQueue: ModemRequest[], packet: Packets.StartAllLinking)=>{
-		if(requestQueue[0].type === 0x64){
+		if(requestQueue[0].type === PacketID.StartAllLinking){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -161,7 +161,7 @@ export const handlers: handlers = {
 	},
 	/* Cancel ALL-Linking */
 	0x65: async (requestQueue: ModemRequest[], packet: Packets.CancelAllLinking)=>{
-		if(requestQueue[0].type === 0x65){
+		if(requestQueue[0].type === PacketID.CancelAllLinking){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -181,7 +181,7 @@ export const handlers: handlers = {
 	},
 	/* Set Host Device Category */
 	0x66: async (requestQueue: ModemRequest[], packet: Packets.SetHostDeviceCategory)=>{
-		if(requestQueue[0].type === 0x65){
+		if(requestQueue[0].type === PacketID.SetHostDeviceCategory){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -197,7 +197,7 @@ export const handlers: handlers = {
 
 	/* Modem Reset */
 	0x67: async (requestQueue: ModemRequest[], packet: Packets.ResetIM)=>{
-		if(requestQueue[0].type === 0x67){
+		if(requestQueue[0].type === PacketID.ResetIM){
 			/* Removing request from queue */
 			const request = requestQueue.shift();
 
@@ -214,7 +214,7 @@ export const handlers: handlers = {
 
 	/* Get First ALL-Link Record */
 	0x69: async (requestQueue: ModemRequest[], packet: Packets.GetFirstAllLinkRecord)=>{
-		if(requestQueue[0].type === 0x57){
+		if(requestQueue[0].type === PacketID.AllLinkRecordResponse){
 			/* If request did not ack successfully */
 			if(!packet.ack){
 				const request = requestQueue.shift();
@@ -229,7 +229,7 @@ export const handlers: handlers = {
 	},
 	/* Get Next ALL-Link Record */
 	0x6A: async (requestQueue: ModemRequest[], packet: Packets.GetNextAllLinkRecord)=>{
-		if(requestQueue[0].type === 0x57){
+		if(requestQueue[0].type === PacketID.AllLinkRecordResponse){
 
 			/* If request did not ack successfully */
 			if(!packet.ack){
@@ -246,7 +246,7 @@ export const handlers: handlers = {
 	/* Set IM Configuration */
 	0x6B: async (requestQueue: ModemRequest[], packet: Packets.SetIMConfiguration)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x6B){
+		if(requestQueue[0].type === PacketID.SetIMConfiguration){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -260,7 +260,7 @@ export const handlers: handlers = {
 		return false;
 	},
 	0x6C: async (requestQueue: ModemRequest[], packet: Packets.GetAllLinkRecordforSender)=>{
-		if(requestQueue[0].type === 0x67){
+		if(requestQueue[0].type === PacketID.AllLinkRecordResponse){
 			/* Removing request from queue */
 			const request = requestQueue.shift();
 
@@ -278,7 +278,7 @@ export const handlers: handlers = {
 	/* LED On */
 	0x6D: async (requestQueue: ModemRequest[], packet: Packets.LEDOn)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x6D){
+		if(requestQueue[0].type === PacketID.LEDOn){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -294,7 +294,7 @@ export const handlers: handlers = {
 	/* LED Off */
 	0x6E: async (requestQueue: ModemRequest[], packet: Packets.LEDOff)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x6E){
+		if(requestQueue[0].type === PacketID.LEDOff){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -310,7 +310,7 @@ export const handlers: handlers = {
 	/* Modify All link record */
 	0x6F: async (requestQueue: ModemRequest[], packet: Packets.ManageAllLinkRecord)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x6F){
+		if(requestQueue[0].type === PacketID.ManageAllLinkRecord){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -326,7 +326,7 @@ export const handlers: handlers = {
 	/* RF Sleep */
 	0x72: async (requestQueue: ModemRequest[], packet: Packets.RFSleep)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x72){
+		if(requestQueue[0].type === PacketID.RFSleep){
 			const request = requestQueue.shift();
 
 			/* Resolving request */
@@ -342,7 +342,7 @@ export const handlers: handlers = {
 	/* Get IM Configuration */
 	0x73: async (requestQueue: ModemRequest[], packet: Packets.GetIMConfiguration)=>{
 		/* Checking request queue for correct packet */
-		if(requestQueue[0].type === 0x73){
+		if(requestQueue[0].type === PacketID.GetIMConfiguration){
 			const request = requestQueue.shift();
 
 			/* Resolving request */

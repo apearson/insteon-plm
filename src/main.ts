@@ -1,7 +1,10 @@
 /* Libraries */
 import {EventEmitter2} from 'eventemitter2';
 import * as SerialPort from 'serialport';
-import {InsteonParser, PacketID, Packets, Byte} from 'insteon-packet-parser';
+import {InsteonParser, Packets, AllLinkRecordType} from 'insteon-packet-parser';
+
+/* Interfaces and Types */
+import {PacketID, Byte} from 'insteon-packet-parser';
 
 /* Library Exports */
 export {Packets, PacketID};
@@ -131,7 +134,7 @@ export class PLM extends EventEmitter2{
 	}
 
 	/* Utility Methods */
-	async deleteLink(deviceID: string | Byte[], groupID: Byte, type: 1 | 0) {
+	async deleteLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType) {
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -424,7 +427,7 @@ export class PLM extends EventEmitter2{
 	}
 
 	/* All Link Command */
-	manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: 1 | 0, linkData: Byte[] ): Promise<void>{
+	manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: AllLinkRecordType, linkData: Byte[]): Promise<void>{
 		return new Promise((resolve, reject)=>{
 			/* Parsing out device ID */
 			if(typeof deviceID === 'string' ){
@@ -463,7 +466,7 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	startLinking(type: Byte, group: Byte): Promise<void>{
+	startLinking(type: AllLinkRecordType, group: Byte): Promise<void>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(4);
