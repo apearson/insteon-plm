@@ -1,8 +1,9 @@
 {
-  "name": "plm",
+  "name": "insteon-plm",
   "version": "0.1.0",
   "description": "",
-  "main": "./src/main.js",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
   "scripts": {
     "debug": "ts-node ./tests/debug.ts",
     "build": "tsc"

@@ -107,7 +107,7 @@ export class PLM extends EventEmitter2{
 			this.emit('packet', packet);
 
 			/* Checking if packet if from a device */
-			if(packet.type === 80){
+			if(packet.type === PacketID.StandardMessageReceived){
 				const eventID = [packet.from.map((num: number)=> num.toString(16).toUpperCase()).join(':'), packet.type.toString()];
 				this.emit(eventID, packet);
 			}
@@ -317,7 +317,7 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	setCategory(cat: Byte, subcat: Byte): Promise<boolean>{
+	setCategory(cat: Byte, subcat: Byte, firmware?: Byte): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(5);
@@ -327,7 +327,7 @@ export class PLM extends EventEmitter2{
 			commandBuffer.writeUInt8(0x66,   1); //Set Cat and Subcat
 			commandBuffer.writeUInt8(cat,    2); //Cat
 			commandBuffer.writeUInt8(subcat, 3); //Subcat
-			commandBuffer.writeUInt8(0xff,   4); //Legacy Firmware version
+			commandBuffer.writeUInt8(firmware || 0xff,   4); //Legacy Firmware version
 
 			/* Creating Request */
 			const request: ModemRequest = {
@@ -632,7 +632,7 @@ export class PLM extends EventEmitter2{
 			commandBuffer.writeUInt8(deviceID[0], 2); //Device High Address Byte
 			commandBuffer.writeUInt8(deviceID[1], 3); //Device Middle Address Byte
 			commandBuffer.writeUInt8(deviceID[2], 4); //Device Low Address Byte
-			commandBuffer.writeUInt8(flags || 0x0F, 5); //Message Flag Byte
+			commandBuffer.writeUInt8(flags || 0x1F, 5); //Message Flag Byte
 			commandBuffer.writeUInt8(cmd1 || 0x00, 6);  //Command Byte 1
 			commandBuffer.writeUInt8(cmd2 || 0x00, 7);  //Command Byte 2
 			commandBuffer.writeUInt8(userData[0]  || 0x00, 8);  //User Data 1

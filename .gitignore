@@ -3,3 +3,6 @@ node_modules
 .vscode
 lib
 dist
+*.code-workspace
+dbbackup
+packet-types.txt
