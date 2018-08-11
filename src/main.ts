@@ -68,6 +68,9 @@ export class PLM extends EventEmitter2{
 	private _port: SerialPort;
 	private _parser: InsteonParser;
 
+	/* Public variables */
+	public connected = false;
+
 	constructor(portPath: string){
 		/* Constructing super class */
 		super({wildcard: true});
@@ -89,6 +92,9 @@ export class PLM extends EventEmitter2{
 
 		/* Waiting for serial port to open */
 		this._port.on('open', async () => {
+			/* Updating connected */
+			this.connected = true;
+
 			/* Emitting connected and syncing */
 			this.emit('connected');
 
@@ -115,9 +121,22 @@ export class PLM extends EventEmitter2{
 			this.handleResponse(packet);
 		});
 
+		/* On port error */
+		this._port.on('error', (error: Error)=>{
+			/* Updating connected */
+			this.connected = this._port.isOpen;
+
+			/* Emitting error */
+			this.emit('error', error);
+		});
+
 		/* On Port close */
 		this._port.on('close', ()=>{
-			this.emit('close');
+			/* Updating connected */
+			this.connected = false;
+
+			/* Emitting disconnect */
+			this.emit('disconnected');
 		});
 	}
 
