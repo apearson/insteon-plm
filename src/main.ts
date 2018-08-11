@@ -114,6 +114,11 @@ export class PLM extends EventEmitter2{
 
 			this.handleResponse(packet);
 		});
+
+		/* On Port close */
+		this._port.on('close', ()=>{
+			this.emit('close');
+		});
 	}
 
 	/* Modem Metabata */
