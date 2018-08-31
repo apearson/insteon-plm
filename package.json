@@ -5,11 +5,15 @@
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "scripts": {
+    "prepublish": "npm run build",
     "debug": "ts-node ./tests/debug.ts",
     "build": "tsc"
   },
   "author": "John Andrew Tyler Pearson",
   "license": "MIT",
+  "files":[
+		"dist/"
+	],
   "dependencies": {
     "eventemitter2": "^5.0.0",
     "insteon-packet-parser": "^2.2.0",
