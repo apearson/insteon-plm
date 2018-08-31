@@ -88,7 +88,7 @@ export class PLM extends EventEmitter2{
 		this._parser = new InsteonParser({debug: false, objectMode: true});
 
 		/* Porting serial port to parser */
-		(this._port as any).pipe(this._parser);
+		this._port.pipe(this._parser);
 
 		/* Waiting for serial port to open */
 		this._port.on('open', async () => {
