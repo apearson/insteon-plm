@@ -16,7 +16,7 @@
 	],
   "dependencies": {
     "eventemitter2": "^5.0.0",
-    "insteon-packet-parser": "^3.1.1",
+    "insteon-packet-parser": "^3.1.2",
     "serialport": "^6.0.0"
   },
   "devDependencies": {
