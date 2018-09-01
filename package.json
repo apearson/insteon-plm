@@ -1,6 +1,6 @@
 {
   "name": "insteon-plm",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
@@ -11,9 +11,9 @@
   },
   "author": "John Andrew Tyler Pearson",
   "license": "MIT",
-  "files":[
-		"dist/"
-	],
+  "files": [
+    "dist/"
+  ],
   "dependencies": {
     "eventemitter2": "^5.0.0",
     "insteon-packet-parser": "^3.1.2",
