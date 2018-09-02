@@ -6,3 +6,4 @@ dist
 *.code-workspace
 dbbackup
 packet-types.txt
+tests/debug.ts
