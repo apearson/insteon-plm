@@ -451,7 +451,7 @@ export class PLM extends EventEmitter2{
 	}
 
 	/* All Link Command */
-	manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: AllLinkRecordType, linkData: Byte[]): Promise<void>{
+	manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: AllLinkRecordType, linkData: Byte[]): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Parsing out device ID */
 			if(typeof deviceID === 'string' ){
