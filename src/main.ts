@@ -1,25 +1,26 @@
 /* Libraries */
-import {EventEmitter2} from 'eventemitter2';
+import { EventEmitter2 } from 'eventemitter2';
 import * as SerialPort from 'serialport';
-import {InsteonParser, Packets, AllLinkRecordType} from 'insteon-packet-parser';
+import { InsteonParser, Packets, AllLinkRecordType } from 'insteon-packet-parser';
 
 /* Interfaces and Types */
-import {PacketID, Byte} from 'insteon-packet-parser';
+import { PacketID, Byte } from 'insteon-packet-parser';
 
 /* Library Exports */
-export {Packets, PacketID};
+export { Packets, PacketID };
 
 /* Devices */
-export {InsteonDevice} from './devices/InsteonDevice';
-export {KeypadLincRelay} from './devices/KeypadLincRelay';
-export {OutletLinc} from './devices/OutletLinc';
-export {SwitchLincDimmer} from './devices/SwitchLincDimmer';
-export {SwitchLincRelay} from './devices/SwitchLincRelay';
+export { InsteonDevice} from './devices/InsteonDevice';
+export { KeypadLincRelay } from './devices/KeypadLincRelay';
+export { OutletLinc } from './devices/OutletLinc';
+export { SwitchLincDimmer } from './devices/SwitchLincDimmer';
+export { SwitchLincRelay } from './devices/SwitchLincRelay';
 
 /* Request Handlers */
 import {handlers} from './handlers';
 
-/* Interface */
+//#region Interfaces
+
 export interface ModemRequest{
 	resolve: (data: any)=> void;
 	reject: ()=> void;
@@ -27,12 +28,14 @@ export interface ModemRequest{
 	command: Buffer;
 	retries: number;
 }
+
 export interface ModemInfo{
 	id: Byte[];
 	devcat: Byte;
 	subcat: Byte;
 	firmware: Byte;
 }
+
 export interface ModemConfig{
 	autoLinking: boolean;
 	monitorMode: boolean;
@@ -40,8 +43,13 @@ export interface ModemConfig{
 	deadman: boolean;
 }
 
+//#endregion
+
 /* PLM Class */
 export class PLM extends EventEmitter2{
+
+	//#region Private Variables
+
 	/* Internal Variables */
 	private _requestQueue: ModemRequest[] = [];
 	private _busy: boolean = false; // TODO: Make Work
@@ -68,12 +76,19 @@ export class PLM extends EventEmitter2{
 	private _port: SerialPort;
 	private _parser: InsteonParser;
 
-	/* Public variables */
+	//#endregion
+
+	//#region Public Variables
+
 	public connected = false;
+
+	//#endregion
+
+	//#region Constuctor
 
 	constructor(portPath: string){
 		/* Constructing super class */
-		super({wildcard: true});
+		super({ wildcard: true });
 
 		/* Opening serial port */
 		this._port = new SerialPort(portPath, {
@@ -85,80 +100,39 @@ export class PLM extends EventEmitter2{
 		});
 
 		/* Creating new parser */
-		this._parser = new InsteonParser({debug: false, objectMode: true});
+		this._parser = new InsteonParser({ debug: false, objectMode: true });
 
 		/* Porting serial port to parser */
 		this._port.pipe(this._parser);
 
 		/* Waiting for serial port to open */
-		this._port.on('open', async () => {
-			/* Updating connected */
-			this.connected = true;
-
-			/* Emitting connected and syncing */
-			this.emit('connected');
-
-			/* Inital Sync of info */
-			await this.syncInfo();
-			await this.syncConfig();
-			await this.syncLinks();
-
-			/* Emitting ready */
-			this.emit('ready');
-		});
+		this._port.on('open', this.handlePortOpen);
+		this._port.on('error', this.handlePortError);
+		this._port.on('close', this.handlePortClose);
 
 		/* On Packet */
-		this._parser.on('data', (packet: Packets.Packet)=>{
-			/* Emitting packet for others to use */
-			this.emit('packet', packet);
-
-			/* Checking if packet if from a device */
-			if(packet.type === PacketID.StandardMessageReceived){
-				const eventID = [packet.from.map((num: number)=> num.toString(16).toUpperCase()).join(':'), packet.type.toString()];
-				this.emit(eventID, packet);
-			}
-
-			this.handleResponse(packet);
-		});
-
-		/* On port error */
-		this._port.on('error', (error: Error)=>{
-			/* Updating connected */
-			this.connected = this._port.isOpen;
-
-			/* Emitting error */
-			this.emit('error', error);
-		});
-
-		/* On Port close */
-		this._port.on('close', ()=>{
-			/* Updating connected */
-			this.connected = false;
-
-			/* Emitting disconnect */
-			this.emit('disconnected');
-		});
+		this._parser.on('data', this.handlePacket);
 	}
 
-	/* Modem Metabata */
-	get info(){
-		return this._info;
-	}
-	get config(){
-		return this._config;
-	}
-	get links(){
-		return this._links;
-	}
-	get busy(){
-		return this._busy;
-	}
-	get linking(){
-		return this._linking;
-	}
+	//#endregion
 
-	/* Utility Methods */
-	async deleteLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType) {
+	//#region Modem Metabata
+
+	get info(){ return this._info; }
+
+	get config(){ return this._config; }
+
+	get links(){ return this._links; }
+
+	get busy(){ return this._busy; }
+
+	get linking(){ return this._linking; }
+
+	//#endregion
+
+	//#region Utility Methods
+
+	public async deleteLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType) {
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -174,8 +148,11 @@ export class PLM extends EventEmitter2{
 		return status;
 	}
 
-	/* Modem Info */
-	getInfo(): Promise<ModemInfo>{
+	//#endregion
+
+	//#region Modem Info
+
+	public getInfo(): Promise<ModemInfo>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -197,7 +174,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	getConfig(): Promise<ModemConfig>{
+
+	public getConfig(): Promise<ModemConfig>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -219,7 +197,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	getAllLinks(): Promise<Packets.AllLinkRecordResponse[][]>{
+
+	public getAllLinks(): Promise<Packets.AllLinkRecordResponse[][]>{
 		return new Promise(async (resolve, reject)=>{
 			/* Creating an array of 255 groups filled with empty arrays */
 			let groups = [...Array(255).keys()].map(i => Array(0));
@@ -265,52 +244,33 @@ export class PLM extends EventEmitter2{
 		});
 	}
 
-	/* Modem Sync Info */
-	async syncInfo(){
+	//#endregion
+
+	//#region Modem Sync
+
+	public async syncInfo(){
 		this._info = await this.getInfo();
 
 		return this.info;
 	}
-	async syncConfig(){
+
+	public async syncConfig(){
 		this._config = await this.getConfig();
 
 		return this.config;
 	}
-	async syncLinks(){
+
+	public async syncLinks(){
 		this._links = await this.getAllLinks();
 
 		return this.links;
 	}
 
-	/* Modem LED */
-	setLed(state: boolean): Promise<boolean>{
-		return new Promise((resolve, reject)=>{
-			/* Allocating command buffer */
-			const commandBuffer = Buffer.alloc(2);
+	//#endregion
 
-			/* Determining command */
-			let command: PacketID = state ? 0x6D:0x6E;
+	//#region Modem Control
 
-			/* Creating command */
-			commandBuffer.writeUInt8(0x02, 0);
-			commandBuffer.writeUInt8(command, 1);
-
-			/* Creating Request */
-			const request: ModemRequest = {
-				resolve: resolve,
-				reject: reject,
-				type: command,
-				command: commandBuffer,
-				retries: 3,
-			};
-
-			/* Sending command */
-			this.execute(request);
-		});
-	}
-
-	/* Modem Control */
-	setConfig(autoLinking: boolean, monitorMode: boolean, autoLED: boolean, deadman: boolean): Promise<boolean>{
+	public setConfig(autoLinking: boolean, monitorMode: boolean, autoLED: boolean, deadman: boolean): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Configuration byte */
 			let flagByte = 0x00;
@@ -341,7 +301,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	setCategory(cat: Byte, subcat: Byte, firmware?: Byte): Promise<boolean>{
+
+	public setCategory(cat: Byte, subcat: Byte, firmware?: Byte): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(5);
@@ -366,7 +327,34 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	sleep(): Promise<boolean>{
+
+	public setLed(state: boolean): Promise<boolean>{
+		return new Promise((resolve, reject)=>{
+			/* Allocating command buffer */
+			const commandBuffer = Buffer.alloc(2);
+
+			/* Determining command */
+			let command: PacketID = state ? 0x6D:0x6E;
+
+			/* Creating command */
+			commandBuffer.writeUInt8(0x02, 0);
+			commandBuffer.writeUInt8(command, 1);
+
+			/* Creating Request */
+			const request: ModemRequest = {
+				resolve: resolve,
+				reject: reject,
+				type: command,
+				command: commandBuffer,
+				retries: 3,
+			};
+
+			/* Sending command */
+			this.execute(request);
+		});
+	}
+
+	public sleep(): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(4);
@@ -390,7 +378,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	wake(): Promise<boolean>{
+
+	public wake(): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(1);
@@ -418,13 +407,14 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
+
 	/**
 	 *
 	 * Resets the Insteon PowerLinc Modem.
 	 *
 	 * WARNING: This erases all links and data!
 	 */
-	reset(): Promise<boolean>{
+	public reset(): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -446,12 +436,16 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	close(){
+
+	public close(){
 		return this._port.close();
 	}
 
-	/* All Link Command */
-	manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: AllLinkRecordType, linkData: Byte[]): Promise<boolean>{
+	//#endregion
+
+	//#region All Link Commands
+
+	public manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: AllLinkRecordType, linkData: Byte[]): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Parsing out device ID */
 			if(typeof deviceID === 'string' ){
@@ -490,7 +484,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	startLinking(type: AllLinkRecordType, group: Byte): Promise<void>{
+
+	public startLinking(type: AllLinkRecordType, group: Byte): Promise<void>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(4);
@@ -514,7 +509,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	cancelLinking(): Promise<void>{
+
+	public cancelLinking(): Promise<void>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -536,7 +532,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	getFirstAllLinkRecord(): Promise<Packets.AllLinkRecordResponse | boolean>{
+
+	public getFirstAllLinkRecord(): Promise<Packets.AllLinkRecordResponse | boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -558,7 +555,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	getNextAllLinkRecord(): Promise<Packets.AllLinkRecordResponse | boolean>{
+
+	public getNextAllLinkRecord(): Promise<Packets.AllLinkRecordResponse | boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(2);
@@ -581,8 +579,11 @@ export class PLM extends EventEmitter2{
 		});
 	}
 
-	/* Send commands */
-	sendAllLinkCommand(group: Byte, cmd1: Byte, cmd2: Byte): Promise<boolean>{
+	//#endregion
+
+	//#region Send Commands
+
+	public sendAllLinkCommand(group: Byte, cmd1: Byte, cmd2: Byte): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Allocating command buffer */
 			const commandBuffer = Buffer.alloc(5);
@@ -607,7 +608,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	sendStandardCommand(deviceID: string | Byte[], flags: Byte, cmd1: Byte, cmd2: Byte): Promise<boolean>{
+
+	public sendStandardCommand(deviceID: string | Byte[], flags: Byte, cmd1: Byte, cmd2: Byte): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Parsing out device ID */
 			if(typeof deviceID === 'string' ){
@@ -640,7 +642,8 @@ export class PLM extends EventEmitter2{
 			this.execute(request);
 		});
 	}
-	sendExtendedCommand(deviceID: string | Byte[], flags: Byte, cmd1: Byte, cmd2: Byte, userData: Byte[]): Promise<boolean>{
+
+	public sendExtendedCommand(deviceID: string | Byte[], flags: Byte, cmd1: Byte, cmd2: Byte, userData: Byte[]): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Parsing out device ID */
 			if(typeof deviceID === 'string' ){
@@ -688,14 +691,18 @@ export class PLM extends EventEmitter2{
 		});
 	}
 
-	/* Internal command functions */
-	execute(request: ModemRequest){
+	//#endregion
+
+	//#region Internal Command Functionn
+
+	public execute(request: ModemRequest){
 		/* Pushing request onto modem queue */
 		this._requestQueue.push(request);
 
 		/* Flushing queue */
 		this.flush();
 	}
+
 	private async flush(){
 		/* Checking we have a request and a command is not in progress */
 		if(this._requestQueue[0] && !this._busy){
@@ -712,8 +719,60 @@ export class PLM extends EventEmitter2{
 		}
 	}
 
-	/* Response Functions */
-	private async handleResponse(packet: Packets.Packet){
+	//#endregion
+
+	//#region Port Handlers
+
+	private handlePortOpen = async () => {
+		/* Updating connected */
+		this.connected = true;
+
+		/* Emitting connected and syncing */
+		this.emit('connected');
+
+		/* Inital Sync of info */
+		await this.syncInfo();
+		await this.syncConfig();
+		await this.syncLinks();
+
+		/* Emitting ready */
+		this.emit('ready');
+	}
+
+	private handlePortError = (error: Error)=>{
+		/* Updating connected */
+		this.connected = this._port.isOpen;
+
+		/* Emitting error */
+		this.emit('error', error);
+	}
+
+	private handlePortClose = ()=>{
+		/* Updating connected */
+		this.connected = false;
+
+		/* Emitting disconnect */
+		this.emit('disconnected');
+	}
+
+	//#endregion
+
+	//#region Packet Handlers
+
+	private handlePacket = (packet: Packets.Packet) => {
+		/* Emitting packet for others to use */
+		this.emit('packet', packet);
+
+		/* Checking if packet if from a device */
+		if(packet.type === PacketID.StandardMessageReceived){
+			const eventID = [packet.from.map((num: number)=> num.toString(16).toUpperCase()).join(':'), packet.type.toString()];
+			this.emit(eventID, packet);
+		}
+
+		this.handleResponse(packet);
+	}
+
+	private handleResponse = async (packet: Packets.Packet) => {
 		/* Determining Request and Response */
 		let requestHandled = await handlers[packet.type](this._requestQueue, packet, this) as boolean;
 
@@ -726,4 +785,6 @@ export class PLM extends EventEmitter2{
 		/* Flushing next command */
 		this.flush();
 	}
+
+	//#endregion
 };
