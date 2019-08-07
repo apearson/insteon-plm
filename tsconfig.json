@@ -1,8 +1,10 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
     "target": "es6",
+    "esModuleInterop": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,

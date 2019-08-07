@@ -1,15 +1,17 @@
 /* Library */
-import {PLM, ModemRequest} from './main';
-import {Packets, PacketID} from 'insteon-packet-parser';
+import PLM, { ModemRequest } from './main';
+import { Packets, PacketID } from 'insteon-packet-parser';
 
 /* Exports */
-export interface handlers{
+interface Handlers{
 	[key: number]: any;
 }
 
 /* Packet Handling Classes */
-export const handlers: handlers = {
-	/** IM to Host **/
+export default {
+
+	//#region IM to Host
+
 	/* Standard Message Received */
 	0x50: async (requestQueue: ModemRequest[], packet: Packets.StandardMessageRecieved, modem: PLM)=>{
 		/* Emitting device packet */
@@ -30,6 +32,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Extended Message Received */
 	0x51: async (requestQueue: ModemRequest[], packet: Packets.ExtendedMessageRecieved)=>{
 		/* Checking request queue for correct packet */
@@ -53,7 +56,7 @@ export const handlers: handlers = {
 		modem.emit('linking-complete', packet);
 	},
 
-	/* ALL-Link Record Response */
+	/* ALL-Link Cleanup Failure Report */
 	0x56: async (requestQueue: ModemRequest[], packet: Packets.AllLinkCleanupFailureReport, modem: PLM)=>{
 		/* Emitting status report */
 		modem.emit('ALl-Link Cleanup Failure Report', packet);
@@ -61,6 +64,8 @@ export const handlers: handlers = {
 		/* Handled */
 		return true;
 	},
+
+	/* ALL-Link Record Response */
 	0x57: async (requestQueue: ModemRequest[], packet: Packets.AllLinkRecordResponse, modem: PLM)=>{
 		if(requestQueue.length > 0){
 			if(requestQueue[0].type === PacketID.AllLinkRecordResponse){
@@ -80,6 +85,8 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
+	/* ALL-Link Cleanup Status Report */
 	0x58: async (requestQueue: ModemRequest[], packet: Packets.AllLinkCleanupStatusReport, modem: PLM)=>{
 		/* Emitting status report */
 		modem.emit('ALl-Link Cleanup Status Report', packet);
@@ -88,7 +95,10 @@ export const handlers: handlers = {
 		return true;
 	},
 
-	/** Host to IM **/
+	//#endregion
+
+	//#region Host to IM
+
 	/* Get IM Info */
 	0x60: async (requestQueue: ModemRequest[], packet: Packets.GetIMInfo)=>{
 		/* Checking request queue for correct packet */
@@ -139,6 +149,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Start ALL-Linking */
 	0x64: async (requestQueue: ModemRequest[], packet: Packets.StartAllLinking)=>{
 		if(requestQueue[0] && requestQueue[0].type === PacketID.StartAllLinking){
@@ -159,6 +170,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Cancel ALL-Linking */
 	0x65: async (requestQueue: ModemRequest[], packet: Packets.CancelAllLinking)=>{
 		if(requestQueue[0] && requestQueue[0].type === PacketID.CancelAllLinking){
@@ -179,6 +191,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Set Host Device Category */
 	0x66: async (requestQueue: ModemRequest[], packet: Packets.SetHostDeviceCategory)=>{
 		if(requestQueue[0] && requestQueue[0].type === PacketID.SetHostDeviceCategory){
@@ -227,6 +240,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Get Next ALL-Link Record */
 	0x6A: async (requestQueue: ModemRequest[], packet: Packets.GetNextAllLinkRecord)=>{
 		if(requestQueue[0] && requestQueue[0].type === PacketID.AllLinkRecordResponse){
@@ -243,6 +257,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Set IM Configuration */
 	0x6B: async (requestQueue: ModemRequest[], packet: Packets.SetIMConfiguration)=>{
 		/* Checking request queue for correct packet */
@@ -259,6 +274,8 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
+	/* Get All Link Record for Sender */
 	0x6C: async (requestQueue: ModemRequest[], packet: Packets.GetAllLinkRecordforSender)=>{
 		if(requestQueue[0] && requestQueue[0].type === PacketID.AllLinkRecordResponse){
 			/* Removing request from queue */
@@ -291,6 +308,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* LED Off */
 	0x6E: async (requestQueue: ModemRequest[], packet: Packets.LEDOff)=>{
 		/* Checking request queue for correct packet */
@@ -307,6 +325,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Modify All link record */
 	0x6F: async (requestQueue: ModemRequest[], packet: Packets.ManageAllLinkRecord)=>{
 		/* Checking request queue for correct packet */
@@ -323,6 +342,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* RF Sleep */
 	0x72: async (requestQueue: ModemRequest[], packet: Packets.RFSleep)=>{
 		/* Checking request queue for correct packet */
@@ -339,6 +359,7 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
+
 	/* Get IM Configuration */
 	0x73: async (requestQueue: ModemRequest[], packet: Packets.GetIMConfiguration)=>{
 		/* Checking request queue for correct packet */
@@ -355,4 +376,6 @@ export const handlers: handlers = {
 		/* Not Handled */
 		return false;
 	},
-};
+
+	//#endregion
+} as Handlers;

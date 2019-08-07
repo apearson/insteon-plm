@@ -1,6 +1,6 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
-import * as SerialPort from 'serialport';
+import SerialPort from 'serialport';
 import { InsteonParser, Packets, AllLinkRecordType } from 'insteon-packet-parser';
 
 /* Interfaces and Types */
@@ -9,15 +9,15 @@ import { PacketID, Byte } from 'insteon-packet-parser';
 /* Library Exports */
 export { Packets, PacketID };
 
-/* Devices */
+/* Devices Import/Exports */
 export { InsteonDevice} from './devices/InsteonDevice';
 export { KeypadLincRelay } from './devices/KeypadLincRelay';
 export { OutletLinc } from './devices/OutletLinc';
 export { SwitchLincDimmer } from './devices/SwitchLincDimmer';
 export { SwitchLincRelay } from './devices/SwitchLincRelay';
 
-/* Request Handlers */
-import {handlers} from './handlers';
+/* Request Handlers Imports */
+import handlers from './handlers';
 
 //#region Interfaces
 
@@ -45,8 +45,9 @@ export interface ModemConfig{
 
 //#endregion
 
-/* PLM Class */
-export class PLM extends EventEmitter2{
+//#region PLM Class
+
+export default class PLM extends EventEmitter2{
 
 	//#region Private Variables
 
@@ -438,7 +439,8 @@ export class PLM extends EventEmitter2{
 	}
 
 	public close(){
-		return this._port.close();
+		return (this._port.isOpen) ? this._port.close()
+		                           : true;
 	}
 
 	//#endregion
@@ -765,8 +767,10 @@ export class PLM extends EventEmitter2{
 
 		/* Checking if packet if from a device */
 		if(packet.type === PacketID.StandardMessageReceived){
-			const eventID = [packet.from.map((num: number)=> num.toString(16).toUpperCase()).join(':'), packet.type.toString()];
-			this.emit(eventID, packet);
+			let p = packet as Packets.StandardMessageRecieved;
+
+			const eventID = [p.from.map(num => num.toString(16).toUpperCase()).join(':'), p.type.toString()];
+			this.emit(eventID, p);
 		}
 
 		this.handleResponse(packet);
@@ -787,4 +791,16 @@ export class PLM extends EventEmitter2{
 	}
 
 	//#endregion
+
+	//#region Static Methods
+
+	public static async GetPlmDevices(){
+		const devices = await SerialPort.list();
+
+		return devices.filter(d => d.vendorId === '0403' && d.productId === '6001');
+	}
+
+	//#endregion
 };
+
+//#endregion

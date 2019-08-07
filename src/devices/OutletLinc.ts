@@ -1,6 +1,6 @@
 /* Libraries */
 import {InsteonDevice} from './InsteonDevice';
-import {PLM, Packets} from '../main';
+import PLM, { Packets } from '../main';
 
 /* Types */
 import {Byte} from 'insteon-packet-parser';
