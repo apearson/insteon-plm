@@ -1,5 +1,4 @@
 {
-  "compileOnSave": true,
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
@@ -8,9 +7,14 @@
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "./src",
+    "composite": true
   },
   "include": [
     "./src/**/*"
+  ],
+  "references": [
+    { "path": "../insteon-packet-parser" }
   ]
 }

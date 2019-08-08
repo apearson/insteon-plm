@@ -7,3 +7,4 @@ dist
 dbbackup
 packet-types.txt
 tests/debug.ts
+tsconfig.tsbuildinfo

@@ -1,9 +1,9 @@
 /* Libraries */
 import {EventEmitter} from 'events';
-import PLM, {ModemRequest} from '../main';
+import PLM, { ModemRequest } from '../main';
 
 /* Types */
-import {Byte} from 'insteon-packet-parser';
+import { Byte } from 'insteon-packet-parser';
 
 /* Interface */
 export interface DeviceRequest{

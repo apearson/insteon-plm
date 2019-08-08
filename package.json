@@ -5,7 +5,7 @@
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "scripts": {
-    "prepublish": "npm run build",
+    "prepublish": "yarn run build",
     "debug": "ts-node ./tests/debug.ts",
     "build": "tsc"
   },
