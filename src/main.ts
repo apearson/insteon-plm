@@ -3,6 +3,13 @@ import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
 import { InsteonParser, Packets, AllLinkRecordType } from 'insteon-packet-parser';
 
+/* Devices */
+import InsteonDevice from './devices/InsteonDevice';
+import KeypadLincRelay from './devices/KeypadLincRelay';
+import OutletLinc from './devices/OutletLinc';
+import SwitchLincDimmer from './devices/SwitchLincDimmer';
+import SwitchLincRelay from './devices/SwitchLincRelay';
+
 /* Interfaces and Types */
 import { PacketID, Byte } from 'insteon-packet-parser';
 
@@ -10,11 +17,7 @@ import { PacketID, Byte } from 'insteon-packet-parser';
 export { Packets, PacketID };
 
 /* Devices Import/Exports */
-export { InsteonDevice} from './devices/InsteonDevice';
-export { KeypadLincRelay } from './devices/KeypadLincRelay';
-export { OutletLinc } from './devices/OutletLinc';
-export { SwitchLincDimmer } from './devices/SwitchLincDimmer';
-export { SwitchLincRelay } from './devices/SwitchLincRelay';
+export { InsteonDevice, KeypadLincRelay, OutletLinc, SwitchLincDimmer, SwitchLincRelay };
 
 /* Request Handlers Imports */
 import handlers from './handlers';
@@ -143,10 +146,23 @@ export default class PLM extends EventEmitter2{
 		const status = await this.manageAllLinkRecord(deviceID, groupID, 0x80, type, [0x00, 0x00, 0x00]);
 
 		/* Resyncing links if successful */
-		status? await this.syncLinks():null;
+		status? await this.syncLinks() : null;
 
 		/* Returning if delete was success or not */
 		return status;
+	}
+
+	public async addLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType) {
+		/* Parsing out device ID */
+		if(typeof deviceID === 'string' ){
+			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
+		}
+
+		// Putting the modem into linking mode
+		this.startLinking(type, groupID);
+
+		// Put the device into linking mode
+		InsteonDevice.startLinking(this, deviceID);
 	}
 
 	//#endregion
@@ -770,6 +786,7 @@ export default class PLM extends EventEmitter2{
 			let p = packet as Packets.StandardMessageRecieved;
 
 			const eventID = [p.from.map(num => num.toString(16).toUpperCase()).join(':'), p.type.toString()];
+
 			this.emit(eventID, p);
 		}
 
@@ -794,7 +811,7 @@ export default class PLM extends EventEmitter2{
 
 	//#region Static Methods
 
-	public static async GetPlmDevices(){
+	public static async getPlmDevices(){
 		const devices = await SerialPort.list();
 
 		return devices.filter(d => d.vendorId === '0403' && d.productId === '6001');

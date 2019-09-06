@@ -18,7 +18,7 @@ export interface DeviceRequest{
 }
 
 /* Abstract class for Insteon Devices */
-export abstract class InsteonDevice extends EventEmitter{
+export default abstract class InsteonDevice extends EventEmitter{
 	/* Class Info */
 	protected address: Byte[];
 	protected addressString: string;
@@ -102,14 +102,33 @@ export abstract class InsteonDevice extends EventEmitter{
 			return false;
 		}
 	}
-	protected calulateChecksum(userData: Byte[]): Byte{
+	public static calulateChecksum(cmd1: Byte, cmd2: Byte, userData: Byte[]): Byte{
 		/* Calulating sum of userData */
-		let checksum = userData.reduce((accum, value)=> ((accum += value) % 0xFF as Byte));
+		let sum = cmd1 + cmd2 + userData.reduce((acc, v) => acc += v, 0);
+
+		/* Grabbing last byte of sum */
+		let lastByte = (sum % 0xFF);
+
+		/* Complimenting last byte */
+		let complimentLastByte = ~lastByte;
 
 		/* Compliment checksum, adding one, then taking last two bytes */
-		checksum = (((~checksum) + 1) & 0xFF) as Byte;
+		let checksum = ((complimentLastByte + 1) & 0xFF) as Byte;
 
 		/* Returning checksum */
 		return checksum;
+	}
+
+	public static startLinking(plm: PLM, deviceID: Byte[]){
+		// Setting up command
+		const cmd1 = 0x09;
+		const cmd2 = 0x01;
+		const userData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+
+		// Calulating check sum
+		const checksum = InsteonDevice.calulateChecksum(cmd1, cmd2, userData);
+
+		// Starting linking 
+		return plm.sendExtendedCommand(deviceID, 0x1F, 0x09, 0x01, [...userData, checksum]);
 	}
 }

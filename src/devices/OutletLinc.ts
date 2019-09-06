@@ -1,12 +1,12 @@
 /* Libraries */
-import {InsteonDevice} from './InsteonDevice';
+import InsteonDevice from './InsteonDevice';
 import PLM, { Packets } from '../main';
 
 /* Types */
 import {Byte} from 'insteon-packet-parser';
 
 /* Class */
-export class OutletLinc extends InsteonDevice{
+export default class OutletLinc extends InsteonDevice{
 	constructor(deviceID: Byte[], modem: PLM){
 		super(deviceID, modem);
 	}
@@ -48,7 +48,7 @@ export class OutletLinc extends InsteonDevice{
 			userData = [port, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
 			/* Calulating checksum of userData */
-			const checksum = this.calulateChecksum(userData);
+			const checksum = InsteonDevice.calulateChecksum(command1, command2, userData);
 
 			/* Pushing checksum onto end of userData */
 			userData.push(checksum);
