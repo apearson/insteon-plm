@@ -1,12 +1,11 @@
 {
   "name": "insteon-plm",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "scripts": {
     "prepublishOnly": "yarn run build",
-    
     "build": "tsc",
     "build:dev": "tsc -p ./tsconfig.dev.json",
     "debug": "ts-node ./tests/debug.ts"
