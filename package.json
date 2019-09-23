@@ -6,8 +6,10 @@
   "types": "./dist/main.d.ts",
   "scripts": {
     "prepublishOnly": "yarn run build",
-    "debug": "ts-node ./tests/debug.ts",
-    "build": "tsc"
+    
+    "build": "tsc",
+    "build:dev": "tsc -p ./tsconfig.dev.json",
+    "debug": "ts-node ./tests/debug.ts"
   },
   "author": "John Andrew Tyler Pearson",
   "license": "MIT",
