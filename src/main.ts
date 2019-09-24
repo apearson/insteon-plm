@@ -11,7 +11,7 @@ import SwitchLincDimmer from './devices/SwitchLincDimmer';
 import SwitchLincRelay from './devices/SwitchLincRelay';
 
 /* Interfaces and Types */
-import { PacketID, Byte } from 'insteon-packet-parser';
+import { PacketID, Byte, ManageAllLinkRecordOperation } from 'insteon-packet-parser';
 
 /* Library Exports */
 export { Packets, PacketID };
@@ -143,7 +143,7 @@ export default class PLM extends EventEmitter2{
 		}
 
 		/* Deleting link from modem */
-		const status = await this.manageAllLinkRecord(deviceID, groupID, 0x80, type, [0x00, 0x00, 0x00]);
+		const status = await this.manageAllLinkRecord(deviceID, groupID, ManageAllLinkRecordOperation.DeleteFirstFound, type, [0x00, 0x00, 0x00]);
 
 		/* Resyncing links if successful */
 		status? await this.syncLinks() : null;
@@ -463,7 +463,7 @@ export default class PLM extends EventEmitter2{
 
 	//#region All Link Commands
 
-	public manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: Byte, type: AllLinkRecordType, linkData: Byte[]): Promise<boolean>{
+	public manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: ManageAllLinkRecordOperation, type: AllLinkRecordType, linkData: Byte[]): Promise<boolean>{
 		return new Promise((resolve, reject)=>{
 			/* Parsing out device ID */
 			if(typeof deviceID === 'string' ){
