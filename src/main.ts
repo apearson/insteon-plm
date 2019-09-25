@@ -92,7 +92,7 @@ export default class PLM extends EventEmitter2{
 
 	constructor(portPath: string){
 		/* Constructing super class */
-		super({ wildcard: true });
+		super({ wildcard: true, delimiter: '::' });
 
 		/* Opening serial port */
 		this._port = new SerialPort(portPath, {
@@ -778,14 +778,17 @@ export default class PLM extends EventEmitter2{
 	//#region Packet Handlers
 
 	private handlePacket = (packet: Packets.Packet) => {
+
 		/* Emitting packet for others to use */
 		this.emit('packet', packet);
+		this.emit([packet.d], packet);
 
 		/* Checking if packet if from a device */
 		if(packet.type === PacketID.StandardMessageReceived){
 			let p = packet as Packets.StandardMessageRecieved;
 
-			const eventID = [p.from.map(num => num.toString(16).toUpperCase()).join('.'), p.type.toString()];
+			const deviceID = p.from.map(num => num.toString(16).toUpperCase()).join('.');
+			const eventID = [deviceID, p.type.toString()];
 
 			this.emit(eventID, p);
 		}
