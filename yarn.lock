@@ -85,6 +85,11 @@
     "@serialport/binding-mock" "^2.0.5"
     debug "^4.1.1"
 
+"@types/async@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@types/async/-/async-3.0.2.tgz#d4c61a45695d1ca70ac7d072904770d4e2ab73e0"
+  integrity sha512-GuE075xd19mLhbY3bTnOro3yMgao0jARqxMDiRGo0J0wiCDg3VR21kaRnCaKmu0oxeJN+e2a1BM7EzHuunt3Pw==
+
 "@types/node@*":
   version "12.0.8"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.0.8.tgz#551466be11b2adc3f3d47156758f610bd9f6b1d8"
@@ -143,6 +148,11 @@ argparse@^1.0.7:
   integrity sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==
   dependencies:
     sprintf-js "~1.0.2"
+
+async@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/async/-/async-3.1.0.tgz#42b3b12ae1b74927b5217d8c0016baaf62463772"
+  integrity sha512-4vx/aaY6j/j3Lw3fbCHNWP0pPaTCew3F6F3hYyl/tHs/ndmV1q7NW9T5yuJ2XAGwdQrP+6Wu20x06U4APo/iQQ==
 
 balanced-match@^1.0.0:
   version "1.0.0"

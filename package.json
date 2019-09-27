@@ -16,11 +16,13 @@
     "dist/"
   ],
   "dependencies": {
+    "async": "^3.1.0",
     "eventemitter2": "^5.0.0",
     "insteon-packet-parser": "^3.1.2",
     "serialport": "^7.1.5"
   },
   "devDependencies": {
+    "@types/async": "^3.0.2",
     "@types/node": "^12.6.9",
     "@types/serialport": "^7.0.4",
     "ts-node": "^8.3.0",

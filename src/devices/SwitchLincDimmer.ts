@@ -9,7 +9,5 @@ import {Byte} from 'insteon-packet-parser';
 export default class SwitchLincDimmer extends InsteonDevice{
 	constructor(deviceID: Byte[], modem: PLM){
 		super(deviceID, modem);
-
-
 	}
 }
