@@ -153,7 +153,7 @@ export default class PLM extends EventEmitter2{
 		this.startLinking(type, groupID);
 
 		// Put the device into linking mode
-		InsteonDevice.startLinking(this, deviceID);
+		InsteonDevice.startRemoteLinking(this, deviceID);
 	}
 
 	//#endregion
@@ -723,7 +723,7 @@ export default class PLM extends EventEmitter2{
 
 			const deviceID = p.from.map(num => num.toString(16).toUpperCase()).join('.');
 
-			this.emit([p.type.toString(16), p.Flags.subtype.toString(16) , deviceID], p);
+			this.emit(['p', p.type.toString(16), p.Flags.subtype.toString(16) , deviceID], p);
 		}
 		else {
 			this.emit(['p', packet.type.toString(16)], packet);

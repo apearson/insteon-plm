@@ -3,7 +3,7 @@ import {EventEmitter} from 'events';
 import PLM from '../main';
 
 /* Types */
-import { Byte } from 'insteon-packet-parser';
+import { Byte, PacketID, Packets } from 'insteon-packet-parser';
 
 /* Interface */
 
@@ -52,16 +52,40 @@ export default abstract class InsteonDevice extends EventEmitter{
 		return checksum;
 	}
 
-	public static startLinking(plm: PLM, deviceID: Byte[]){
+	public static startRemoteLinking = (plm: PLM, deviceID: Byte[]) => new Promise<Packets.StandardMessageRecieved>((resolve, reject) => {
+
 		// Setting up command
+		const id = deviceID.map(num => num.toString(16).toUpperCase()).join('.');
 		const cmd1 = 0x09;
 		const cmd2 = 0x01;
 		const userData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
+		plm.once(
+			['p', PacketID.StandardMessageReceived.toString(16), '*', id], 
+			(data: Packets.StandardMessageRecieved)=> resolve(data)
+		);
+		
 		// Calulating check sum
 		const checksum = InsteonDevice.calulateChecksum(cmd1, cmd2, userData);
 
 		// Starting linking 
-		return plm.sendExtendedCommand(deviceID, 0x1F, 0x09, 0x01, [...userData, checksum]);
-	}
+		plm.sendExtendedCommand(deviceID, 0x1F, cmd1, cmd2, [...userData, checksum]);
+	});
+
+	public static stopRemoteLinking = (plm: PLM, deviceID: Byte[]) => new Promise<Packets.StandardMessageRecieved>((resolve, reject) => {
+		console.log('Stopping remote linking');
+
+		// Setting up command
+		const id = deviceID.map(num => num.toString(16).toUpperCase()).join('.');
+		const cmd1 = 0x08;
+		const cmd2 = 0x00;
+
+		plm.once(
+			['p', PacketID.StandardMessageReceived.toString(16), '*', id], 
+			(data: Packets.StandardMessageRecieved)=> resolve(data)
+		);
+		
+		// Starting linking 
+		plm.sendStandardCommand(deviceID, 0x0F, cmd1, cmd2);
+	});
 }
