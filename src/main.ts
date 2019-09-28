@@ -1,7 +1,7 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
-import { queue, ErrorCallback, AsyncQueue } from 'async';
+import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import { InsteonParser, Packets, AllLinkRecordType } from 'insteon-packet-parser';
 
 /* Devices */
@@ -36,7 +36,7 @@ export interface ModemConfig{
 	deadman: boolean;
 }
 
-interface QueueTaskData {
+export interface QueueTaskData {
 	command: Buffer;
 }
 
@@ -153,7 +153,7 @@ export default class PLM extends EventEmitter2{
 		this.startLinking(type, groupID);
 
 		// Put the device into linking mode
-		InsteonDevice.startRemoteLinking(this, deviceID);
+		// InsteonDevice.startRemoteLinking(this, deviceID);
 	}
 
 	//#endregion
@@ -169,19 +169,15 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(0x02, 0);
 		commandBuffer.writeUInt8(command, 1);
 
-		const onData = (data: Packets.GetIMInfo) =>
-			resolve({
-				id: data.ID,
-				firmware: data.firmware,
-				devcat: data.devcat,
-				subcat: data.subcat
-			});
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onData);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.GetIMInfo) => resolve({
+					id: p.ID,
+					firmware: p.firmware,
+					devcat: p.devcat,
+					subcat: p.subcat
+				}))
+				.catch(reject);	
 	});
 
 	public getConfig = () => new Promise<ModemConfig>((resolve, reject) => {
@@ -191,21 +187,17 @@ export default class PLM extends EventEmitter2{
 
 		/* Creating command */
 		commandBuffer.writeUInt8(0x02, 0);
-		commandBuffer.writeUInt8(0x73, 1);
-
-		const onData = (data: Packets.GetIMConfiguration) =>
-			resolve({
-				autoLED: data.Flags.autoLED,
-				autoLinking: data.Flags.autoLinking,
-				deadman: data.Flags.deadman,
-				monitorMode: data.Flags.monitorMode
-			});
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onData);
+		commandBuffer.writeUInt8(command, 1);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.GetIMConfiguration) => resolve({
+					autoLED: p.Flags.autoLED,
+					autoLinking: p.Flags.autoLinking,
+					deadman: p.Flags.deadman,
+					monitorMode: p.Flags.monitorMode
+				}))
+				.catch(reject);	
 	});
 
 	public async getAllLinks(): Promise<Packets.AllLinkRecordResponse[][]>{
@@ -303,7 +295,9 @@ export default class PLM extends EventEmitter2{
 		this.once(['p', command.toString(16)], onAck);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.SetIMConfiguration) => resolve(p.ack))
+				.catch(reject);	
 	});
 
 	public setCategory = (cat: Byte, subcat: Byte, firmware: Byte = 0xff) => new Promise<boolean>((resolve, reject) => {
@@ -324,7 +318,9 @@ export default class PLM extends EventEmitter2{
 		this.once(['p', command.toString(16)], onAck);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.SetHostDeviceCategory) => resolve(p.ack))
+				.catch(reject);	
 	});
 
 	public setLed = (state: boolean) => new Promise<boolean>((resolve, reject) => {
@@ -342,7 +338,9 @@ export default class PLM extends EventEmitter2{
 		this.once(['p', command.toString(16)], onAck);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.LEDOn | Packets.LEDOff) => resolve(p.ack))
+				.catch(reject);	
 	});
 
 	public sleep = () => new Promise<boolean>((resolve, reject) => {
@@ -356,13 +354,8 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(0x00, 2);    //Command 1 of Ack (Reason for sleep)
 		commandBuffer.writeUInt8(0x00, 3);    //Command 2 of Ack (Reason for sleep)
 
-		const onAck = (data: Packets.RFSleep) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer).then((data) => data.ack).catch(reject);	
 	});
 
 	public wake = () => new Promise<boolean>((resolve, reject) => {
@@ -373,7 +366,7 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(0x02, 0); //PLM Command
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer);
 
 		/* Responding after wake up */
 		setTimeout(()=> resolve(true) , 40);
@@ -400,7 +393,9 @@ export default class PLM extends EventEmitter2{
 		this.once(['p', command.toString(16)], onAck);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.ResetIM) => resolve(p.ack))
+				.catch(reject);	
 	});
 	
 
@@ -439,13 +434,10 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(linkData[1], 9);  //Link Data 2
 		commandBuffer.writeUInt8(linkData[2], 10); //Link Data 3
 
-		const onAck = (data: Packets.ManageAllLinkRecord) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.ManageAllLinkRecord) => resolve(p.ack))
+				.catch(reject);	
 	});
 
 	public startLinking = (type: AllLinkRecordType, group: Byte) => new Promise<boolean>((resolve, reject) => {
@@ -459,13 +451,10 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(type, 2);    //Link Code
 		commandBuffer.writeUInt8(group, 3);   //Group
 
-		const onAck = (data: Packets.StartAllLinking) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.StartAllLinking) => resolve(p.ack))
+				.catch(reject);	
 	});
 
 	public cancelLinking = () => new Promise<boolean>((resolve, reject) => {
@@ -477,13 +466,10 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(0x02, 0);    //PLM Command
 		commandBuffer.writeUInt8(command, 1); //Start Linking Byte
 
-		const onAck = (data: Packets.CancelAllLinking) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.CancelAllLinking) => resolve(p.ack))
+				.catch(reject);	
 	});
 
 	public getFirstAllLinkRecord = () => new Promise<Packets.AllLinkRecordResponse | false>((resolve, reject) => {
@@ -510,7 +496,7 @@ export default class PLM extends EventEmitter2{
 		this.once(['p', PacketID.AllLinkRecordResponse.toString(16)], onData);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer);
 	});
 
 	public getNextAllLinkRecord = () => new Promise<Packets.AllLinkRecordResponse | false>((resolve, reject) => {
@@ -537,7 +523,7 @@ export default class PLM extends EventEmitter2{
 		this.once(['p', PacketID.AllLinkRecordResponse.toString(16)], onData);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer);
 	});
 
 
@@ -557,13 +543,10 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(cmd1,  3);  //Device Middle Address Byte
 		commandBuffer.writeUInt8(cmd2,  4);  //Device Low Address Byte
 
-		const onAck = (data: Packets.SendAllLinkCommand) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.SendAllLinkCommand) => resolve(p.ack))
+				.catch(reject);	
 	});
 
 	public sendStandardCommand = (deviceID: string | Byte[], flags: Byte = 0x0F, cmd1: Byte = 0x00, cmd2: Byte = 0x00) => new Promise<boolean>((resolve, reject) => {
@@ -586,16 +569,13 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(cmd1, 6);  //Command Byte 1
 		commandBuffer.writeUInt8(cmd2, 7);  //Command Byte 2
 
-		const onAck = (data: Packets.SendInsteonMessage) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.SendInsteonMessage) => resolve(p.ack))
+				.catch(reject);	
 	});
 
-	public sendExtendedCommand = (deviceID: string | Byte[], flags: Byte = 0x1F, cmd1: Byte = 0x00, cmd2: Byte = 0x00, userData: Byte[]) => new Promise<boolean>((resolve, reject) => {
+	public sendExtendedCommand = (deviceID: string | Byte[], flags: Byte = 0x1F, cmd1: Byte = 0x00, cmd2: Byte = 0x00, userData: Byte[]) => new Promise<Packets.SendInsteonMessage>((resolve, reject) => {
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -607,7 +587,7 @@ export default class PLM extends EventEmitter2{
 
 		/* Creating command */
 		commandBuffer.writeUInt8(0x02, 0);  //PLM Command
-		commandBuffer.writeUInt8(0x62, 1);  //Standard Length Message
+		commandBuffer.writeUInt8(command, 1);  //Standard Length Message
 		commandBuffer.writeUInt8(deviceID[0], 2); //Device High Address Byte
 		commandBuffer.writeUInt8(deviceID[1], 3); //Device Middle Address Byte
 		commandBuffer.writeUInt8(deviceID[2], 4); //Device Low Address Byte
@@ -629,20 +609,20 @@ export default class PLM extends EventEmitter2{
 		commandBuffer.writeUInt8(userData[12] || 0x00, 20);  //User Data 13
 		commandBuffer.writeUInt8(userData[13] || 0x00, 21);  //User Data 14
 
-		const onAck = (data: Packets.SendInsteonMessage) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer, reject);
+		this.queueCommand(commandBuffer)
+				.then((p: Packets.SendInsteonMessage) => resolve(p))
+				.catch(reject);	
 	});
 
 	//#endregion
 
 	//#region Queue Functions
 
-	private processQueue = async (task: QueueTaskData, callback: ErrorCallback<Error>) => {
+	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<Packets.Packet>) => {
+
+		// Once we hear an echo (same command back) the modem is ready for another command
+		this.once(['p', task.command[1].toString(16)], d => callback(null, d));
 
 		// Attempting to write command to modem
 		try{
@@ -650,22 +630,18 @@ export default class PLM extends EventEmitter2{
 			
 			if(!isSuccessful)
 				callback(Error('Could not write to modem'));
-			else
-				// Successfully wrote to modem 
-				callback();
 		}
 		catch(error){
 			callback(error);
 		}
 	}
 
-	private Complete(reject: (reason?: any) => void){
-		return (err: Error) => err ? reject(err) : null;
-	}
+	private queueCommand = (command: Buffer) => new Promise<Packets.Packet>((resolve, reject) => {
 
-	private queueCommand(command: Buffer, reject: (reason?: any) => void){
-		this.requestQueue.push({ command }, this.Complete(reject));
-	}
+		this.requestQueue.push({ command }, (error, data: Packets.Packet) => {
+			error ? reject(error) : resolve(data);
+		});
+	});
 
 	//#endregion
 
