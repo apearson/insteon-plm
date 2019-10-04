@@ -6,10 +6,7 @@ import { InsteonParser, Packets, AllLinkRecordType } from 'insteon-packet-parser
 
 /* Devices */
 import InsteonDevice from './devices/InsteonDevice';
-import KeypadLincRelay from './devices/KeypadLincRelay';
 import OutletLinc from './devices/OutletLinc';
-import SwitchLincDimmer from './devices/SwitchLincDimmer';
-import SwitchLincRelay from './devices/SwitchLincRelay';
 
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation } from 'insteon-packet-parser';
@@ -18,7 +15,7 @@ import { PacketID, Byte, AllLinkRecordOperation } from 'insteon-packet-parser';
 export { Packets, PacketID };
 
 /* Devices Import/Exports */
-export { InsteonDevice, KeypadLincRelay, OutletLinc, SwitchLincDimmer, SwitchLincRelay };
+export { InsteonDevice, OutletLinc };
 
 //#region Interfaces
 
@@ -38,6 +35,7 @@ export interface ModemConfig{
 
 export interface QueueTaskData {
 	command: Buffer;
+	retries?: number;
 }
 
 //#endregion
@@ -153,7 +151,7 @@ export default class PLM extends EventEmitter2{
 		this.startLinking(type, groupID);
 
 		// Put the device into linking mode
-		InsteonDevice.startRemoteLinking(this, deviceID);
+		// InsteonDevice.startRemoteLinking(this, deviceID);
 	}
 
 	//#endregion
@@ -549,7 +547,7 @@ export default class PLM extends EventEmitter2{
 				.catch(reject);	
 	});
 
-	public sendStandardCommand = (deviceID: string | Byte[], flags: Byte = 0x0F, cmd1: Byte = 0x00, cmd2: Byte = 0x00) => new Promise<boolean>((resolve, reject) => {
+	public sendStandardCommand = (deviceID: string | Byte[], flags: Byte = 0x0F, cmd1: Byte = 0x00, cmd2: Byte = 0x00) => new Promise<Packets.SendInsteonMessage>((resolve, reject) => {
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -571,7 +569,7 @@ export default class PLM extends EventEmitter2{
 
 		/* Sending command */
 		this.queueCommand(commandBuffer)
-				.then((p: Packets.SendInsteonMessage) => resolve(p.ack))
+				.then((p: Packets.SendInsteonMessage) => resolve(p))
 				.catch(reject);	
 	});
 
@@ -622,7 +620,28 @@ export default class PLM extends EventEmitter2{
 	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<Packets.Packet>) => {
 
 		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', task.command[1].toString(16)], d => callback(null, d));
+		this.once(['p', task.command[1].toString(16)], (d: Packets.Packet) => {
+			if(d.ack){
+				const packet = d as Packets.SendInsteonMessage;
+					
+				if(packet.ack){
+					callback(null, packet);
+				}
+				else{
+					if(task.retries && task.retries > 2){
+						callback(Error('Could not complete task'));
+					}
+					else{
+						task.retries = (task.retries || 0) + 1;
+
+						this.requestQueue.push(task, callback);
+					}
+				}
+			}
+			else{
+				callback(null, d)
+			}
+		});
 
 		// Attempting to write command to modem
 		try{
