@@ -153,7 +153,7 @@ export default class PLM extends EventEmitter2{
 		this.startLinking(type, groupID);
 
 		// Put the device into linking mode
-		// InsteonDevice.startRemoteLinking(this, deviceID);
+		InsteonDevice.startRemoteLinking(this, deviceID);
 	}
 
 	//#endregion
