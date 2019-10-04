@@ -96,9 +96,9 @@
   integrity sha512-b8bbUOTwzIY3V5vDTY1fIJ+ePKDUBqt2hC2woVGotdQQhG/2Sh62HOKHrT7ab+VerXAcPyAiTEipPu/FsreUtg==
 
 "@types/node@^12.6.9":
-  version "12.7.7"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.7.tgz#f9bd8c00fa9e1a8129af910fc829f6139c397d6c"
-  integrity sha512-4jUncNe2tj1nmrO/34PsRpZqYVnRV1svbU78cKhuQKkMntKB/AmdLyGgswcZKjFHEHGpiY8pVD8CuVI55nP54w==
+  version "12.7.11"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.11.tgz#be879b52031cfb5d295b047f5462d8ef1a716446"
+  integrity sha512-Otxmr2rrZLKRYIybtdG/sgeO+tHY20GxeDjcGmUnmmlCWyEnv2a2x1ZXBo3BTec4OiTXMQCiazB8NMBf0iRlFw==
 
 "@types/serialport@^7.0.4":
   version "7.0.4"
@@ -407,9 +407,9 @@ ini@~1.3.0:
   integrity sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
 
 insteon-packet-parser@^3.1.2:
-  version "3.1.4"
-  resolved "https://registry.yarnpkg.com/insteon-packet-parser/-/insteon-packet-parser-3.1.4.tgz#06574cbd3d633fab9930eb9f8075ea3da83eda8d"
-  integrity sha512-xekeKTQUrNh7lCsYYr5dvYL01sEZAQVhjdZZFJ/qb9MhTpuTHbFQzYirQ8Gl2tkCht84JiEKqXfReMkMyOvSZw==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/insteon-packet-parser/-/insteon-packet-parser-3.2.0.tgz#e4a7aa4b14d7c1d3c97d3993061af316e5ca8223"
+  integrity sha512-4PSnTIPsMeVs0GfdHzTHjLDutDboW5IsxGAY9ifXnlvjKNZPD2ryfRkeDSlW5CXwbJZzM+HkxKo6b9AHQol3/A==
 
 is-fullwidth-code-point@^1.0.0:
   version "1.0.0"
