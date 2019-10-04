@@ -1,5 +1,5 @@
 # Insteon Powerlinc Modem
-[![Actions Status](https://github.com/apearson/insteon-plm/workflows/CI/badge.svg)](https://github.com/apearson/insteon-plm/actions)
+[![Actions Status](https://github.com/apearson/insteon-plm/workflows/Continuous%20Integration/badge.svg)](https://github.com/apearson/insteon-plm/actions)
 
 ## Overview
 Insteon PLM is a TypeScript/JavaScript library for the Insteon PowerLinc Modem family of devices.  This library's goal is to allow easy access to the the PowerLinc Modem and through the PowerLinc Modem allow easy programmatic access to the Insteon ecosystem of devices. 
