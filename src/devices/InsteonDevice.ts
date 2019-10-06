@@ -95,7 +95,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-
 	//#region Utility Method
 
 	public static calulateChecksum(cmd1: Byte, cmd2: Byte, userData: Byte[]){
@@ -204,6 +203,16 @@ export default class InsteonDevice extends EventEmitter2 {
 		resolve();
 	});
 
+	public beep = (): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x30;
+		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
 	//#endregion
 
 	//#region Status
@@ -270,7 +279,8 @@ export default class InsteonDevice extends EventEmitter2 {
 			
 		});
 
-		// console.log(`Sending [${isExtended? 'E':'S'}] | Flag: 0x${flag.toString(16)} | Cmd1: 0x${task.cmd1.toString(16)} | Cmd2: 0x${task.cmd2.toString(16)} | UserData: ${task.userData}`);
+		if(this.options.debug)
+			console.log(`[${this.addressString}][${isExtended? 'E':'S'}]: Flag: 0x${flag.toString(16)} | Cmd1: 0x${task.cmd1.toString(16)} | Cmd2: 0x${task.cmd2.toString(16)} | UserData: ${task.userData}`);
 
 		// Attempting to write command to modem
 		const isSuccessful = isExtended ? await this.modem.sendExtendedCommand(this.address, flag, task.cmd1, task.cmd2, task.userData)
