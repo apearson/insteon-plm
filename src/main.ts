@@ -3,6 +3,7 @@ import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import { InsteonParser, Packets, AllLinkRecordType } from 'insteon-packet-parser';
+import deviceDB from './deviceDB.json';
 
 /* Devices */
 import InsteonDevice from './devices/InsteonDevice';
@@ -113,7 +114,7 @@ export default class PLM extends EventEmitter2{
 
 	//#endregion
 
-	//#region Modem Metabata
+	//#region Modem Metadata
 
 	get info(){ return this._info; }
 
@@ -734,6 +735,12 @@ export default class PLM extends EventEmitter2{
 
 		return devices.filter(d => d.vendorId === '0403' && d.productId === '6001');
 	}
+
+	public static getDeviceInfo = (cat: Byte, subcat: Byte) =>
+		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
+
+	public static addressToAddressString = (address: Byte[]) =>
+		address.map(num => num.toString(16).toUpperCase()).join('.');
 
 	//#endregion
 };

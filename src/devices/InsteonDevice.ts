@@ -1,7 +1,8 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
-import { AsyncQueue, queue, AsyncResultCallback, retryable } from 'async';
-import PLM, { QueueTaskData } from '../main';
+import { AsyncQueue, queue, AsyncResultCallback } from 'async';
+import PLM from '../main';
+import { toHex } from '../utils';
 
 /* Types */
 import { Byte, PacketID, Packets, MessageSubtype } from 'insteon-packet-parser';
@@ -21,6 +22,9 @@ export interface DeviceInfo {
 	firmware: Byte;
 	hardward: Byte;
 }
+export interface DeviceOptions {
+	debug: boolean;
+}
 
 /* Abstract class for Insteon Devices */
 export default class InsteonDevice extends EventEmitter2 {
@@ -29,41 +33,70 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	/* Class Info */
 	protected address: Byte[];
-	protected addressString: string;
+
+	/* Device Info */
+	public cat: Byte;
+	public subcat: Byte;
+	public firmware: Byte;
+	public hardward: Byte;
 
 	/* Inernal Variaables */
 	protected modem: PLM;
 	private requestQueue: AsyncQueue<DeviceCommandTask>;
-	protected busy: boolean = false;
+	protected options: DeviceOptions = { debug: false };
 
 	//#endregion
 
 	//#region Constuctor
 
-	constructor(deviceID: Byte[], modem: PLM){
+	constructor(deviceID: Byte[], modem: PLM, options?: DeviceOptions){
 		super({ wildcard: true, delimiter: '::' });
 
 		/* Saving serialport */
 		this.modem = modem;
 
+		/* Saving options */
+		if(options)
+			this.options = options;
+
 		/* Setting up info */
 		this.address = deviceID;
-		this.addressString = deviceID.map((byte)=> ('0'+(byte).toString(16)).slice(-2).toUpperCase()).join(':');
 
 		/* Setting up request queue */
 		this.requestQueue = queue(this.processQueue, 1);
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
+
+		/* Initalizing Device */
+		this.initalize()
+	}
+
+	public async initalize(){
+
+		/* Getting device info */
+		const info = await this.getDeviceInfo();
+
+		/* Saving device info */
+		this.cat = info.cat;
+		this.subcat = info.subcat;
+		this.firmware = info.firmware;
+		this.hardward = info.hardward;
+
+		/* Emitting ready event */
+		this.emit('ready');
 	}
 
 	//#endregion
 
-	//#region Utility Method
+	//#region Device Metadata
 
-	/* Inital Length check and comparing every index together */
-	protected areAddressesSame = (a: number[], b: number[]) => 
-		(a.length === b.length && a.every((v, i)=> v === b[i]));
+	get addressString(){ return PLM.addressToAddressString(this.address); }
+
+	//#endregion
+
+
+	//#region Utility Method
 
 	public static calulateChecksum(cmd1: Byte, cmd2: Byte, userData: Byte[]){
 		/* Calulating sum of userData */
@@ -96,9 +129,11 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	});
 
+	//#endregion
+
 	//#region Insteon Methods
 
-	public getEngineVersion(): Promise<Packets.StandardMessageRecieved> {
+	public getEngineVersion = (): Promise<Packets.StandardMessageRecieved> => {
 
 		// Setting up command
 		const cmd1 = 0x0D;
@@ -108,7 +143,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 
-	public ping(): Promise<Packets.StandardMessageRecieved> {
+	public ping = (): Promise<Packets.StandardMessageRecieved> => {
 
 		// Setting up command
 		const cmd1 = 0x0F;
@@ -119,10 +154,6 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	public getDeviceInfo = () => new Promise<DeviceInfo>((resolve, reject) => {
-		
-		// Setting up command
-		const cmd1 = 0x10;
-		const cmd2 = 0x00;
 
 		// Catching broadcast message
 		this.once(
@@ -139,9 +170,53 @@ export default class InsteonDevice extends EventEmitter2 {
 			}
 		);
 
+		// Setting up command
+		const cmd1 = 0x10;
+		const cmd2 = 0x00;
+
 		/* Sending command */
 		this.sendInsteonCommand(cmd1, cmd2);
 	});
+
+	public getDatabase = () => new Promise<void>(async (resolve, reject) => {
+
+		// Catching broadcast message
+		this.on(
+			[PacketID.ExtendedMessageReceived.toString(16), '**'], 
+			(data: Packets.ExtendedMessageRecieved) => {
+
+				console.log(`DB Record: ${data}`);
+
+			}
+		);
+
+		// Setting up command
+		const cmd1 = 0x2F;
+		const cmd2 = 0x00;
+		const userData: Byte[] = [0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+
+		// Adding checksum
+		userData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, userData));
+
+		/* Sending command */
+		const packet = await this.sendInsteonCommand(cmd1, cmd2, userData);
+
+		resolve();
+	});
+
+	//#endregion
+
+	//#region Status
+
+	public getStatus = (): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x19;
+		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
 
 	//#endregion
 
@@ -189,11 +264,13 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		// Once we hear an echo (same command back) the modem is ready for another command
 		this.modem.once(['p', packetType, '**'], d => {
-			setTimeout(() => 
+			setTimeout(() =>
 				callback(null, d)
-			, 100); // Modem needs time to reset after command
+			, 200); // Modem needs time to reset after command
 			
 		});
+
+		// console.log(`Sending [${isExtended? 'E':'S'}] | Flag: 0x${flag.toString(16)} | Cmd1: 0x${task.cmd1.toString(16)} | Cmd2: 0x${task.cmd2.toString(16)} | UserData: ${task.userData}`);
 
 		// Attempting to write command to modem
 		const isSuccessful = isExtended ? await this.modem.sendExtendedCommand(this.address, flag, task.cmd1, task.cmd2, task.userData)
@@ -205,19 +282,18 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	// #region Event functions 
+	//#region Event functions 
 
 	private setupRebroadcast(){
 
-		const addressString = this.address.map(num => num.toString(16).toUpperCase()).join('.');
-
-		this.modem.on(['p', '*', '*', addressString, '**'], (data: Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved) => {
+		this.modem.on(['p', '*', '*', this.addressString, '**'], (data: Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved) => {
 
 			const pType = data.type === PacketID.StandardMessageReceived ? 'S'
 			            : data.type === PacketID.ExtendedMessageReceived ? 'E'
 			            : 'U';
 
-			console.log(`Device Packet [${pType}]: ${data.Flags.Subtype}`);
+			if(this.options.debug)
+				console.log(`[${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)}`);
 
 			this.emit([data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
