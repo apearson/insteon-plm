@@ -1,15 +1,9 @@
 /* Libraries */
-import InsteonDevice, { DeviceOptions } from './InsteonDevice';
-import PLM from '../main';
-
-/* Types */
-import { Byte, Packets, PacketID, MessageSubtype } from 'insteon-packet-parser';
+import InsteonDevice from './InsteonDevice';
+import { Byte } from '../main';
 
 /* Class */
 export default class KeypadDimmer extends InsteonDevice {
-	constructor(deviceID: Byte[], modem: PLM, options?: DeviceOptions){
-		super(deviceID, modem, options);
-	}
 
 	public switch(state: boolean, level?: Byte, fast: boolean = false){
 

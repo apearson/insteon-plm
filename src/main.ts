@@ -2,21 +2,22 @@
 import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
-import { InsteonParser, Packets, AllLinkRecordType } from 'insteon-packet-parser';
+import { InsteonParser, Packets } from 'insteon-packet-parser';
 import deviceDB from './deviceDB.json';
 
 /* Devices */
 import InsteonDevice from './devices/InsteonDevice';
 import OutletLinc from './devices/OutletLinc';
+import KeypadDimmer from './devices/KeypadDimmer.js';
 
 /* Interfaces and Types */
-import { PacketID, Byte, AllLinkRecordOperation } from 'insteon-packet-parser';
+import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype } from 'insteon-packet-parser';
 
 /* Library Exports */
-export { Packets, PacketID };
+export { Packets, PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype };
 
 /* Devices Import/Exports */
-export { InsteonDevice, OutletLinc };
+export { InsteonDevice, OutletLinc, KeypadDimmer };
 
 //#region Interfaces
 

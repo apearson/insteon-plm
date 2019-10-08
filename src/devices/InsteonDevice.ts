@@ -1,11 +1,10 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
-import { AsyncQueue, queue, AsyncResultCallback } from 'async';
-import PLM from '../main';
+import { queue, AsyncQueue, AsyncResultCallback } from 'async';
+import PLM, { Byte, PacketID, Packets, MessageSubtype } from '../main';
 import { toHex } from '../utils';
 
 /* Types */
-import { Byte, PacketID, Packets, MessageSubtype } from 'insteon-packet-parser';
 
 /* Interface */
 interface DeviceCommandTask {
