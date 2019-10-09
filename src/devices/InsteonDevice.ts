@@ -1,7 +1,7 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
-import PLM, { Byte, PacketID, Packets, MessageSubtype } from '../main';
+import PLM, { Byte, PacketID, Packets, MessageSubtype, AllLinkRecordType } from '../main';
 import { toHex } from '../utils';
 
 /* Types */
@@ -24,6 +24,20 @@ export interface DeviceInfo {
 export interface DeviceOptions {
 	debug: boolean;
 }
+export interface DeviceLinkRecord {
+	address: string[];
+	type: Byte;
+	Type: {
+		active: boolean;
+		control: string;
+		smartHop: number;
+		highWater: boolean;
+	};
+	group: Byte;
+	device: string[];
+	onLevel: Byte;
+	rampRate: Byte;
+}
 
 /* Abstract class for Insteon Devices */
 export default class InsteonDevice extends EventEmitter2 {
@@ -38,6 +52,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public subcat: Byte;
 	public firmware: Byte;
 	public hardward: Byte;
+	public links: DeviceLinkRecord[] = [];
 
 	/* Inernal Variaables */
 	protected modem: PLM;
@@ -73,14 +88,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	public async initalize(){
 
-		/* Getting device info */
-		const info = await this.getDeviceInfo();
-
-		/* Saving device info */
-		this.cat = info.cat;
-		this.subcat = info.subcat;
-		this.firmware = info.firmware;
-		this.hardward = info.hardward;
+		// Syncing data		
+		await this.syncInfo();
+		await this.syncLinks();
 
 		/* Emitting ready event */
 		this.emit('ready');
@@ -126,6 +136,32 @@ export default class InsteonDevice extends EventEmitter2 {
 		});	
 
 	});
+
+	//#endregion
+
+	//#region Device Sync
+
+	public async syncInfo(){
+		// Getting info from device
+		const info = await this.getDeviceInfo();
+
+		/* Saving device info */
+		this.cat = info.cat;
+		this.subcat = info.subcat;
+		this.firmware = info.firmware;
+		this.hardward = info.hardward;
+
+		// Returning device info
+		return info;
+	}
+
+	public async syncLinks(){
+		// Getting links from device
+		this.links = await this.getDatabase();
+
+		// Returning device links
+		return this.links;
+	}
 
 	//#endregion
 
@@ -176,30 +212,58 @@ export default class InsteonDevice extends EventEmitter2 {
 		this.sendInsteonCommand(cmd1, cmd2);
 	});
 
-	public getDatabase = () => new Promise<void>(async (resolve, reject) => {
+	public getDatabase = () => new Promise<DeviceLinkRecord[]>(async (resolve, reject) => {
+
+		// Device links
+		const links: DeviceLinkRecord[]  = [];
+
+		// Device listener event name
+		const dbRecordEvent = [PacketID.ExtendedMessageReceived.toString(16), MessageSubtype.DirectMessage.toString(16)];
+
+		// Function to handle record response
+		const handleDbRecordResponse = (data: Packets.ExtendedMessageRecieved) => {
+
+			// Getting record type (Controller/Responder)
+			const type = data.extendedData[5];
+			
+			// Creating link from data
+			const link: DeviceLinkRecord = {
+				address: [data.extendedData[2], data.extendedData[3]].map(toHex).map(e => e[0]),
+				type,
+				Type: {
+					active: !!((type & 128) >> 7),
+					control: AllLinkRecordType[(type & 64) >> 6],
+					smartHop: (type & 24) >> 3,
+					highWater: !((type & 2) >> 1)
+				},
+				group: data.extendedData[6],
+				device: [data.extendedData[7], data.extendedData[8], data.extendedData[9]].map(toHex).map(e => e[0]),
+				onLevel: data.extendedData[10],
+				rampRate: data.extendedData[11]
+			};
+
+			// If link is a highwater mark then remove listener and fullfil promise, else add link to cache
+			if(link.Type.highWater){
+				this.removeListener(dbRecordEvent, handleDbRecordResponse);
+
+				resolve(links);
+			}
+			else {
+				links.push(link);
+			}
+	
+		}
 
 		// Catching broadcast message
-		this.on(
-			[PacketID.ExtendedMessageReceived.toString(16), '**'], 
-			(data: Packets.ExtendedMessageRecieved) => {
-
-				console.log(`DB Record: ${data}`);
-
-			}
-		);
+		this.on(dbRecordEvent, handleDbRecordResponse);
 
 		// Setting up command
 		const cmd1 = 0x2F;
 		const cmd2 = 0x00;
-		const userData: Byte[] = [0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-
-		// Adding checksum
-		userData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, userData));
+		const userData: Byte[] = [0x00, 0x00, 0x0F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
 		/* Sending command */
-		const packet = await this.sendInsteonCommand(cmd1, cmd2, userData);
-
-		resolve();
+		this.sendInsteonCommand(cmd1, cmd2, userData);
 	});
 
 	public beep = (): Promise<Packets.StandardMessageRecieved> => {
@@ -302,7 +366,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			            : 'U';
 
 			if(this.options.debug)
-				console.log(`[${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)}`);
+				console.log(`[${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)} ${(data.extendedData || []).map(toHex)}`);
 
 			this.emit([data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});

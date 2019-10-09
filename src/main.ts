@@ -3,12 +3,13 @@ import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import { InsteonParser, Packets } from 'insteon-packet-parser';
+import { toHex } from './utils';
 import deviceDB from './deviceDB.json';
 
 /* Devices */
 import InsteonDevice from './devices/InsteonDevice';
 import OutletLinc from './devices/OutletLinc';
-import KeypadDimmer from './devices/KeypadDimmer.js';
+import KeypadDimmer from './devices/KeypadDimmer';
 
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype } from 'insteon-packet-parser';
@@ -20,6 +21,10 @@ export { Packets, PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, Mes
 export { InsteonDevice, OutletLinc, KeypadDimmer };
 
 //#region Interfaces
+
+export interface ModemOptions {
+	debug: boolean;
+}
 
 export interface ModemInfo{
 	id: Byte[];
@@ -72,6 +77,9 @@ export default class PLM extends EventEmitter2{
 	private port: SerialPort;
 	private parser: InsteonParser;
 
+	/* Debug */
+	private options: ModemOptions = { debug: false };
+
 	//#endregion
 
 	//#region Public Variables
@@ -82,9 +90,13 @@ export default class PLM extends EventEmitter2{
 
 	//#region Constuctor
 
-	constructor(portPath: string){
+	constructor(portPath: string, options?: ModemOptions){
 		/* Constructing super class */
 		super({ wildcard: true, delimiter: '::' });
+
+		/* Saving options */
+		if(options)
+			this.options = options;
 
 		/* Opening serial port */
 		this.port = new SerialPort(portPath, {
@@ -676,7 +688,6 @@ export default class PLM extends EventEmitter2{
 		this.emit('connected');
 		this.emit(['e', 'connected']);
 
-
 		/* Inital Sync of info */
 		await this.syncInfo();
 		await this.syncConfig();
@@ -714,8 +725,20 @@ export default class PLM extends EventEmitter2{
 		/* Emitting packet for others to use */
 		this.emit('packet', packet);
 
+		if(this.options.debug){
+			if(packet.type === PacketID.SendInsteonMessage){
+				console.log(`[${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)}`);	
+			}
+			else if(packet.type === PacketID.ExtendedMessageReceived){
+				console.log(`[${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)} ${(packet.extendedData).map(toHex)}`);	
+			}
+			else{
+				console.log(`[${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)}`);
+			}
+		}
+
 		/* Checking if packet if from a device */
-		if(packet.type === PacketID.StandardMessageReceived){
+		if(packet.type === PacketID.StandardMessageReceived || packet.type === PacketID.ExtendedMessageReceived){
 			let p = packet as Packets.StandardMessageRecieved;
 
 			const deviceID = p.from.map(num => num.toString(16).toUpperCase()).join('.');
