@@ -8,3 +8,4 @@ dbbackup
 packet-types.txt
 tests/debug.ts
 *.tsbuildinfo
+notes.*

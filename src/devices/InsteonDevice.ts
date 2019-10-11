@@ -25,16 +25,16 @@ export interface DeviceOptions {
 	debug: boolean;
 }
 export interface DeviceLinkRecord {
-	address: string[];
+	address: Byte[];
 	type: Byte;
 	Type: {
 		active: boolean;
-		control: string;
+		control: AllLinkRecordType;
 		smartHop: number;
 		highWater: boolean;
 	};
 	group: Byte;
-	device: string[];
+	device: Byte[];
 	onLevel: Byte;
 	rampRate: Byte;
 }
@@ -167,6 +167,21 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Insteon Methods
 
+	/* 
+	 * Request Commands for All INSTEON devices (Dev Guide, Chapter 8, Page 157)
+	 */
+
+	public productDataRequest = (): Promise<Packets.StandardMessageRecieved> => {
+		
+		// Setting up command
+		const cmd1 = 0x03;
+		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+	
+	// Get INSTEON Engine Version
 	public getEngineVersion = (): Promise<Packets.StandardMessageRecieved> => {
 
 		// Setting up command
@@ -177,6 +192,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 
+	// Ping
 	public ping = (): Promise<Packets.StandardMessageRecieved> => {
 
 		// Setting up command
@@ -187,6 +203,11 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 
+	public modifyAllLinkDatabase = () => { }
+
+	public allLinkRecall = () => { }
+
+	// ID Request
 	public getDeviceInfo = () => new Promise<DeviceInfo>((resolve, reject) => {
 
 		// Catching broadcast message
@@ -228,16 +249,16 @@ export default class InsteonDevice extends EventEmitter2 {
 			
 			// Creating link from data
 			const link: DeviceLinkRecord = {
-				address: [data.extendedData[2], data.extendedData[3]].map(toHex).map(e => e[0]),
+				address: [data.extendedData[2], data.extendedData[3]],
 				type,
 				Type: {
 					active: !!((type & 128) >> 7),
-					control: AllLinkRecordType[(type & 64) >> 6],
+					control: (type & 64) >> 6,
 					smartHop: (type & 24) >> 3,
 					highWater: !((type & 2) >> 1)
 				},
 				group: data.extendedData[6],
-				device: [data.extendedData[7], data.extendedData[8], data.extendedData[9]].map(toHex).map(e => e[0]),
+				device: [data.extendedData[7], data.extendedData[8], data.extendedData[9]],
 				onLevel: data.extendedData[10],
 				rampRate: data.extendedData[11]
 			};
@@ -294,6 +315,26 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Linking
 
+	public assignToGroup = (group: Byte): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x01;
+		const cmd2 = group;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	public removeFromGroup = (group: Byte): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x02;
+		const cmd2 = group;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
 	public startRemoteLinking = (): Promise<Packets.StandardMessageRecieved> => {
 
 		// Setting up command
@@ -313,6 +354,16 @@ export default class InsteonDevice extends EventEmitter2 {
 		// Setting up command
 		const cmd1 = 0x08;
 		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	public startRemoteUnlink = (group: Byte): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x0A;
+		const cmd2 = group;
 
 		/* Sending command */
 		return this.sendInsteonCommand(cmd1, cmd2);
