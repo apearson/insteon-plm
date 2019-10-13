@@ -12,7 +12,6 @@ interface DeviceCommandTask {
 	cmd2: Byte;
 	flags?: Byte;
 	userData?: Byte[];
-	responsePacketType?: Byte;
 }
 
 export interface DeviceInfo {
@@ -37,6 +36,19 @@ export interface DeviceLinkRecord {
 	device: Byte[];
 	onLevel: Byte;
 	rampRate: Byte;
+}
+
+export interface DeviceLinkRecordOptions {
+	group: Byte;
+	device: Byte[];
+	onLevel: Byte;
+	rampRate: Byte;
+	Type: {
+		active?: boolean;
+		control: AllLinkRecordType;
+		smartHop?: Byte;
+		highwater?: boolean;
+	}
 }
 
 /* Abstract class for Insteon Devices */
@@ -106,21 +118,17 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Utility Method
 
-	public static calulateChecksum(cmd1: Byte, cmd2: Byte, userData: Byte[]){
-		/* Calulating sum of userData */
-		let sum = cmd1 + cmd2 + userData.reduce((acc, v) => acc += v, 0);
+	public static calulateChecksum(cmd1: Byte, cmd2: Byte, userData: Byte[]): Byte{
+		// Summing bytes
+		let sum = [cmd1, cmd2, ...userData].reduce((acc, v) => acc += v, 0);
 
-		/* Grabbing last byte of sum */
-		let lastByte = (sum % 0xFF);
+		let lastByte = sum & 0xFF;
 
-		/* Complimenting last byte */
-		let complimentLastByte = ~lastByte;
+		let compliment = -lastByte;
+		
+		let sign2unsigned = (compliment >>> 0) & 0xFF;
 
-		/* Compliment checksum, adding one, then taking last two bytes */
-		let checksum = ((complimentLastByte + 1) & 0xFF) as Byte;
-
-		/* Returning checksum */
-		return checksum;
+		return sign2unsigned as Byte;
 	}
 
 	//#endregion
@@ -130,7 +138,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public sendInsteonCommand = (cmd1: Byte, cmd2: Byte, userData?: Byte[], flags?: Byte) => new Promise<Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved>((resolve, reject) => {
 
 		/* Sending command */
-		this.requestQueue.push({cmd1, cmd2, userData, flags }, (err: Error, data: Packets.StandardMessageRecieved) => {
+		this.requestQueue.push({cmd1, cmd2, userData, flags }, (err: Error, data: Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved) => {
 			if(err) reject(err)
 			else resolve(data);
 		});	
@@ -165,11 +173,64 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Insteon Methods
+	//#region Higher Level Methods
 
-	/* 
-	 * Request Commands for All INSTEON devices (Dev Guide, Chapter 8, Page 157)
-	 */
+	// Reading entire database
+	public getDatabase = () => 
+		this.readDatabase([0x0F, 0xFF], 0x00);
+
+	// Get device info and parse info out of packet
+	public async getDeviceInfo(){
+
+		const data = await this.idRequest();
+
+		const deviceInfo: DeviceInfo = {
+			cat: data.to[0],
+			subcat: data.to[1],
+			firmware: data.to[2],
+			hardward: data.cmd2
+		};
+
+		return deviceInfo;
+	}
+
+	//#endregion
+
+	//#region Unsupported Commands 
+
+	public getStatus = (): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x19;
+		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	public beep = (): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x30;
+		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	public stopRemoteLinking = (): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x08;
+		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	//#endregion
+
+	//#region Raw Metadata Commands 
 
 	public productDataRequest = (): Promise<Packets.StandardMessageRecieved> => {
 		
@@ -181,7 +242,6 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 	
-	// Get INSTEON Engine Version
 	public getEngineVersion = (): Promise<Packets.StandardMessageRecieved> => {
 
 		// Setting up command
@@ -192,37 +252,12 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 
-	// Ping
-	public ping = (): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x0F;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	public modifyAllLinkDatabase = () => { }
-
-	public allLinkRecall = () => { }
-
-	// ID Request
-	public getDeviceInfo = () => new Promise<DeviceInfo>((resolve, reject) => {
+	public idRequest = () => new Promise<Packets.StandardMessageRecieved>((resolve, reject) => {
 
 		// Catching broadcast message
 		this.once(
 			[PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16)], 
-			(data: Packets.StandardMessageRecieved) => {
-
-				resolve({
-					cat: data.to[0],
-					subcat: data.to[1],
-					firmware: data.to[2],
-					hardward: data.cmd2
-				})
-
-			}
+			(data: Packets.StandardMessageRecieved) => resolve(data)
 		);
 
 		// Setting up command
@@ -233,7 +268,76 @@ export default class InsteonDevice extends EventEmitter2 {
 		this.sendInsteonCommand(cmd1, cmd2);
 	});
 
-	public getDatabase = () => new Promise<DeviceLinkRecord[]>(async (resolve, reject) => {
+	//#endregion
+
+	//#region Raw Commands 
+
+	public ping = (): Promise<Packets.StandardMessageRecieved> => {
+
+		// Setting up command
+		const cmd1 = 0x0F;
+		const cmd2 = 0x00;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	// TODO: NotImplimented
+	public allLinkRecall = () => { }
+
+	//#endregion
+
+	//#region Linking
+
+	public assignToGroup(group: Byte): Promise<Packets.StandardMessageRecieved> {
+
+		// Setting up command
+		const cmd1 = 0x01;
+		const cmd2 = group;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	public deleteFromGroup(group: Byte): Promise<Packets.StandardMessageRecieved> {
+
+		// Setting up command
+		const cmd1 = 0x02;
+		const cmd2 = group;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	public enterLinking(): Promise<Packets.StandardMessageRecieved> {
+
+		// Setting up command
+		const cmd1 = 0x09;
+		const cmd2 = 0x01;
+		const userData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+		
+		// Adding checksum
+		userData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, userData));
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2, userData);
+	}
+
+	public enterUnlinking(group: Byte): Promise<Packets.StandardMessageRecieved> {
+
+		// Setting up command
+		const cmd1 = 0x0A;
+		const cmd2 = group;
+
+		/* Sending command */
+		return this.sendInsteonCommand(cmd1, cmd2);
+	}
+
+	//#endregion
+
+	//#region Database Commands
+	
+	public readDatabase = (startAddress: Byte[], numberOfRecords: Byte) => new Promise<DeviceLinkRecord[]>(async (resolve, reject) => {
 
 		// Device links
 		const links: DeviceLinkRecord[]  = [];
@@ -267,6 +371,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			if(link.Type.highWater){
 				this.removeListener(dbRecordEvent, handleDbRecordResponse);
 
+				links.push(link);
 				resolve(links);
 			}
 			else {
@@ -277,97 +382,51 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		// Catching broadcast message
 		this.on(dbRecordEvent, handleDbRecordResponse);
-
+		
 		// Setting up command
 		const cmd1 = 0x2F;
 		const cmd2 = 0x00;
-		const userData: Byte[] = [0x00, 0x00, 0x0F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+		const userData: Byte[] = [0x00, 0x00, startAddress[0], startAddress[1], numberOfRecords, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
 		/* Sending command */
 		this.sendInsteonCommand(cmd1, cmd2, userData);
 	});
 
-	public beep = (): Promise<Packets.StandardMessageRecieved> => {
+	// TODO: Needs work
+	public modifyDatabase = (address: Byte[], options: DeviceLinkRecordOptions) => {
+
+		// General Info
+		const group = options.group;
+		const device = options.device;
+		const onLevel = options.onLevel;
+		const rampRate = options.rampRate;
+
+		// Flags
+		const active = options.Type.active || true;
+		const type = options.Type.control;
+		const smartHop = options.Type.smartHop || 3;
+		const highWater = options.Type.highwater || false;
+
+		// Creating flag bit
+		const flags = ((+active << 7) | (type << 6) | (1 << 5) | (smartHop << 3) | (+(!highWater) << 1)) as Byte;
+
+		console.log(highWater, flags.toString(2));
 
 		// Setting up command
-		const cmd1 = 0x30;
+		const cmd1 = 0x2F;
 		const cmd2 = 0x00;
+		const numberOfBytes = 0x08;
 
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
+		// Creating user data
+		const userData: Byte[] = [0x00, 0x02, address[0], address[1], numberOfBytes, flags, group, device[0], device[1], device[2], onLevel, rampRate, 0x00];
 
-	//#endregion
-
-	//#region Status
-
-	public getStatus = (): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x19;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	//#endregion
-
-	//#region Linking
-
-	public assignToGroup = (group: Byte): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x01;
-		const cmd2 = group;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	public removeFromGroup = (group: Byte): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x02;
-		const cmd2 = group;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	public startRemoteLinking = (): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x09;
-		const cmd2 = 0x01;
-		const userData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-		
-		// Adding checksum
+		// Pushing checksum onto user data
 		userData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, userData));
 
 		/* Sending command */
 		return this.sendInsteonCommand(cmd1, cmd2, userData);
 	}
-
-	public stopRemoteLinking = (): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x08;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	public startRemoteUnlink = (group: Byte): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x0A;
-		const cmd2 = group;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
+	
 
 	//#endregion
 
@@ -381,20 +440,24 @@ export default class InsteonDevice extends EventEmitter2 {
 		           : isExtended ? 0x1F
 		           : 0x0F;
 
-		const packetType = task.responsePacketType ? task.responsePacketType.toString(16)
-		                 : isExtended              ? PacketID.ExtendedMessageReceived.toString(16)
-		                                           : PacketID.StandardMessageReceived.toString(16);
+		const callbackFunction = (d: Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved) => {
 
-		// Once we hear an echo (same command back) the modem is ready for another command
-		this.modem.once(['p', packetType, '**'], d => {
+			// Removing any listeners
+			this.modem.removeListener(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
+			this.modem.removeListener(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
+
+			// Calling callback after cooldown
 			setTimeout(() =>
 				callback(null, d)
 			, 200); // Modem needs time to reset after command
-			
-		});
+		};
+
+		// Once we hear an echo (same command back) the modem is ready for another command
+		this.modem.once(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
+		this.modem.once(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
 
 		if(this.options.debug)
-			console.log(`[${this.addressString}][${isExtended? 'E':'S'}]: Flag: 0x${flag.toString(16)} | Cmd1: 0x${task.cmd1.toString(16)} | Cmd2: 0x${task.cmd2.toString(16)} | UserData: ${task.userData}`);
+			console.log(`[→][${this.addressString}][${isExtended? 'E':'S'}]: Flag: ${toHex(flag)} | Cmd1: ${toHex(task.cmd1)} | Cmd2: ${toHex(task.cmd2)} | UserData: ${(task.userData || []).map(toHex)}`);
 
 		// Attempting to write command to modem
 		const isSuccessful = isExtended ? await this.modem.sendExtendedCommand(this.address, flag, task.cmd1, task.cmd2, task.userData)
@@ -417,7 +480,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			            : 'U';
 
 			if(this.options.debug)
-				console.log(`[${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)} ${(data.extendedData || []).map(toHex)}`);
+				console.log(`[←][${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)} ${(data.extendedData || []).map(toHex)}`);
 
 			this.emit([data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
