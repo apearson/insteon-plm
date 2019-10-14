@@ -1,5 +1,5 @@
 /* Libraries */
-import DimmableLightingDevice from './catigories/DimmableLightingDevice';
+import DimmableLightingDevice from './categories/DimmableLightingDevice';
 
 /* Class */
 export default class KeypadDimmer extends DimmableLightingDevice {

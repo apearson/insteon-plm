@@ -1,8 +1,8 @@
 /* Libraries */
-import InsteonDevice from './InsteonDevice';
+import SwitchedLightingDevice from './categories/SwitchedLightingDevice';
 
 /* Class */
-export default class OutletLinc extends InsteonDevice{
+export default class OutletLinc extends SwitchedLightingDevice{
 
 
 }
