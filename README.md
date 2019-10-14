@@ -41,6 +41,11 @@ async function main(){
 main();
 ```
 
+## Related Projects
+[insteon-terminal](https://github.com/pfrommerd/insteon-terminal)
+
 ## Insteon Resources
 [The Madreporite Nexus: Insteon Programming](http://www.madreporite.com/insteon/insteon.html)
+[Insteon FAQ](https://docs.google.com/document/pub?id=1XDrgT4RXY5CPzBJ9P2IgQ26Wk2pDuozrmaimeN_TlSo#id.oewdiu6hy6cl)
+
 
