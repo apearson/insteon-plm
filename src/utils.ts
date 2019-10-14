@@ -1,7 +1,7 @@
 /* Libraries */
 import { isArray } from "util";
 import { DeviceLinkRecord } from "./devices/InsteonDevice";
-import { AllLinkRecordType, Packets, Byte } from "./main";
+import { AllLinkRecordType, Packets } from "./main";
 
 /* General Functions */
 export function toHex(numbers: number){

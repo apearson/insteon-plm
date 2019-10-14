@@ -7,7 +7,7 @@ import { toHex } from '../utils';
 /* Types */
 
 /* Interface */
-interface DeviceCommandTask {
+export interface DeviceCommandTask {
 	cmd1: Byte;
 	cmd2: Byte;
 	flags?: Byte;
@@ -57,7 +57,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#region Private Variables
 
 	/* Class Info */
-	protected address: Byte[];
+	public address: Byte[];
 
 	/* Device Info */
 	public cat: Byte;
@@ -67,9 +67,9 @@ export default class InsteonDevice extends EventEmitter2 {
 	public links: DeviceLinkRecord[] = [];
 
 	/* Inernal Variaables */
-	protected modem: PLM;
-	private requestQueue: AsyncQueue<DeviceCommandTask>;
-	protected options: DeviceOptions = { debug: false };
+	public modem: PLM;
+	public requestQueue: AsyncQueue<DeviceCommandTask>;
+	public options: DeviceOptions = { debug: false };
 
 	//#endregion
 
@@ -196,43 +196,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Unsupported Commands 
-
-	public getStatus = (): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x19;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	public beep = (): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x30;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	public stopRemoteLinking = (): Promise<Packets.StandardMessageRecieved> => {
-
-		// Setting up command
-		const cmd1 = 0x08;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
-	}
-
-	//#endregion
-
 	//#region Raw Metadata Commands 
 
-	public productDataRequest = (): Promise<Packets.StandardMessageRecieved> => {
+	public productDataRequest(): Promise<Packets.StandardMessageRecieved>{
 		
 		// Setting up command
 		const cmd1 = 0x03;
@@ -242,7 +208,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 	
-	public getEngineVersion = (): Promise<Packets.StandardMessageRecieved> => {
+	public getEngineVersion(): Promise<Packets.StandardMessageRecieved>{
 
 		// Setting up command
 		const cmd1 = 0x0D;
@@ -272,7 +238,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Raw Commands 
 
-	public ping = (): Promise<Packets.StandardMessageRecieved> => {
+	public ping(): Promise<Packets.StandardMessageRecieved>{
 
 		// Setting up command
 		const cmd1 = 0x0F;
@@ -392,8 +358,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		this.sendInsteonCommand(cmd1, cmd2, userData);
 	});
 
-	// TODO: Needs work
-	public modifyDatabase = (address: Byte[], options: DeviceLinkRecordOptions) => {
+	public modifyDatabase(address: Byte[], options: DeviceLinkRecordOptions){
 
 		// General Info
 		const group = options.group;
@@ -427,7 +392,6 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2, userData);
 	}
 	
-
 	//#endregion
 
 	//#region Queue Functions
@@ -471,7 +435,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Event functions 
 
-	private setupRebroadcast(){
+	public setupRebroadcast(){
 
 		this.modem.on(['p', '*', '*', this.addressString, '**'], (data: Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved) => {
 
