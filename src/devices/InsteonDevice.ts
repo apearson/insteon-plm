@@ -421,8 +421,14 @@ export default class InsteonDevice extends EventEmitter2 {
 		this.modem.once(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
 
 		if(this.options.debug)
-			console.log(`[→][${this.addressString}][${isExtended? 'E':'S'}]: Flag: ${toHex(flag)} | Cmd1: ${toHex(task.cmd1)} | Cmd2: ${toHex(task.cmd2)} | UserData: ${(task.userData || []).map(toHex)}`);
+		{
+			let consoleLine = `[→][${this.addressString}][${isExtended? 'E':'S'}]: Flag: ${toHex(flag)} | Cmd: ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;		
 
+			if(task.userData)
+				consoleLine += ` | UserData: ${(task.userData || []).map(toHex)}`
+			
+			console.log(consoleLine);
+		}
 		// Attempting to write command to modem
 		const isSuccessful = isExtended ? await this.modem.sendExtendedCommand(this.address, flag, task.cmd1, task.cmd2, task.userData)
 		                                : await this.modem.sendStandardCommand(this.address, flag, task.cmd1, task.cmd2);
