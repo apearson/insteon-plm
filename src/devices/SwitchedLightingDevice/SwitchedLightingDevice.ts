@@ -1,9 +1,9 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
-import { Packets, Byte } from '../../main';
+import { Packets, Byte } from 'insteon-packet-parser';
 
 /* Class */
-export default class SwitchedLightingDevice extends InsteonDevice {
+export default abstract class SwitchedLightingDevice extends InsteonDevice {
 
 	//#region Higher functions
 

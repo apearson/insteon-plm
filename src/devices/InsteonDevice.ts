@@ -1,10 +1,9 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
-import PLM, { Byte, PacketID, Packets, MessageSubtype, AllLinkRecordType } from '../main';
+import PowerLincModem from '../PowerLincModem';
+import { Byte, PacketID, Packets, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex } from '../utils';
-
-/* Types */
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -13,7 +12,6 @@ export interface DeviceCommandTask {
 	flags?: Byte;
 	userData?: Byte[];
 }
-
 export interface DeviceInfo {
 	cat: Byte;
 	subcat: Byte;
@@ -37,7 +35,6 @@ export interface DeviceLinkRecord {
 	onLevel: Byte;
 	rampRate: Byte;
 }
-
 export interface DeviceLinkRecordOptions {
 	group: Byte;
 	device: Byte[];
@@ -51,7 +48,7 @@ export interface DeviceLinkRecordOptions {
 	}
 }
 
-/* Abstract class for Insteon Devices */
+/* Class for Insteon Devices */
 export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
@@ -60,14 +57,14 @@ export default class InsteonDevice extends EventEmitter2 {
 	public address: Byte[];
 
 	/* Device Info */
-	public cat: Byte;
-	public subcat: Byte;
-	public firmware: Byte;
-	public hardward: Byte;
+	public cat: Byte = 0x00;
+	public subcat: Byte = 0x00;
+	public firmware: Byte = 0x00;
+	public hardward: Byte = 0x00;
 	public links: DeviceLinkRecord[] = [];
 
 	/* Inernal Variaables */
-	public modem: PLM;
+	public modem: PowerLincModem;
 	public requestQueue: AsyncQueue<DeviceCommandTask>;
 	public options: DeviceOptions = { debug: false };
 
@@ -75,7 +72,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Constuctor
 
-	constructor(deviceID: Byte[], modem: PLM, options?: DeviceOptions){
+	constructor(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
 		super({ wildcard: true, delimiter: '::' });
 
 		/* Saving serialport */
@@ -112,7 +109,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Device Metadata
 
-	get addressString(){ return PLM.addressToAddressString(this.address); }
+	get addressString(){ return PowerLincModem.addressToAddressString(this.address); }
 
 	//#endregion
 
@@ -120,7 +117,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	public static calulateChecksum(cmd1: Byte, cmd2: Byte, userData: Byte[]): Byte{
 		// Summing bytes
-		let sum = [cmd1, cmd2, ...userData].reduce((acc, v) => acc += v, 0);
+		let sum = [cmd1, cmd2, ...userData].reduce((acc, v) => (acc += v) as Byte, 0);
 
 		let lastByte = sum & 0xFF;
 
@@ -138,7 +135,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public sendInsteonCommand = (cmd1: Byte, cmd2: Byte, userData?: Byte[], flags?: Byte) => new Promise<Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved>((resolve, reject) => {
 
 		/* Sending command */
-		this.requestQueue.push({cmd1, cmd2, userData, flags }, (err: Error, data: Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved) => {
+		this.requestQueue.push({cmd1, cmd2, userData, flags }, (err?: Error | null, data?: Packets.StandardMessageRecieved | Packets.ExtendedMessageRecieved) => {
 			if(err) reject(err)
 			else resolve(data);
 		});	
@@ -430,8 +427,8 @@ export default class InsteonDevice extends EventEmitter2 {
 			console.log(consoleLine);
 		}
 		// Attempting to write command to modem
-		const isSuccessful = isExtended ? await this.modem.sendExtendedCommand(this.address, flag, task.cmd1, task.cmd2, task.userData)
-		                                : await this.modem.sendStandardCommand(this.address, flag, task.cmd1, task.cmd2);
+		const isSuccessful = !!task.userData ? await this.modem.sendExtendedCommand(this.address, flag, task.cmd1, task.cmd2, task.userData)
+		                                     : await this.modem.sendStandardCommand(this.address, flag, task.cmd1, task.cmd2);
 
 		if(!isSuccessful)
 			callback(Error('Could not execute device packet'));
