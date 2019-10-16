@@ -9,8 +9,8 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 
 	public switch(state: boolean, level?: Byte, fast: boolean = false){
 
-		state ? fast ? this.LightOnFast(level)  : this.LightOn(level)
-					: fast ? this.LightOffFast(level) : this.LightOff(level);
+		return state ? fast ? this.LightOnFast(level)  : this.LightOn(level)
+					       : fast ? this.LightOffFast(level) : this.LightOff(level);
 
 	}
 
@@ -22,7 +22,7 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 		// Parsing status out
 		return {
 			level: statusPacket.cmd2,
-		}
+		};
 
 	}
 
@@ -33,27 +33,15 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 	//#region Device Actions 
 
 	public beep(): Promise<Packet.StandardMessageRecieved>{
-
-		// Setting up command
-		const cmd1 = 0x30;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
+		return this.sendInsteonCommand(0x30, 0x00);
 	}
 
 	//#endregion
 
 	//#region Device Status
 
-	public statusRequest(): Promise<Packet.StandardMessageRecieved>{
-
-		// Setting up command
-		const cmd1 = 0x19;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
+	public statusRequest(type = 0x00 as Byte): Promise<Packet.StandardMessageRecieved>{
+		return this.sendInsteonCommand(0x19, type);
 	}
 
 	//#endregion
@@ -88,18 +76,8 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 
 	//#region Linking Methods
 
-	public async remoteTapSetButton(what2Set: 0x00 | 0x02): Promise<Packet.StandardMessageRecieved>{
-		return this.sendInsteonCommand(0x21, what2Set); 
-	}
-
 	public stopRemoteLinking(): Promise<Packet.StandardMessageRecieved>{
-
-		// Setting up command
-		const cmd1 = 0x08;
-		const cmd2 = 0x00;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
+		return this.sendInsteonCommand(0x08, 0x00);
 	}
 
 	//#endregion

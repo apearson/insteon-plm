@@ -712,7 +712,7 @@ export default class PowerLincModem extends EventEmitter2{
 			}
 			else if(packet.type === PacketID.ExtendedMessageReceived || packet.type === PacketID.StandardMessageReceived){
 				const p = packet as Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved;
-				console.log(`[←][${toAddressString(p.from)}][${p.Flags.extended ? 'E' : 'S'}][${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)} ${p.Flags.extended ? p.extendedData.map(toHex) : ''}`);	
+				console.log(`[←][${toAddressString(p.from)}][${p.Flags.extended ? 'E' : 'S'}][${p.Flags.Subtype}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.Flags.extended ? p.extendedData.map(toHex) : ''}`);	
 			}
 			else{
 				console.log(`[⇆][${packet.Type}]: ${packet.cmd1? toHex(packet.cmd1) : ''} ${packet.cmd2? toHex(packet.cmd2) : ''}`);
