@@ -1,6 +1,6 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
-import { Packets, Byte } from 'insteon-packet-parser';
+import { Packet, Byte } from 'insteon-packet-parser';
 
 /* Class */
 export default abstract class SwitchedLightingDevice extends InsteonDevice {
@@ -21,19 +21,19 @@ export default abstract class SwitchedLightingDevice extends InsteonDevice {
 
   //#region Lighting Methods
 
-  public async LightOn(): Promise<Packets.StandardMessageRecieved> {
+  public async LightOn(): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x11, 0xFF);
 	}
 
-	public async LightOnFast(): Promise<Packets.StandardMessageRecieved> {
+	public async LightOnFast(): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x12, 0xFF);
 	}
 
-	public async LightOff(): Promise<Packets.StandardMessageRecieved> {
+	public async LightOff(): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x13, 0x00);
 	}
 
-	public async LightOffFast(): Promise<Packets.StandardMessageRecieved> {
+	public async LightOffFast(): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x14, 0x00);
 	}
 
@@ -41,7 +41,7 @@ export default abstract class SwitchedLightingDevice extends InsteonDevice {
 
   //#region Linking Methods
 
-  public stopRemoteLinking(): Promise<Packets.StandardMessageRecieved>{
+  public stopRemoteLinking(): Promise<Packet.StandardMessageRecieved>{
 
 		// Setting up command
 		const cmd1 = 0x08;

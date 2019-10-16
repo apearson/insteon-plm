@@ -1,9 +1,14 @@
 /* Libraries */
 import { isArray } from "util";
 import { DeviceLinkRecord } from "./devices/InsteonDevice";
-import { AllLinkRecordType, Packets } from "insteon-packet-parser";
+import { AllLinkRecordType, Packet, Byte } from "insteon-packet-parser";
 
 /* General Functions */
+
+export function toAddressString(address: Byte[]){
+  return address.map(num => num.toString(16).toUpperCase()).join('.');
+}
+
 export function toHex(numbers: number){
   const nums = isArray(numbers) ? numbers : [numbers];
 
@@ -40,7 +45,7 @@ export function deviceDbToTable(links: DeviceLinkRecord[]){
   return table;
 }
 
-export function modemDbToTable(links: Packets.AllLinkRecordResponse[][]){
+export function modemDbToTable(links: Packet.AllLinkRecordResponse[][]){
   
   // Creating table header
   let table = '| Group | Device   | Type       | Link Data      |\n' +
@@ -67,3 +72,5 @@ export function modemDbToTable(links: Packets.AllLinkRecordResponse[][]){
   return table;
 
 }
+
+export const wait = (t: number) => new Promise(r => setTimeout(r, t));

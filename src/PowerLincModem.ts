@@ -2,12 +2,12 @@
 import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
-import { InsteonParser, Packets } from 'insteon-packet-parser';
-import { toHex } from './utils';
+import { InsteonParser, Packet } from 'insteon-packet-parser';
+import { toHex, wait, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
 
 /* Interfaces and Types */
-import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype } from 'insteon-packet-parser';
+import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket } from 'insteon-packet-parser';
 
 //#region Interfaces
 
@@ -46,7 +46,7 @@ export default class PowerLincModem extends EventEmitter2{
 	private requestQueue: AsyncQueue<QueueTaskData>;
 
 	/* Linking */
-	private _links: Packets.AllLinkRecordResponse[][] = [];
+	private _links: Packet.AllLinkRecordResponse[][] = [];
 
 	/* Internal Data holder */
 	private _info: ModemInfo = {
@@ -128,7 +128,7 @@ export default class PowerLincModem extends EventEmitter2{
 
 	//#region Utility Methods
 
-	public async deleteLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType) {
+	public async deleteLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -144,7 +144,7 @@ export default class PowerLincModem extends EventEmitter2{
 		return status;
 	}
 
-	public async addLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType) {
+	public async addLink(deviceID: string | Byte[], groupID: Byte, type: AllLinkRecordType){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -161,7 +161,7 @@ export default class PowerLincModem extends EventEmitter2{
 
 	//#region Modem Info
 
-	public getInfo = () => new Promise<ModemInfo>((resolve, reject) => {
+	public async getInfo(){
 		/* Allocating command buffer */
 		const command = PacketID.GetIMInfo;
 		const commandBuffer = Buffer.alloc(2);
@@ -171,17 +171,12 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(command, 1);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.GetIMInfo) => resolve({
-					id: p.ID,
-					firmware: p.firmware,
-					devcat: p.devcat,
-					subcat: p.subcat
-				}))
-				.catch(reject);	
-	});
+		const p = await this.queueCommand(commandBuffer) as Packet.GetIMInfo;
 
-	public getConfig = () => new Promise<ModemConfig>((resolve, reject) => {
+		return p;
+	}
+
+	public async getConfig(){
 		/* Allocating command buffer */
 		const command = PacketID.GetIMConfiguration;
 		const commandBuffer = Buffer.alloc(2);
@@ -191,17 +186,12 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(command, 1);
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.GetIMConfiguration) => resolve({
-					autoLED: p.Flags.autoLED,
-					autoLinking: p.Flags.autoLinking,
-					deadman: p.Flags.deadman,
-					monitorMode: p.Flags.monitorMode
-				}))
-				.catch(reject);	
-	});
+		const p = await this.queueCommand(commandBuffer) as Packet.GetIMConfiguration;
 
-	public async getAllLinks(): Promise<Packets.AllLinkRecordResponse[][]>{
+		return p;
+	}
+
+	public async getAllLinks(): Promise<Packet.AllLinkRecordResponse[][]>{
 		/* Creating an array of 255 groups filled with empty arrays */
 		let groups = [...Array(255).keys()].map(i => Array(0));
 		let index = 0;
@@ -210,11 +200,7 @@ export default class PowerLincModem extends EventEmitter2{
 		let record = await this.getFirstAllLinkRecord();
 
 		/* Checking if first record exists */
-		if(typeof record != 'boolean'){
-			/* Removing extra data */
-			record.type = undefined;
-			record.typeDesc = undefined;
-
+		if(record !== null){
 			/* Adding extra data */
 			record.index = index;
 			index++;
@@ -224,15 +210,11 @@ export default class PowerLincModem extends EventEmitter2{
 		}
 
 		/* While there are more records get them */
-		while(typeof record != 'boolean'){
+		while(record !== null){
 			record = await this.getNextAllLinkRecord();
 
 			/* Checking if retrieved record exists */
-			if(typeof record != 'boolean'){
-				/* Removing extra data */
-				record.type = undefined;
-				record.typeDesc = undefined;
-
+			if(record !== null){
 				/* Adding extra data */
 				record.index = index;
 				index++;
@@ -244,24 +226,38 @@ export default class PowerLincModem extends EventEmitter2{
 
 		return groups;
 	}
-	
 
 	//#endregion
 
 	//#region Modem Sync
 
 	public async syncInfo(){
-		this._info = await this.getInfo();
+		const info = await this.getInfo();
+
+		this._info = {
+			id: info.ID,
+			devcat: info.devcat,
+			subcat: info.subcat,
+			firmware: info.firmware
+		};
 
 		return this.info;
 	}
 
 	public async syncConfig(){
-		this._config = await this.getConfig();
+		const config = await this.getConfig();
+
+		this._config = {
+			autoLED: config.Flags.autoLED,
+			autoLinking: config.Flags.autoLinking,
+			deadman: config.Flags.deadman,
+			monitorMode: config.Flags.monitorMode
+		};
 
 		return this.config;
 	}
 
+	// TODO: Abtract away from packets
 	public async syncLinks(){
 		this._links = await this.getAllLinks();
 
@@ -272,7 +268,7 @@ export default class PowerLincModem extends EventEmitter2{
 
 	//#region Modem Control
 
-	public setConfig  = (autoLinking: boolean, monitorMode: boolean, autoLED: boolean, deadman: boolean) => new Promise<boolean>((resolve, reject) => {
+	public async setConfig(autoLinking: boolean, monitorMode: boolean, autoLED: boolean, deadman: boolean){
 		/* Configuration byte */
 		let flagByte = 0x00;
 
@@ -290,18 +286,14 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(command,  1); //Set IM Configuration
 		commandBuffer.writeUInt8(flagByte, 2); //IM Configuration Flags
 
-		const onAck = (data: Packets.SetIMConfiguration) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.SetIMConfiguration) => resolve(p.ack))
-				.catch(reject);	
-	});
+		const ackPacket = await this.queueCommand(commandBuffer) as Packet.SetIMConfiguration;
 
-	public setCategory = (cat: Byte, subcat: Byte, firmware: Byte = 0xff) => new Promise<boolean>((resolve, reject) => {
+		/* Returning ack */
+		return ackPacket.ack;
+	}
+
+	public async setCategory(cat: Byte, subcat: Byte, firmware: Byte = 0xff){
 		/* Allocating command buffer */
 		const command = PacketID.SetHostDeviceCategory;
 		const commandBuffer = Buffer.alloc(5);
@@ -313,18 +305,14 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(subcat,   3); //Subcat
 		commandBuffer.writeUInt8(firmware, 4); //Legacy Firmware version
 
-		const onAck = (data: Packets.SetHostDeviceCategory) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.SetHostDeviceCategory) => resolve(p.ack))
-				.catch(reject);	
-	});
+		const ackPacket = await this.queueCommand(commandBuffer) as Packet.SetHostDeviceCategory;
 
-	public setLed = (state: boolean) => new Promise<boolean>((resolve, reject) => {
+		/* Returning ack */
+		return ackPacket.ack;
+	}
+
+	public async setLed(state: boolean){
 		/* Allocating command buffer */
 		const command = state ? PacketID.LEDOn : PacketID.LEDOff;
 		const commandBuffer = Buffer.alloc(2);
@@ -333,18 +321,14 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(0x02, 0);
 		commandBuffer.writeUInt8(command, 1);
 
-		const onAck = (data: Packets.LEDOn | Packets.LEDOff) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.LEDOn | Packets.LEDOff) => resolve(p.ack))
-				.catch(reject);	
-	});
+		const ackPacket = await this.queueCommand(commandBuffer) as Packet.LEDOn | Packet.LEDOff;
 
-	public sleep = () => new Promise<boolean>((resolve, reject) => {
+		/* Returning ack */
+		return ackPacket.ack;
+	}
+
+	public async sleep(){
 		/* Allocating command buffer */
 		const command = PacketID.RFSleep;
 		const commandBuffer = Buffer.alloc(4);
@@ -356,10 +340,13 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(0x00, 3);    //Command 2 of Ack (Reason for sleep)
 
 		/* Sending command */
-		this.queueCommand(commandBuffer).then((data) => data.ack).catch(reject);	
-	});
+		const ackPacket = await this.queueCommand(commandBuffer) as Packet.RFSleep;
 
-	public wake = () => new Promise<boolean>((resolve, reject) => {
+		/* Returning ack */
+		return ackPacket.ack;
+	}
+
+	public async wake(){
 		/* Allocating command buffer */
 		const commandBuffer = Buffer.alloc(1);
 
@@ -369,9 +356,12 @@ export default class PowerLincModem extends EventEmitter2{
 		/* Sending command */
 		this.queueCommand(commandBuffer);
 
+		/* Waiting 40 milliseconds for modem to wake up */
+		await wait(40);
+
 		/* Responding after wake up */
-		setTimeout(()=> resolve(true) , 40);
-	});
+		return true;
+	}
 
 	/**
 	 *
@@ -379,7 +369,7 @@ export default class PowerLincModem extends EventEmitter2{
 	 *
 	 * WARNING: This erases all links and data!
 	 */
-	public reset = () => new Promise<boolean>((resolve, reject) => {
+	public async reset(){
 		/* Allocating command buffer */
 		const command = PacketID.ResetIM;
 		const commandBuffer = Buffer.alloc(2);
@@ -388,28 +378,23 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(0x02, 0);    //PLM Command
 		commandBuffer.writeUInt8(command, 1); //Reset Byte
 
-		const onAck = (data: Packets.ResetIM) => resolve(data.ack);
-
-		/* Listening for reponse packet */
-		this.once(['p', command.toString(16)], onAck);
-
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.ResetIM) => resolve(p.ack))
-				.catch(reject);	
-	});
-	
+		const ackPacket = await this.queueCommand(commandBuffer) as Packet.RFSleep;
+
+		/* Returning ack */
+		return ackPacket.ack;
+	}
 
 	public close(){
-		return (this.port.isOpen) ? this.port.close()
-		                           : true;
+		return this.port.isOpen ? this.port.close()
+		                        : true;
 	}
 
 	//#endregion
 
 	//#region All Link Commands
 
-	public manageAllLinkRecord = (deviceID: string | Byte[], group: Byte, operation: AllLinkRecordOperation, type: AllLinkRecordType, linkData: Byte[]) => new Promise<boolean>((resolve, reject) => {
+	public async manageAllLinkRecord(deviceID: string | Byte[], group: Byte, operation: AllLinkRecordOperation, type: AllLinkRecordType, linkData: Byte[]){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -436,12 +421,13 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(linkData[2], 10); //Link Data 3
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.ManageAllLinkRecord) => resolve(p.ack))
-				.catch(reject);	
-	});
+		const packet = await this.queueCommand(commandBuffer) as Packet.ManageAllLinkRecord;
 
-	public startLinking = (type: AllLinkRecordType, group: Byte) => new Promise<boolean>((resolve, reject) => {
+		/* Returning ack of command */
+		return packet.ack;
+	}
+
+	public async startLinking(type: AllLinkRecordType, group: Byte){
 		/* Allocating command buffer */
 		const command = PacketID.StartAllLinking;
 		const commandBuffer = Buffer.alloc(4);
@@ -453,12 +439,13 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(group, 3);   //Group
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.StartAllLinking) => resolve(p.ack))
-				.catch(reject);	
-	});
+		const packet = await this.queueCommand(commandBuffer) as Packet.StartAllLinking;
 
-	public cancelLinking = () => new Promise<boolean>((resolve, reject) => {
+		/* Returning ack of command */
+		return packet.ack;
+	}
+
+	public async cancelLinking(){
 		/* Allocating command buffer */
 		const command = PacketID.CancelAllLinking;
 		const commandBuffer = Buffer.alloc(2);
@@ -468,12 +455,13 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(command, 1); //Start Linking Byte
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.CancelAllLinking) => resolve(p.ack))
-				.catch(reject);	
-	});
+		const packet = await this.queueCommand(commandBuffer) as Packet.CancelAllLinking;
 
-	public getFirstAllLinkRecord = () => new Promise<Packets.AllLinkRecordResponse | false>((resolve, reject) => {
+		/* Returning ack of command */
+		return packet.ack;
+	}
+
+	public getFirstAllLinkRecord = () => new Promise<Packet.AllLinkRecordResponse | null>((resolve, reject) => {
 		/* Allocating command buffer */
 		const command = PacketID.GetFirstAllLinkRecord;
 		const commandBuffer = Buffer.alloc(2);
@@ -482,13 +470,13 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(0x02, 0);
 		commandBuffer.writeUInt8(command, 1);
 
-		const onData = (data: Packets.AllLinkRecordResponse) => resolve(data);
-		const onAck = (data: Packets.GetFirstAllLinkRecord) => {
+		const onData = (data: Packet.AllLinkRecordResponse) => resolve(data);
+		const onAck = (data: Packet.GetFirstAllLinkRecord) => {
 			// If database is empty then remove listener and return a false
 			if(!data.ack){
 				this.removeListener(['p', PacketID.AllLinkRecordResponse.toString(16)], onData);
 				
-				resolve(false);
+				resolve(null);
 			}
 		};
 
@@ -500,7 +488,7 @@ export default class PowerLincModem extends EventEmitter2{
 		this.queueCommand(commandBuffer);
 	});
 
-	public getNextAllLinkRecord = () => new Promise<Packets.AllLinkRecordResponse | false>((resolve, reject) => {
+	public getNextAllLinkRecord = () => new Promise<Packet.AllLinkRecordResponse | null>((resolve, reject) => {
 		/* Allocating command buffer */
 		const command = PacketID.GetNextAllLinkRecord;
 		const commandBuffer = Buffer.alloc(2);
@@ -509,13 +497,13 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(0x02, 0);
 		commandBuffer.writeUInt8(command, 1);
 
-		const onData = (data: Packets.AllLinkRecordResponse) => resolve(data);
-		const onAck = (data: Packets.GetNextAllLinkRecord) => {
+		const onData = (data: Packet.AllLinkRecordResponse) => resolve(data);
+		const onAck = (data: Packet.GetNextAllLinkRecord) => {
 			// If database is empty then remove listener and return a false
 			if(!data.ack){
 				this.removeListener(['p', PacketID.AllLinkRecordResponse.toString(16)], onData);
 				
-				resolve(false);
+				resolve(null);
 			}
 		};
 
@@ -532,25 +520,26 @@ export default class PowerLincModem extends EventEmitter2{
 
 	//#region Send Commands
 
-	public sendAllLinkCommand = (group: Byte, cmd1: Byte, cmd2: Byte) => new Promise<boolean>((resolve, reject) => {
+	public async sendAllLinkCommand(group: Byte, cmd1: Byte, cmd2: Byte){
 		/* Allocating command buffer */
 		const command = PacketID.SendAllLinkCommand;
 		const commandBuffer = Buffer.alloc(5);
 
 		/* Creating command */
-		commandBuffer.writeUInt8(0x02,  0);  //PLM Command
+		commandBuffer.writeUInt8(0x02,  0);    //PLM Command
 		commandBuffer.writeUInt8(command, 1);  //Standard Length Message
-		commandBuffer.writeUInt8(group, 2);  //Device High Address Byte
-		commandBuffer.writeUInt8(cmd1,  3);  //Device Middle Address Byte
-		commandBuffer.writeUInt8(cmd2,  4);  //Device Low Address Byte
+		commandBuffer.writeUInt8(group, 2);    //Device High Address Byte
+		commandBuffer.writeUInt8(cmd1,  3);    //Device Middle Address Byte
+		commandBuffer.writeUInt8(cmd2,  4);    //Device Low Address Byte
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.SendAllLinkCommand) => resolve(p.ack))
-				.catch(reject);	
-	});
+		const packet = await this.queueCommand(commandBuffer) as Packet.SendAllLinkCommand;
 
-	public sendStandardCommand = (deviceID: string | Byte[], flags: Byte = 0x0F, cmd1: Byte = 0x00, cmd2: Byte = 0x00) => new Promise<Packets.SendInsteonMessage>((resolve, reject) => {
+		/* Returning ack of command */
+		return packet.ack;
+	}
+
+	public async sendStandardCommand(deviceID: string | Byte[], flags: Byte = 0x0F, cmd1: Byte = 0x00, cmd2: Byte = 0x00){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -571,12 +560,13 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(cmd2, 7);  //Command Byte 2
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.SendInsteonMessage) => resolve(p))
-				.catch(reject);	
-	});
+		const packet = await this.queueCommand(commandBuffer) as Packet.SendInsteonMessage;
 
-	public sendExtendedCommand = (deviceID: string | Byte[], flags: Byte = 0x1F, cmd1: Byte = 0x00, cmd2: Byte = 0x00, userData: Byte[]) => new Promise<Packets.SendInsteonMessage>((resolve, reject) => {
+		/* Returning ack of command */
+		return packet.ack;
+	}
+
+	public async sendExtendedCommand(deviceID: string | Byte[], flags: Byte = 0x1F, cmd1: Byte = 0x00, cmd2: Byte = 0x00, extendedData: Byte[]){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -595,37 +585,38 @@ export default class PowerLincModem extends EventEmitter2{
 		commandBuffer.writeUInt8(flags, 5); //Message Flag Byte
 		commandBuffer.writeUInt8(cmd1, 6);  //Command Byte 1
 		commandBuffer.writeUInt8(cmd2, 7);  //Command Byte 2
-		commandBuffer.writeUInt8(userData[0]  || 0x00, 8);  //User Data 1
-		commandBuffer.writeUInt8(userData[1]  || 0x00, 9);  //User Data 2
-		commandBuffer.writeUInt8(userData[2]  || 0x00, 10);  //User Data 3
-		commandBuffer.writeUInt8(userData[3]  || 0x00, 11);  //User Data 4
-		commandBuffer.writeUInt8(userData[4]  || 0x00, 12);  //User Data 5
-		commandBuffer.writeUInt8(userData[5]  || 0x00, 13);  //User Data 6
-		commandBuffer.writeUInt8(userData[6]  || 0x00, 14);  //User Data 7
-		commandBuffer.writeUInt8(userData[7]  || 0x00, 15);  //User Data 8
-		commandBuffer.writeUInt8(userData[8]  || 0x00, 16);  //User Data 9
-		commandBuffer.writeUInt8(userData[9]  || 0x00, 17);  //User Data 10
-		commandBuffer.writeUInt8(userData[10] || 0x00, 18);  //User Data 11
-		commandBuffer.writeUInt8(userData[11] || 0x00, 19);  //User Data 12
-		commandBuffer.writeUInt8(userData[12] || 0x00, 20);  //User Data 13
-		commandBuffer.writeUInt8(userData[13] || 0x00, 21);  //User Data 14
+		commandBuffer.writeUInt8(extendedData[0]  || 0x00, 8);  //User Data 1
+		commandBuffer.writeUInt8(extendedData[1]  || 0x00, 9);  //User Data 2
+		commandBuffer.writeUInt8(extendedData[2]  || 0x00, 10);  //User Data 3
+		commandBuffer.writeUInt8(extendedData[3]  || 0x00, 11);  //User Data 4
+		commandBuffer.writeUInt8(extendedData[4]  || 0x00, 12);  //User Data 5
+		commandBuffer.writeUInt8(extendedData[5]  || 0x00, 13);  //User Data 6
+		commandBuffer.writeUInt8(extendedData[6]  || 0x00, 14);  //User Data 7
+		commandBuffer.writeUInt8(extendedData[7]  || 0x00, 15);  //User Data 8
+		commandBuffer.writeUInt8(extendedData[8]  || 0x00, 16);  //User Data 9
+		commandBuffer.writeUInt8(extendedData[9]  || 0x00, 17);  //User Data 10
+		commandBuffer.writeUInt8(extendedData[10] || 0x00, 18);  //User Data 11
+		commandBuffer.writeUInt8(extendedData[11] || 0x00, 19);  //User Data 12
+		commandBuffer.writeUInt8(extendedData[12] || 0x00, 20);  //User Data 13
+		commandBuffer.writeUInt8(extendedData[13] || 0x00, 21);  //User Data 14
 
 		/* Sending command */
-		this.queueCommand(commandBuffer)
-				.then((p: Packets.SendInsteonMessage) => resolve(p))
-				.catch(reject);	
-	});
+		const packet = await this.queueCommand(commandBuffer) as Packet.SendInsteonMessage;
+
+		/* Returning ack of command */
+		return packet.ack;
+	}
 
 	//#endregion
 
 	//#region Queue Functions
 
-	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<Packets.Packet>) => {
+	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<AnyPacket>) => {
 
 		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', task.command[1].toString(16)], (d: Packets.Packet) => {
+		this.once(['p', task.command[1].toString(16)], (d: Packet.Packet) => {
 			if(d.ack){
-				const packet = d as Packets.SendInsteonMessage;
+				const packet = d as Packet.SendInsteonMessage;
 					
 				if(packet.ack){
 					callback(null, packet);
@@ -648,7 +639,7 @@ export default class PowerLincModem extends EventEmitter2{
 
 		// Attempting to write command to modem
 		try{
-			const isSuccessful = await this.port.write(task.command);
+			const isSuccessful = this.port.write(task.command);
 			
 			if(!isSuccessful)
 				callback(Error('Could not write to modem'));
@@ -658,9 +649,9 @@ export default class PowerLincModem extends EventEmitter2{
 		}
 	}
 
-	private queueCommand = (command: Buffer) => new Promise<Packets.Packet>((resolve, reject) => {
+	private queueCommand = (command: Buffer) => new Promise<AnyPacket>((resolve, reject) => {
 
-		this.requestQueue.push({ command }, (error, data: Packets.Packet) => {
+		this.requestQueue.push({ command }, (error, data?: Packet.Packet) => {
 			error ? reject(error) : resolve(data);
 		});
 	});
@@ -709,28 +700,30 @@ export default class PowerLincModem extends EventEmitter2{
 
 	//#region Packet Handlers
 
-	private handlePacket = (packet: Packets.Packet) => {
+	private handlePacket = (packet: Packet.Packet) => {
 
 		/* Emitting packet for others to use */
 		this.emit('packet', packet);
 
 		if(this.options.debug){
 			if(packet.type === PacketID.SendInsteonMessage){
-				console.log(`[${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)}`);	
+				const p = packet as Packet.SendInsteonMessage;
+				console.log(`[→][${toAddressString(p.to)}][${(p.flags & 0x10) == 16 ? 'E' : 'S'}][${p.Type}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.extendedData? p.extendedData.map(toHex) : ''}`);	
 			}
-			else if(packet.type === PacketID.ExtendedMessageReceived){
-				console.log(`[${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)} ${(packet.extendedData).map(toHex)}`);	
+			else if(packet.type === PacketID.ExtendedMessageReceived || packet.type === PacketID.StandardMessageReceived){
+				const p = packet as Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved;
+				console.log(`[←][${toAddressString(p.from)}][${p.Flags.extended ? 'E' : 'S'}][${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)} ${p.Flags.extended ? p.extendedData.map(toHex) : ''}`);	
 			}
 			else{
-				console.log(`[${packet.Type}]: ${toHex(packet.cmd1)} ${toHex(packet.cmd2)}`);
+				console.log(`[⇆][${packet.Type}]: ${packet.cmd1? toHex(packet.cmd1) : ''} ${packet.cmd2? toHex(packet.cmd2) : ''}`);
 			}
 		}
 
 		/* Checking if packet if from a device */
 		if(packet.type === PacketID.StandardMessageReceived || packet.type === PacketID.ExtendedMessageReceived){
-			let p = packet as Packets.StandardMessageRecieved;
+			let p = packet as Packet.StandardMessageRecieved;
 
-			const deviceID = p.from.map(num => num.toString(16).toUpperCase()).join('.');
+			const deviceID = toAddressString(p.from);
 
 			this.emit(['p', p.type.toString(16), p.Flags.subtype.toString(16) , deviceID], p);
 		}
@@ -751,9 +744,6 @@ export default class PowerLincModem extends EventEmitter2{
 
 	public static getDeviceInfo = (cat: Byte, subcat: Byte) =>
 		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
-
-	public static addressToAddressString = (address: Byte[]) =>
-		address.map(num => num.toString(16).toUpperCase()).join('.');
 
 	//#endregion
 };

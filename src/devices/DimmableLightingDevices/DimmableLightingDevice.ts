@@ -1,6 +1,6 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
-import { Packets, Byte } from 'insteon-packet-parser';
+import { Packet, Byte } from 'insteon-packet-parser';
 
 /* Class */
 export default abstract class DimmableLightingDevice extends InsteonDevice {
@@ -32,7 +32,7 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 
 	//#region Device Actions 
 
-	public beep(): Promise<Packets.StandardMessageRecieved>{
+	public beep(): Promise<Packet.StandardMessageRecieved>{
 
 		// Setting up command
 		const cmd1 = 0x30;
@@ -46,7 +46,7 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 
 	//#region Device Status
 
-	public statusRequest(): Promise<Packets.StandardMessageRecieved>{
+	public statusRequest(): Promise<Packet.StandardMessageRecieved>{
 
 		// Setting up command
 		const cmd1 = 0x19;
@@ -60,23 +60,23 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 
 	//#region Light Methods 
 
-	public async LightOn(level: Byte = 0xFF): Promise<Packets.StandardMessageRecieved> {
+	public async LightOn(level: Byte = 0xFF): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x11, level);
 	}
 
-	public async LightOnFast(level: Byte = 0xFF): Promise<Packets.StandardMessageRecieved> {
+	public async LightOnFast(level: Byte = 0xFF): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x12, level);
 	}
 
-	public async LightOff(level: Byte = 0x00): Promise<Packets.StandardMessageRecieved> {
+	public async LightOff(level: Byte = 0x00): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x13, level);
 	}
 
-	public async LightOffFast(level: Byte = 0x00): Promise<Packets.StandardMessageRecieved> {
+	public async LightOffFast(level: Byte = 0x00): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x14, level);
 	}
 
-	public async InstantOnOff(level: Byte): Promise<Packets.StandardMessageRecieved> {
+	public async InstantOnOff(level: Byte): Promise<Packet.StandardMessageRecieved> {
 		return this.sendInsteonCommand(0x21, level);
 	}
 
@@ -88,11 +88,11 @@ export default abstract class DimmableLightingDevice extends InsteonDevice {
 
 	//#region Linking Methods
 
-	public async remoteTapSetButton(what2Set: 0x00 | 0x02): Promise<Packets.StandardMessageRecieved>{
+	public async remoteTapSetButton(what2Set: 0x00 | 0x02): Promise<Packet.StandardMessageRecieved>{
 		return this.sendInsteonCommand(0x21, what2Set); 
 	}
 
-	public stopRemoteLinking(): Promise<Packets.StandardMessageRecieved>{
+	public stopRemoteLinking(): Promise<Packet.StandardMessageRecieved>{
 
 		// Setting up command
 		const cmd1 = 0x08;

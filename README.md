@@ -11,22 +11,22 @@ Insteon PLM is a TypeScript/JavaScript library for the Insteon PowerLinc Modem f
 ## Demo Usage
 ```ts
 /* Libaries */
-import PLM from '../src/main';
+import PowerLincModem from '../src/main';
 
 async function main(){
 
   /* Setup */
-  const modem = new PLM('/dev/tty.usbserial-A60336ZZ');
+  const modem = new PowerLincModem('/dev/tty.usbserial-A60336ZZ');
 
-  modem.on('connected', async () => {
+  modem.on('ready', async () => {
 
-    console.debug('Connected');
+    console.debug('Ready');
 
     await modem.setConfig(true, true, true, true);
 
     console.log(modem.config);
 
-    const res = modem.sendStandardCommand([0x42,0x42,0x42], 0x0F, 0x13, 0x00);
+    const res = await modem.sendStandardCommand([0x42,0x42,0x42], 0x0F, 0x13, 0x00);
       
     console.log('Message was successful', res.ack);
   });

@@ -11,7 +11,7 @@ import OutletLinc from './devices/SwitchedLightingDevice/OutletLinc';
 import KeypadDimmer  from './devices/DimmableLightingDevices/KeypadDimmer';
 
 /* PLM Types */
-import { Packets, PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype } from 'insteon-packet-parser';
+import { Packet, PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype } from 'insteon-packet-parser';
 
 /* Exporting Modem as default */
 export default PowerLincModem;
@@ -28,7 +28,7 @@ export {
   KeypadDimmer,
 
   // PLM Types
-  Packets,
+  Packet,
   PacketID,
   Byte,
   AllLinkRecordOperation,
