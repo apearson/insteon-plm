@@ -9,6 +9,10 @@ export function toAddressString(address: Byte[]){
   return address.map(num => num.toString(16).toUpperCase()).join('.');
 }
 
+export function toAddressArray(address: String){
+	return address.split(".").map(el => parseInt(el,16));
+}
+
 export function toHex(numbers: number){
   const nums = isArray(numbers) ? numbers : [numbers];
 
