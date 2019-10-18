@@ -30,26 +30,34 @@ export default PowerLincModem;
 
 /* Exporting extras */
 export {
-  // Device Categories 
-  DimmableLightingDevice,
-  SwitchedLightingDevice,
+	// Devices
+	InsteonDevice,
 
-  // Devices
-  InsteonDevice,
-  OutletLinc,
-  KeypadDimmer,
-  SecurityDevice,
-  MotionSensor,
-  OpenCloseSensor,
-  LeakSensor,
+	// Dimmable
+	DimmableLightingDevice,
+	KeypadDimmer,
+	
+	// Switchd
+	SwitchedLightingDevice,
+	OutletLinc,
+	
+	// Sensors & Actuators
+	SensorActuatorDevice,
+	IOLinc,
+	
+	// Security / battery operated sensors
+	SecurityDevice,
+	MotionSensor,
+	OpenCloseSensor,
+	LeakSensor,
 
-  // PLM Types
-  Packet,
-  PacketID,
-  Byte,
-  AllLinkRecordOperation,
-  AllLinkRecordType,
-  MessageSubtype
+	// PLM Types
+	Packet,
+	PacketID,
+	Byte,
+	AllLinkRecordOperation,
+	AllLinkRecordType,
+	MessageSubtype
 }
 
 
