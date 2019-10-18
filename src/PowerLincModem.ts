@@ -6,6 +6,12 @@ import { InsteonParser, Packet } from 'insteon-packet-parser';
 import { toHex, wait, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
 
+/* Devices */
+import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
+import SwitchedLightingDevice from './devices/SwitchedLightingDevice/SwitchedLightingDevice';
+import KeypadDimmer from './devices/DimmableLightingDevice/KeypadDimmer';
+import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
+
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
 
@@ -759,6 +765,28 @@ export default class PowerLincModem extends EventEmitter2{
 
 		this.sendStandardCommand(deviceID, 0x0F, 0x10, 0x00);
 	});
+
+	/**
+	 * Factory method for creating a device instance of the correct type
+	 * e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
+	 * thus returns an instance of a DimmableLightingDevice
+	 **/
+	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
+		let info = await this.queryDeviceInfo(deviceID);
+
+		switch(Number(info.cat)){
+			case 0x01: 
+				switch(Number(info.subcat)){
+					case 0x1C: return new KeypadDimmer(deviceID, this, options); break;
+					default: return new DimmableLightingDevice(deviceID, this, options);
+				}
+				break;
+				
+			case 0x02: return new SwitchedLightingDevice(deviceID, this, options); break;
+			
+			default: return new InsteonDevice(deviceID, this, options);
+		}
+	}
 };
 
 //#endregion

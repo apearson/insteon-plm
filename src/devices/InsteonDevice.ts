@@ -5,10 +5,6 @@ import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
 
-import DimmableLightingDevice from './DimmableLightingDevice/DimmableLightingDevice';
-import KeypadDimmer from './DimmableLightingDevice/KeypadDimmer';
-import SwitchedLightingDevice from './SwitchedLightingDevice/SwitchedLightingDevice';
-
 /* Interface */
 export interface DeviceCommandTask {
 	cmd1: Byte;
@@ -73,27 +69,6 @@ export default class InsteonDevice extends EventEmitter2 {
 	public options: DeviceOptions = { debug: false };
 
 	//#endregion
-
-	/* Factory method for creating a device instance of the correct type
-	   e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
-	   thus returns an instance of a DimmableLightingDevice
-	*/
-	public static async factory(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
-		let info = await modem.queryDeviceInfo(deviceID);
-
-		switch(Number(info.cat)){
-			case 0x01: 
-				switch(Number(info.subcat)){
-					case 0x1C: return new KeypadDimmer(deviceID, modem, options); break;
-					default: return new DimmableLightingDevice(deviceID, modem, options);
-				}
-				break;
-				
-			case 0x02: return new SwitchedLightingDevice(deviceID, modem, options); break;
-			
-			default: return new InsteonDevice(deviceID, modem, options);
-		}
-	}
 
 	//#region Constuctor
 	constructor(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
@@ -477,4 +452,5 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	//#endregion
+
 }
