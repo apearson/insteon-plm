@@ -2,7 +2,9 @@
 import InsteonDevice from '../InsteonDevice';
 import { Packet, Byte } from 'insteon-packet-parser';
 
-/* Class */
+/* Base class for device category 0x01 - Dimmable Lighting Control
+   All dimmable controls including switches, outlets and plugin modules live here
+ */
 export default class DimmableLightingDevice extends InsteonDevice {
 
 	//#region Higher functions

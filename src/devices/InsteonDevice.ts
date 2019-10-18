@@ -5,9 +5,24 @@ import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
 
+/* Dimable Devices. Device cat 0x01 */
 import DimmableLightingDevice from './DimmableLightingDevice/DimmableLightingDevice';
-import KeypadDimmer from './DimmableLightingDevice/KeypadDimmer';
+import KeypadDimmer  from './DimmableLightingDevice/KeypadDimmer';
+
+/* Switched On/Off Devices. Device cat 0x02 */
 import SwitchedLightingDevice from './SwitchedLightingDevice/SwitchedLightingDevice';
+import OutletLinc from './SwitchedLightingDevice/OutletLinc';
+
+/* Sensors and Actuators. Device cat 0x07 */
+import SensorActuatorDevice from './SensorActuatorDevice/SensorActuatorDevice';
+import IOLinc from './SensorActuatorDevice/IOLinc';
+
+/* Security / battery operated sensors. Device cat 0x10 */
+import SecurityDevice from './SecurityDevice/SecurityDevice';
+import MotionSensor from './SecurityDevice/MotionSensor';
+import OpenCloseSensor from './SecurityDevice/OpenCloseSensor';
+import LeakSensor from './SecurityDevice/LeakSensor';
+
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -84,12 +99,43 @@ export default class InsteonDevice extends EventEmitter2 {
 		switch(Number(info.cat)){
 			case 0x01: 
 				switch(Number(info.subcat)){
-					case 0x1C: return new KeypadDimmer(deviceID, modem, options); break;
+					case 0x1C: return new KeypadDimmer(deviceID, modem, options);
+						break;
 					default: return new DimmableLightingDevice(deviceID, modem, options);
 				}
 				break;
 				
-			case 0x02: return new SwitchedLightingDevice(deviceID, modem, options); break;
+			case 0x02: return new SwitchedLightingDevice(deviceID, modem, options);
+				break;
+			
+			case 0x07:
+				switch(Number(info.subcat)){
+					case 0x00: return new IOLinc(deviceID, modem, options);
+						break;
+					default: return new SensorActuatorDevice(deviceID, modem, options);
+				}
+				break;
+			
+			case 0x10:
+				switch(Number(info.subcat)){
+					case 0x01:
+					case 0x03:
+					case 0x04:
+					case 0x05: return new MotionSensor(deviceID, modem, options);
+						break;
+					case 0x02:
+					case 0x06:
+					case 0x07:
+					case 0x09: 
+					case 0x11: 
+					case 0x14: 
+					case 0x015: return new OpenCloseSensor(deviceID, modem, options);
+						break;
+					case 0x08: return new LeakSensor(deviceID, modem, options);
+						break;
+					default: return new SecurityDevice(deviceID, modem, options);
+				}
+				break;
 			
 			default: return new InsteonDevice(deviceID, modem, options);
 		}
