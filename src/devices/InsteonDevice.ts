@@ -5,25 +5,6 @@ import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
 
-/* Dimable Devices. Device cat 0x01 */
-import DimmableLightingDevice from './DimmableLightingDevice/DimmableLightingDevice';
-import KeypadDimmer  from './DimmableLightingDevice/KeypadDimmer';
-
-/* Switched On/Off Devices. Device cat 0x02 */
-import SwitchedLightingDevice from './SwitchedLightingDevice/SwitchedLightingDevice';
-import OutletLinc from './SwitchedLightingDevice/OutletLinc';
-
-/* Sensors and Actuators. Device cat 0x07 */
-import SensorActuatorDevice from './SensorActuatorDevice/SensorActuatorDevice';
-import IOLinc from './SensorActuatorDevice/IOLinc';
-
-/* Security / battery operated sensors. Device cat 0x10 */
-import SecurityDevice from './SecurityDevice/SecurityDevice';
-import MotionSensor from './SecurityDevice/MotionSensor';
-import OpenCloseSensor from './SecurityDevice/OpenCloseSensor';
-import LeakSensor from './SecurityDevice/LeakSensor';
-
-
 /* Interface */
 export interface DeviceCommandTask {
 	cmd1: Byte;
@@ -82,64 +63,12 @@ export default class InsteonDevice extends EventEmitter2 {
 	public hardward: Byte = 0x00;
 	public links: DeviceLinkRecord[] = [];
 
-	/* Inernal Variaables */
+	/* Inernal Variables */
 	public modem: PowerLincModem;
 	public requestQueue: AsyncQueue<DeviceCommandTask>;
 	public options: DeviceOptions = { debug: false };
 
 	//#endregion
-
-	/* Factory method for creating a device instance of the correct type
-	   e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
-	   thus returns an instance of a DimmableLightingDevice
-	*/
-	public static async factory(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
-		let info = await modem.queryDeviceInfo(deviceID);
-
-		switch(Number(info.cat)){
-			case 0x01: 
-				switch(Number(info.subcat)){
-					case 0x1C: return new KeypadDimmer(deviceID, modem, options);
-						break;
-					default: return new DimmableLightingDevice(deviceID, modem, options);
-				}
-				break;
-				
-			case 0x02: return new SwitchedLightingDevice(deviceID, modem, options);
-				break;
-			
-			case 0x07:
-				switch(Number(info.subcat)){
-					case 0x00: return new IOLinc(deviceID, modem, options);
-						break;
-					default: return new SensorActuatorDevice(deviceID, modem, options);
-				}
-				break;
-			
-			case 0x10:
-				switch(Number(info.subcat)){
-					case 0x01:
-					case 0x03:
-					case 0x04:
-					case 0x05: return new MotionSensor(deviceID, modem, options);
-						break;
-					case 0x02:
-					case 0x06:
-					case 0x07:
-					case 0x09: 
-					case 0x11: 
-					case 0x14: 
-					case 0x015: return new OpenCloseSensor(deviceID, modem, options);
-						break;
-					case 0x08: return new LeakSensor(deviceID, modem, options);
-						break;
-					default: return new SecurityDevice(deviceID, modem, options);
-				}
-				break;
-			
-			default: return new InsteonDevice(deviceID, modem, options);
-		}
-	}
 
 	//#region Constuctor
 	constructor(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
@@ -160,6 +89,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
+		
+		/* Setting up device events */
+		this.setupEvents();
 
 		/* Initalizing Device */
 		this.initalize();
@@ -519,6 +451,11 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			this.emit([data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
+
+	}
+	
+	// To be overriden by the device subclass
+	public setupEvents(){
 
 	}
 
