@@ -7,7 +7,7 @@ import { toHex, wait, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
 
 /* Interfaces and Types */
-import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket } from 'insteon-packet-parser';
+import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
 
 //#region Interfaces
 
@@ -719,7 +719,7 @@ export default class PowerLincModem extends EventEmitter2{
 			}
 		}
 
-		/* Checking if packet if from a device */
+		/* Checking if packet is from a device */
 		if(packet.type === PacketID.StandardMessageReceived || packet.type === PacketID.ExtendedMessageReceived){
 			let p = packet as Packet.StandardMessageRecieved;
 
@@ -746,6 +746,30 @@ export default class PowerLincModem extends EventEmitter2{
 		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
 
 	//#endregion
+	
+	/* Send an insteon command from the modem to a device to find out what it is */
+	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Packet.StandardMessageRecieved>((resolve, reject) => {
+
+		// Catching broadcast message
+		this.once(
+			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16), toAddressString(deviceID)],
+			(data: Packet.StandardMessageRecieved) => {
+				if(!Array.isArray(data.to)) reject(data);
+				
+				resolve({
+					cat: data.to[0],
+					subcat: data.to[1],
+					DeviceInfo: PowerLincModem.getDeviceInfo(data.to[0],data.to[1])
+				});
+			}
+		);
+
+		const flags = 0x0F;
+		const cmd1 = 0x10;
+		const cmd2 = 0x00;
+
+		this.sendStandardCommand(deviceID, flags, cmd1, cmd2);
+	});
 };
 
 //#endregion

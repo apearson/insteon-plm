@@ -3,7 +3,12 @@ import { EventEmitter2 } from 'eventemitter2';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
-import { toHex, toAddressString } from '../utils';
+import { toHex, toAddressString, toAddressArray } from '../utils';
+
+import DimmableLightingDevice from './DimmableLightingDevices/DimmableLightingDevice';
+// import KeypadDimmer from './DimmableLightingDevices/KeypadDimmer';
+// import SwitchedLightingDevice from './SwitchedLightingDevice/SwitchedLightingDevice';
+
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -70,8 +75,28 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Constuctor
+	/* Factory method for creating a device instance of the correct type
+	   e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
+	   thus returns an instance of a DimmableLightingDevice
+	*/
+	public static async factory(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
+		let info = await modem.queryDeviceInfo(deviceID);
 
+		switch(info.cat){
+			case 0x01: 
+				switch(info.subcat){
+					case 0x1C: return new KeypadDimmer(deviceID, modem, options); break;
+					default: return new DimmableLightingDevice(deviceID, modem, options);
+				}
+				break;
+				
+			case 0x02: return new SwitchedLightingDevice(deviceID, modem, options); break;
+			
+			default: return new InsteonDevice(deviceID, modem, options);
+		}
+	}
+
+	//#region Constuctor
 	constructor(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
 		super({ wildcard: true, delimiter: '::' });
 
@@ -92,11 +117,10 @@ export default class InsteonDevice extends EventEmitter2 {
 		this.setupRebroadcast();
 
 		/* Initalizing Device */
-		this.initalize()
+		this.initalize();
 	}
 
 	public async initalize(){
-
 		// Syncing data		
 		await this.syncInfo();
 		await this.syncLinks();
@@ -126,8 +150,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		let sign2unsigned = (compliment >>> 0) & 0xFF;
 
 		return sign2unsigned as Byte;
-	}
-
+	}	
 	//#endregion
 
 	//#region Insteon Send Methods
