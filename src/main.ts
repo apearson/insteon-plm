@@ -30,14 +30,14 @@ export default PowerLincModem;
 
 /* Exporting extras */
 export {
-	// Devices
+	// Generic Device
 	InsteonDevice,
 
 	// Dimmable
 	DimmableLightingDevice,
 	KeypadDimmer,
 	
-	// Switchd
+	// Switched
 	SwitchedLightingDevice,
 	OutletLinc,
 	
