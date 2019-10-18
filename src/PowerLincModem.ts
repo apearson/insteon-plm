@@ -63,7 +63,6 @@ interface QueueTaskData {
 //#endregion
 
 //#region PLM Class
-	console.log("PLM");
 export default class PowerLincModem extends EventEmitter2 {
 	/* Factory method for creating a device instance of the correct type
 	   e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
