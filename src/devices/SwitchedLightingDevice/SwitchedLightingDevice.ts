@@ -3,7 +3,7 @@ import InsteonDevice from '../InsteonDevice';
 import { Packet, Byte } from 'insteon-packet-parser';
 
 /* Class */
-export default abstract class SwitchedLightingDevice extends InsteonDevice {
+export default class SwitchedLightingDevice extends InsteonDevice {
 
 	//#region Higher functions
 

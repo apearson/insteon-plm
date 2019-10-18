@@ -5,10 +5,9 @@ import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
 
-import DimmableLightingDevice from './DimmableLightingDevices/DimmableLightingDevice';
-// import KeypadDimmer from './DimmableLightingDevices/KeypadDimmer';
-// import SwitchedLightingDevice from './SwitchedLightingDevice/SwitchedLightingDevice';
-
+import DimmableLightingDevice from './DimmableLightingDevice/DimmableLightingDevice';
+import KeypadDimmer from './DimmableLightingDevice/KeypadDimmer';
+import SwitchedLightingDevice from './SwitchedLightingDevice/SwitchedLightingDevice';
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -82,9 +81,9 @@ export default class InsteonDevice extends EventEmitter2 {
 	public static async factory(deviceID: Byte[], modem: PowerLincModem, options?: DeviceOptions){
 		let info = await modem.queryDeviceInfo(deviceID);
 
-		switch(info.cat){
+		switch(Number(info.cat)){
 			case 0x01: 
-				switch(info.subcat){
+				switch(Number(info.subcat)){
 					case 0x1C: return new KeypadDimmer(deviceID, modem, options); break;
 					default: return new DimmableLightingDevice(deviceID, modem, options);
 				}

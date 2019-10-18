@@ -742,33 +742,22 @@ export default class PowerLincModem extends EventEmitter2{
 		return devices.filter(d => d.vendorId === '0403' && d.productId === '6001');
 	}
 
-	public static getDeviceInfo = (cat: Byte, subcat: Byte) =>
+	public static getDeviceInfo = (cat: Byte, subcat: Byte): Device | undefined =>
 		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
 
 	//#endregion
 	
 	/* Send an insteon command from the modem to a device to find out what it is */
-	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Packet.StandardMessageRecieved>((resolve, reject) => {
+	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Device>((resolve, reject) => {
 
 		// Catching broadcast message
 		this.once(
 			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16), toAddressString(deviceID)],
-			(data: Packet.StandardMessageRecieved) => {
-				if(!Array.isArray(data.to)) reject(data);
-				
-				resolve({
-					cat: data.to[0],
-					subcat: data.to[1],
-					DeviceInfo: PowerLincModem.getDeviceInfo(data.to[0],data.to[1])
-				});
-			}
+			(data: Packet.StandardMessageRecieved) => 
+				resolve(PowerLincModem.getDeviceInfo(data.to[0],data.to[1]))
 		);
 
-		const flags = 0x0F;
-		const cmd1 = 0x10;
-		const cmd2 = 0x00;
-
-		this.sendStandardCommand(deviceID, flags, cmd1, cmd2);
+		this.sendStandardCommand(deviceID, 0x0F, 0x10, 0x00);
 	});
 };
 
