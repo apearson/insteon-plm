@@ -2,13 +2,13 @@
 import PowerLincModem  from './PowerLincModem';
 
 /* Device Categories */
-import DimmableLightingDevice from './devices/DimmableLightingDevices/DimmableLightingDevice';
+import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
 import SwitchedLightingDevice from './devices/SwitchedLightingDevice/SwitchedLightingDevice';
 
 /* Devices */
 import InsteonDevice from './devices/InsteonDevice';
 import OutletLinc from './devices/SwitchedLightingDevice/OutletLinc';
-import KeypadDimmer  from './devices/DimmableLightingDevices/KeypadDimmer';
+import KeypadDimmer  from './devices/DimmableLightingDevice/KeypadDimmer';
 
 /* PLM Types */
 import { Packet, PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype } from 'insteon-packet-parser';
