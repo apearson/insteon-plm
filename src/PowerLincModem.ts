@@ -753,6 +753,9 @@ export default class PowerLincModem extends EventEmitter2{
 
 	//#endregion
 	
+
+	//#region Device Methods
+
 	/* Send an insteon command from the modem to a device to find out what it is */
 	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Device>((resolve, reject) => {
 
@@ -787,6 +790,8 @@ export default class PowerLincModem extends EventEmitter2{
 			default: return new InsteonDevice(deviceID, this, options);
 		}
 	}
+
+	//#endregion
 };
 
 //#endregion
