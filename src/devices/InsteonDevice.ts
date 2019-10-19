@@ -98,7 +98,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	public async initalize(){
-		// Syncing data		
+		// Syncing data
 		await this.syncInfo();
 		await this.syncLinks();
 
@@ -455,4 +455,43 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
+	//#region Static Methods 
+
+	public static enterLinking(modem: PowerLincModem, address: Byte[]): Promise<boolean> {
+
+		return new Promise(async (resolve, reject) => {
+			// Setting up command
+			const cmd1 = 0x09;
+			const cmd2 = 0x01;
+			const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+			
+			// Adding checksum
+			extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
+			
+			// Waiting for ack of direct message
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
+
+				console.log('Got packet', packet);
+
+				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
+					resolve(true);
+				}
+				else{
+					reject(false);
+				}
+
+			});
+
+			/* Sending command */
+			const sent = await modem.sendExtendedCommand(address, cmd1, cmd2, extendedData);
+
+			if(!sent)
+				reject(false);
+	
+		});
+
+
+	}
+
+	//#endregion
 }

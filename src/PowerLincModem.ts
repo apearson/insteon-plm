@@ -60,59 +60,7 @@ interface QueueTaskData {
 
 //#region PLM Class
 export default class PowerLincModem extends EventEmitter2 {
-	/* Factory method for creating a device instance of the correct type
-	   e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
-	   thus returns an instance of a DimmableLightingDevice
-	*/
-
-	public async deviceFactory(deviceID: Byte[], options?: DeviceOptions){
-		let info = await this.queryDeviceInfo(deviceID);
-
-		switch(Number(info.cat)){
-			case 0x01: 
-				switch(Number(info.subcat)){
-					case 0x1C: return new KeypadDimmer(deviceID, this, options);
-						break;
-					default: return new DimmableLightingDevice(deviceID, this, options);
-				}
-				break;
-				
-			case 0x02: return new SwitchedLightingDevice(deviceID, this, options);
-				break;
-			
-			case 0x07:
-				switch(Number(info.subcat)){
-					case 0x00: return new IOLinc(deviceID, this, options);
-						break;
-					default: return new SensorActuatorDevice(deviceID, this, options);
-				}
-				break;
-			
-			case 0x10:
-				switch(Number(info.subcat)){
-					case 0x01:
-					case 0x03:
-					case 0x04:
-					case 0x05: return new MotionSensor(deviceID, this, options);
-						break;
-					case 0x02:
-					case 0x06:
-					case 0x07:
-					case 0x09: 
-					case 0x11: 
-					case 0x14: 
-					case 0x015: return new OpenCloseSensor(deviceID, this, options);
-						break;
-					case 0x08: return new LeakSensor(deviceID, this, options);
-						break;
-					default: return new SecurityDevice(deviceID, this, options);
-				}
-				break;
-			
-			default: return new InsteonDevice(deviceID, this, options);
-		}
-	}
-
+	
 	//#region Private Variables
 
 	/* Internal Variables */
@@ -798,7 +746,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 			const deviceID = toAddressString(p.from);
 
-			this.emit(['p', p.type.toString(16), p.Flags.subtype.toString(16) , deviceID], p);
+			this.emit(['p', p.type.toString(16), p.Flags.subtype.toString(16), deviceID], p);
 		}
 		else {
 			this.emit(['p', packet.type.toString(16)], packet);
@@ -846,12 +794,37 @@ export default class PowerLincModem extends EventEmitter2 {
 		switch(Number(info.cat)){
 			case 0x01: 
 				switch(Number(info.subcat)){
-					case 0x1C: return new KeypadDimmer(deviceID, this, options); break;
+					case 0x1C: return new KeypadDimmer(deviceID, this, options);
 					default: return new DimmableLightingDevice(deviceID, this, options);
 				}
-				break;
 				
-			case 0x02: return new SwitchedLightingDevice(deviceID, this, options); break;
+			case 0x02: return new SwitchedLightingDevice(deviceID, this, options);
+			
+			case 0x07:
+				switch(Number(info.subcat)){
+					case 0x00: return new IOLinc(deviceID, this, options);
+					default: return new SensorActuatorDevice(deviceID, this, options);
+				}
+			
+			case 0x10:
+				switch(Number(info.subcat)){
+					case 0x01:
+					case 0x03:
+					case 0x04:
+					case 0x05: return new MotionSensor(deviceID, this, options);
+
+					case 0x02:
+					case 0x06:
+					case 0x07:
+					case 0x09: 
+					case 0x11: 
+					case 0x14: 
+					case 0x015: return new OpenCloseSensor(deviceID, this, options);
+
+					case 0x08: return new LeakSensor(deviceID, this, options);
+
+					default: return new SecurityDevice(deviceID, this, options);
+				}
 			
 			default: return new InsteonDevice(deviceID, this, options);
 		}
@@ -861,17 +834,48 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Management Methods
 
-	public async manageDevice(){
-		throw Error("Not Implemented");
+	public async manageDevice(address: Byte[]){
+		// throw Error("Not Implemented");
+
+		console.log('Starting modem linking');
+
+		// Start PLM lining
+		let mStarted = await this.startLinking(AllLinkRecordType.Responder, 52);
+
+		
+		if(!mStarted)
+		throw Error('Could not start modem linking');
+		
+		console.log('Modem started linking');
+		
+		await wait(500);
+
+		console.log('Starting device linking');
+
+		// Start Device linking
+		let started = await InsteonDevice.enterLinking(this, address);
+
+		if(!started)
+			throw Error('Could not start device linking');
+
+		console.log('Device started linking');
+
 	}
 
-	public async unmanageDevice(){
+	public async unmanageDevice(address: Byte[]){
 		throw Error("Not Implemented");
+
+		// Find record in PLM
+
+		// Remove record from PLM
+		this.deleteLink(address, 0, AllLinkRecordType.Responder);
+
+		// Remove record from Device
 	}
 
 	public listManagedDevices(){
 
-		return this.links[1].filter(v => v.Flags.recordType === AllLinkRecordType.Responder).reduce((arr: any[], v, i) => {
+		return this.links[0].filter(v => v.Flags.recordType === AllLinkRecordType.Responder).reduce((arr: any[], v, i) => {
 
 			let stringID = toAddressString(v.from);
 
