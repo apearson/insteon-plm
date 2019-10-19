@@ -224,7 +224,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		// Catching broadcast message
 		this.once(
-			[PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16)], 
+			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16)], 
 			(data: Packet.StandardMessageRecieved) => resolve(data)
 		);
 
@@ -311,7 +311,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		const links: DeviceLinkRecord[]  = [];
 
 		// Device listener event name
-		const dbRecordEvent = [PacketID.ExtendedMessageReceived.toString(16), MessageSubtype.DirectMessage.toString(16)];
+		const dbRecordEvent = ['p', PacketID.ExtendedMessageReceived.toString(16), MessageSubtype.DirectMessage.toString(16)];
 
 		// Function to handle record response
 		const handleDbRecordResponse = (data: Packet.ExtendedMessageRecieved) => {
@@ -448,7 +448,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			if(this.options.debug)
 				console.log(`[←][${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)} ${(data.extendedData || []).map(toHex)}`);
 
-			this.emit([data.type.toString(16), data.Flags.subtype.toString(16)], data);
+			this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
 
 	}
