@@ -63,7 +63,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public hardward: Byte = 0x00;
 	public links: DeviceLinkRecord[] = [];
 
-	/* Inernal Variaables */
+	/* Inernal Variables */
 	public modem: PowerLincModem;
 	public requestQueue: AsyncQueue<DeviceCommandTask>;
 	public options: DeviceOptions = { debug: false };
@@ -89,6 +89,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
+		
+		/* Setting up device events */
+		this.setupEvents();
 
 		/* Initalizing Device */
 		this.initalize();
@@ -442,6 +445,11 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
+
+	}
+	
+	// To be overriden by the device subclass
+	public setupEvents(){
 
 	}
 

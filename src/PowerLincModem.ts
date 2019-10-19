@@ -6,11 +6,26 @@ import { InsteonParser, Packet } from 'insteon-packet-parser';
 import { toHex, wait, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
 
-/* Devices */
-import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
-import SwitchedLightingDevice from './devices/SwitchedLightingDevice/SwitchedLightingDevice';
-import KeypadDimmer from './devices/DimmableLightingDevice/KeypadDimmer';
+/* Generic Insteon Device */
 import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
+
+/* Dimable Devices. Device cat 0x01 */
+import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
+import KeypadDimmer  from './devices/DimmableLightingDevice/KeypadDimmer';
+
+/* Switched On/Off Devices. Device cat 0x02 */
+import SwitchedLightingDevice from './devices/SwitchedLightingDevice/SwitchedLightingDevice';
+import OutletLinc from './devices/SwitchedLightingDevice/OutletLinc';
+
+/* Sensors and Actuators. Device cat 0x07 */
+import SensorActuatorDevice from './devices/SensorActuatorDevice/SensorActuatorDevice';
+import IOLinc from './devices/SensorActuatorDevice/IOLinc';
+
+/* Security / battery operated sensors. Device cat 0x10 */
+import SecurityDevice from './devices/SecurityDevice/SecurityDevice';
+import MotionSensor from './devices/SecurityDevice/MotionSensor';
+import OpenCloseSensor from './devices/SecurityDevice/OpenCloseSensor';
+import LeakSensor from './devices/SecurityDevice/LeakSensor';
 
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
@@ -44,8 +59,59 @@ interface QueueTaskData {
 //#endregion
 
 //#region PLM Class
+export default class PowerLincModem extends EventEmitter2 {
+	/* Factory method for creating a device instance of the correct type
+	   e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
+	   thus returns an instance of a DimmableLightingDevice
+	*/
 
-export default class PowerLincModem extends EventEmitter2{
+	public async deviceFactory(deviceID: Byte[], options?: DeviceOptions){
+		let info = await this.queryDeviceInfo(deviceID);
+
+		switch(Number(info.cat)){
+			case 0x01: 
+				switch(Number(info.subcat)){
+					case 0x1C: return new KeypadDimmer(deviceID, this, options);
+						break;
+					default: return new DimmableLightingDevice(deviceID, this, options);
+				}
+				break;
+				
+			case 0x02: return new SwitchedLightingDevice(deviceID, this, options);
+				break;
+			
+			case 0x07:
+				switch(Number(info.subcat)){
+					case 0x00: return new IOLinc(deviceID, this, options);
+						break;
+					default: return new SensorActuatorDevice(deviceID, this, options);
+				}
+				break;
+			
+			case 0x10:
+				switch(Number(info.subcat)){
+					case 0x01:
+					case 0x03:
+					case 0x04:
+					case 0x05: return new MotionSensor(deviceID, this, options);
+						break;
+					case 0x02:
+					case 0x06:
+					case 0x07:
+					case 0x09: 
+					case 0x11: 
+					case 0x14: 
+					case 0x015: return new OpenCloseSensor(deviceID, this, options);
+						break;
+					case 0x08: return new LeakSensor(deviceID, this, options);
+						break;
+					default: return new SecurityDevice(deviceID, this, options);
+				}
+				break;
+			
+			default: return new InsteonDevice(deviceID, this, options);
+		}
+	}
 
 	//#region Private Variables
 

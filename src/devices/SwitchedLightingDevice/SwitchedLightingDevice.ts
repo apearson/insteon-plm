@@ -2,7 +2,9 @@
 import InsteonDevice from '../InsteonDevice';
 import { Packet, Byte } from 'insteon-packet-parser';
 
-/* Class */
+/* Base class for device category 0x02 - Switched Lighting Control
+   All NON dimmable controls including switches, outlets and plugin modules live here
+ */
 export default class SwitchedLightingDevice extends InsteonDevice {
 
 	//#region Higher functions
