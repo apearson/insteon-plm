@@ -824,7 +824,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
 
 	//#endregion
-	
+
 	/* Send an insteon command from the modem to a device to find out what it is */
 	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Device>((resolve, reject) => {
 
@@ -837,6 +837,56 @@ export default class PowerLincModem extends EventEmitter2 {
 
 		this.sendStandardCommand(deviceID, 0x0F, 0x10, 0x00);
 	});
+
+	/**
+	 * Factory method for creating a device instance of the correct type
+	 * e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
+	 * thus returns an instance of a DimmableLightingDevice
+	 **/
+	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
+		let info = await this.queryDeviceInfo(deviceID);
+
+		switch(Number(info.cat)){
+			case 0x01: 
+				switch(Number(info.subcat)){
+					case 0x1C: return new KeypadDimmer(deviceID, this, options); break;
+					default: return new DimmableLightingDevice(deviceID, this, options);
+				}
+				break;
+				
+			case 0x02: return new SwitchedLightingDevice(deviceID, this, options); break;
+			
+			default: return new InsteonDevice(deviceID, this, options);
+		}
+	}
+
+	//#endregion
+
+	//#region Management Methods
+
+	public async manageDevice(){
+		throw Error("Not Implemented");
+	}
+
+	public async unmanageDevice(){
+		throw Error("Not Implemented");
+	}
+
+	public listManagedDevices(){
+
+		return this.links[1].filter(v => v.Flags.recordType === AllLinkRecordType.Responder).reduce((arr: any[], v, i) => {
+
+			let stringID = toAddressString(v.from);
+
+			if(!arr.includes(stringID))
+				arr.push(v.from);
+
+			return arr;
+
+		}, []);
+	}
+
+	//#endregion
 };
 
 //#endregion
