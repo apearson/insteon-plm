@@ -101,16 +101,11 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	public async initalize(){
 		// Syncing data
-<<<<<<< HEAD
-		await this.syncInfo();
-		await this.syncLinks();
-=======
 		if(this.options.syncInfo !== false)
 			await this.syncInfo();
 		
 		if(this.options.syncLinks !== false)
 			await this.syncLinks();
->>>>>>> f3d8fdf36bc5591450a8d62d9060551f6cdc0600
 
 		/* Emitting ready event */
 		this.emit('ready');
@@ -464,7 +459,6 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	//#endregion
-<<<<<<< HEAD
 
 	//#region Static Methods 
 
@@ -505,6 +499,4 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	//#endregion
-=======
->>>>>>> f3d8fdf36bc5591450a8d62d9060551f6cdc0600
 }
