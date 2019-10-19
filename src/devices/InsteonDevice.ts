@@ -400,17 +400,11 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	private processQueue = async (task: DeviceCommandTask, callback: AsyncResultCallback<Packet.Packet>) => {
 
-		/* Determining packet data */
-		const isExtended = !!task.extendedData;
-		const flag = task.flags ? task.flags 
-		           : isExtended ? 0x1F
-		           : 0x0F;
-
 		const callbackFunction = (d: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
 
 			// Removing any listeners
-			this.modem.removeListener(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-			this.modem.removeListener(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
+			this.removeListener(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
+			this.removeListener(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
 
 			// Calling callback after cooldown
 			setTimeout(() =>
@@ -419,12 +413,12 @@ export default class InsteonDevice extends EventEmitter2 {
 		};
 
 		// Once we hear an echo (same command back) the modem is ready for another command
-		this.modem.once(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-		this.modem.once(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
+		this.once(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
+		this.once(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
 
 		if(this.options.debug)
 		{
-			let consoleLine = `[→][${this.addressString}][${isExtended? 'E':'S'}]: Flag: ${toHex(flag)} | Cmd: ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;		
+			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} Cmd: ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;		
 
 			if(task.extendedData)
 				consoleLine += ` | Extended Data: ${(task.extendedData || []).map(toHex)}`
@@ -432,8 +426,8 @@ export default class InsteonDevice extends EventEmitter2 {
 			console.log(consoleLine);
 		}
 		// Attempting to write command to modem
-		const isSuccessful = !!task.extendedData ? await this.modem.sendExtendedCommand(this.address, flag, task.cmd1, task.cmd2, task.extendedData)
-		                                     : await this.modem.sendStandardCommand(this.address, flag, task.cmd1, task.cmd2);
+		const isSuccessful = !!task.extendedData ? await this.modem.sendExtendedCommand(this.address, task.cmd1, task.cmd2, task.extendedData, task.flags)
+		                                         : await this.modem.sendStandardCommand(this.address, task.cmd1, task.cmd2, task.flags);
 
 		if(!isSuccessful)
 			callback(Error('Could not execute device packet'));
