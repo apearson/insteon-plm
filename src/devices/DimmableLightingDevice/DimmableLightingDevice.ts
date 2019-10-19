@@ -6,6 +6,10 @@ import { Packet, Byte } from 'insteon-packet-parser';
    All dimmable controls including switches, outlets and plugin modules live here
  */
 export default class DimmableLightingDevice extends InsteonDevice {
+	public setupEvents(){
+
+	}
+
 
 	//#region Higher functions
 
