@@ -7,7 +7,7 @@ import { toHex, wait, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
 
 /* Generic Insteon Device */
-import InsteonDevice from './devices/InsteonDevice';
+import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
 
 /* Dimable Devices. Device cat 0x01 */
 import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
@@ -51,11 +51,6 @@ export interface ModemConfig{
 	monitorMode: boolean;
 	autoLED: boolean;
 	deadman: boolean;
-}
-export interface DeviceOptions {
-	debug: boolean;
-	syncInfo?: boolean;
-	syncLinks?: boolean;
 }
 interface QueueTaskData {
 	command: Buffer;
@@ -645,7 +640,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		return packet.ack;
 	}
 
-	public async sendExtendedCommand(deviceID: string | Byte[], flags: Byte = 0x1F, cmd1: Byte = 0x00, cmd2: Byte = 0x00, extendedData: Byte[]){
+	public async sendExtendedCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, extendedData: Byte[], flags: Byte = 0x1F){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -824,7 +819,10 @@ export default class PowerLincModem extends EventEmitter2 {
 	public static getDeviceInfo = (cat: Byte, subcat: Byte): Device | undefined =>
 		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
 
+
 	//#endregion
+
+	//#region Device Methods
 
 	/* Send an insteon command from the modem to a device to find out what it is */
 	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Device>((resolve, reject) => {
