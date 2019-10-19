@@ -780,7 +780,7 @@ export default class PowerLincModem extends EventEmitter2 {
 				resolve(PowerLincModem.getDeviceInfo(data.to[0],data.to[1]))
 		);
 
-		this.sendStandardCommand(deviceID, 0x0F, 0x10, 0x00);
+		this.sendStandardCommand(deviceID, 0x10, 0x00);
 	});
 
 	/**
