@@ -1,6 +1,6 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
-import { Packet, Byte } from 'insteon-packet-parser';
+import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
 
 /* Base class for device category 0x01 - Dimmable Lighting Control
    All dimmable controls including switches, outlets and plugin modules live here
@@ -11,7 +11,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		   type 0x50 = Standard Message Received
 		   subtype 0x06 = Broadcast (Physically Triggered)
 		 */
-		this.on([0x50.toString(16), 0x06.toString(16)], (data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
+		this.on([PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
 			switch(Number(data.cmd1)){
 				case 0x11: this.emitPhysical(['switch','on'], data); break;
 				case 0x13: this.emitPhysical(['switch','off'], data); break; //console.log("Physically turned Off"); break;
@@ -31,7 +31,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		/* type 0x50 = Standard Message Received
 		   subtype 0x01 = Acknowledgement that a remote command was received
 		 */		
-		this.on([0x50.toString(16), 0x01.toString(16)], (data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
+		this.on([PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
 			switch(Number(data.cmd1)){
 				case 0x11: this.emitRemote(['switch','on'], data); break;
 				case 0x13: this.emitRemote(['switch','off'], data); break;
