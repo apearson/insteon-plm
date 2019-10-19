@@ -51,6 +51,13 @@ export interface ModemConfig{
 	deadman: boolean;
 }
 
+export interface ModemLink {
+	group: Byte;
+	device: Byte[];
+	type: AllLinkRecordType;
+	linkData: Byte[];
+}
+
 interface QueueTaskData {
 	command: Buffer;
 	retries?: number;
@@ -67,7 +74,9 @@ export default class PowerLincModem extends EventEmitter2 {
 	private requestQueue: AsyncQueue<QueueTaskData>;
 
 	/* Linking */
-	private _links: Packet.AllLinkRecordResponse[][] = [];
+	private _links: ModemLink[] = [];
+	private _responders: ModemLink[] = [];
+
 
 	/* Internal Data holder */
 	private _info: ModemInfo = {
@@ -145,6 +154,23 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	get links(){ return this._links; }
 
+	get groups(){ 
+
+		let groups = [...Array(255).keys()].map(i => [] as ModemLink[]);
+
+		return this._links.filter(r => r.type === AllLinkRecordType.Controller)
+		                  .reduce((arr, v, i) => {
+		                  	arr[v.group].push(v);
+
+		                  	return arr;
+		                  }, groups);
+
+	}
+
+	get reponders(){
+		return this._links.filter(r => r.type === AllLinkRecordType.Responder);
+	}
+
 	//#endregion
 
 	//#region Utility Methods
@@ -212,22 +238,25 @@ export default class PowerLincModem extends EventEmitter2 {
 		return p;
 	}
 
-	public async getAllLinks(): Promise<Packet.AllLinkRecordResponse[][]>{
-		/* Creating an array of 255 groups filled with empty arrays */
-		let groups = [...Array(255).keys()].map(i => Array(0));
-		let index = 0;
+	public async getAllLinks(): Promise<ModemLink[]>{
+
+		let links: ModemLink[] = [];
 
 		/* Getting first record */
 		let record = await this.getFirstAllLinkRecord();
 
 		/* Checking if first record exists */
 		if(record !== null){
-			/* Adding extra data */
-			record.index = index;
-			index++;
+
+			let link: ModemLink = {
+				group: record.allLinkGroup,
+				device: record.from,
+				type: record.Flags.recordType,
+				linkData: record.linkData
+			};
 
 			/* Adding record to group */
-			groups[record.allLinkGroup].push(record);
+			links.push(link);
 		}
 
 		/* While there are more records get them */
@@ -236,16 +265,20 @@ export default class PowerLincModem extends EventEmitter2 {
 
 			/* Checking if retrieved record exists */
 			if(record !== null){
-				/* Adding extra data */
-				record.index = index;
-				index++;
+
+				let link: ModemLink = {
+					group: record.allLinkGroup,
+					device: record.from,
+					type: record.Flags.recordType,
+					linkData: record.linkData
+				};
 
 				/* Adding record to group */
-				groups[record.allLinkGroup].push(record);
+				links.push(link);
 			}
 		}
 
-		return groups;
+		return links;
 	}
 
 	//#endregion
@@ -280,7 +313,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	// TODO: Abtract away from packets
 	public async syncLinks(){
-		this._links = await this.getAllLinks();
+		this._links= await this.getAllLinks();
 
 		return this.links;
 	}
@@ -835,52 +868,43 @@ export default class PowerLincModem extends EventEmitter2 {
 	//#region Management Methods
 
 	public async manageDevice(address: Byte[]){
-		// throw Error("Not Implemented");
 
-		console.log('Starting modem linking');
+		// Start PLM linking
+		let mStarted = await this.startLinking(AllLinkRecordType.Responder, 1);
 
-		// Start PLM lining
-		let mStarted = await this.startLinking(AllLinkRecordType.Responder, 52);
-
-		
+		// Checking that we started linking
 		if(!mStarted)
-		throw Error('Could not start modem linking');
-		
-		console.log('Modem started linking');
-		
-		await wait(500);
+			throw Error('Could not start modem linking');
 
-		console.log('Starting device linking');
+		// Waiting for modem to get ready for a network message
+		await wait(1000);
 
 		// Start Device linking
 		let started = await InsteonDevice.enterLinking(this, address);
 
+		// Checking we started device linking
 		if(!started)
 			throw Error('Could not start device linking');
-
-		console.log('Device started linking');
-
 	}
 
+	// TODO: remove record from remote device
 	public async unmanageDevice(address: Byte[]){
-		throw Error("Not Implemented");
-
-		// Find record in PLM
-
-		// Remove record from PLM
-		this.deleteLink(address, 0, AllLinkRecordType.Responder);
+		// throw Error("Not Implemented");
 
 		// Remove record from Device
+
+		// Remove record from PLM
+		await this.deleteLink(address, 1, AllLinkRecordType.Responder);
 	}
 
 	public listManagedDevices(){
 
-		return this.links[0].filter(v => v.Flags.recordType === AllLinkRecordType.Responder).reduce((arr: any[], v, i) => {
+		return this.links.filter(l => l.type === AllLinkRecordType.Responder).reduce((arr: any[], l, i) => {
 
-			let stringID = toAddressString(v.from);
+			let stringID = toAddressString(l.device);
 
 			if(!arr.includes(stringID))
-				arr.push(v.from);
+				arr.push(l.device);
 
 			return arr;
 

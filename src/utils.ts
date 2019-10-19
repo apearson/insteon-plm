@@ -2,21 +2,20 @@
 import { isArray } from "util";
 import { DeviceLinkRecord } from "./devices/InsteonDevice";
 import { AllLinkRecordType, Packet, Byte } from "insteon-packet-parser";
+import { ModemLink } from "./PowerLincModem";
 
 /* General Functions */
 
 export function toAddressString(address: Byte[]){
-  return address.map(num => num.toString(16).toUpperCase()).join('.');
+  return address.map(num => num.toString(16).toUpperCase().padStart(2, '0')).join('.');
 }
 
 export function toAddressArray(address: String){
 	return address.split(".").map(el => parseInt(el,16));
 }
 
-export function toHex(numbers: number){
-  const nums = isArray(numbers) ? numbers : [numbers];
-
-  return `0x${Buffer.from(nums).toString('hex')}`;
+export function toHex(n: number){
+  return `0x${n.toString(16).toUpperCase().padStart(2, '0')}`;
 }
 
 export function deviceDbToTable(links: DeviceLinkRecord[]){
@@ -49,27 +48,25 @@ export function deviceDbToTable(links: DeviceLinkRecord[]){
   return table;
 }
 
-export function modemDbToTable(links: Packet.AllLinkRecordResponse[][]){
+export function modemDbToTable(links: ModemLink[]){
   
   // Creating table header
   let table = '| Group | Device   | Type       | Link Data      |\n' +
               '|-------|----------|------------|----------------|';
 
   // Looping over links
-  for (let groupRecords of links){
-    for (let record of groupRecords){
+  for (let link of links){
 
-      let group = record.allLinkGroup.toString();
-      let device = record.from.map(toHex).map(a => a.substring(2)).join('.').toUpperCase();
-      let type = AllLinkRecordType[record.Flags.recordType];
-      let linkData = record.linkData.map(toHex).join(',');
+    let group = link.group.toString();
+    let device = toAddressString(link.device);
+    let type = AllLinkRecordType[link.type];
+    let linkData = link.linkData.map(toHex).join(',');
 
-      // Creating row
-      let row = `| ${group.padStart(5)} | ${device.padEnd(8)} | ${type.padEnd(10)} | ${linkData.padEnd(14)} |`;
+    // Creating row
+    let row = `| ${group.padStart(5)} | ${device.padEnd(8)} | ${type.padEnd(10)} | ${linkData.padEnd(14)} |`;
 
-      // Adding row to table
-      table += `\n${row}`
-    }
+    // Adding row to table
+    table += `\n${row}`
   }
 
   // Returning completed table

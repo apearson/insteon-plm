@@ -476,8 +476,6 @@ export default class InsteonDevice extends EventEmitter2 {
 			// Waiting for ack of direct message
 			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 
-				console.log('Got packet', packet);
-
 				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
 					resolve(true);
 				}
