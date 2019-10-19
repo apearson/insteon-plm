@@ -14,6 +14,7 @@ import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
 
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
+import { Device } from './typings/database';
 
 //#region Interfaces
 
@@ -752,7 +753,6 @@ export default class PowerLincModem extends EventEmitter2{
 		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
 
 	//#endregion
-	
 
 	//#region Device Methods
 
@@ -789,6 +789,32 @@ export default class PowerLincModem extends EventEmitter2{
 			
 			default: return new InsteonDevice(deviceID, this, options);
 		}
+	}
+
+	//#endregion
+
+	//#region Management Methods
+
+	public async manageDevice(){
+		throw Error("Not Implemented");
+	}
+
+	public async unmanageDevice(){
+		throw Error("Not Implemented");
+	}
+
+	public listManagedDevices(){
+
+		return this.links[1].filter(v => v.Flags.recordType === AllLinkRecordType.Responder).reduce((arr: any[], v, i) => {
+
+			let stringID = toAddressString(v.from);
+
+			if(!arr.includes(stringID))
+				arr.push(v.from);
+
+			return arr;
+
+		}, []);
 	}
 
 	//#endregion

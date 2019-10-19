@@ -1,15 +1,15 @@
-interface DeviceDB{
+export interface DeviceDB{
   version: string;
   categories: Category[];
   devices: Device[];
   gateways: Gateways[];
 }
 
-interface Category {
+export interface Category {
   [key: string]: string;
 }
 
-interface Device {
+export interface Device {
   name: string;
   description: string;
   cat: string;
@@ -18,7 +18,7 @@ interface Device {
   flags?: string;
 }
 
-interface Gateways {
+export interface Gateways {
   name: string;
   description: string;
   cat: string;
