@@ -53,8 +53,9 @@ export interface ModemConfig{
 }
 export interface DeviceOptions {
 	debug: boolean;
+	syncInfo?: boolean;
+	syncLinks?: boolean;
 }
-
 interface QueueTaskData {
 	command: Buffer;
 	retries?: number;

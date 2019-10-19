@@ -20,6 +20,8 @@ export interface DeviceInfo {
 }
 export interface DeviceOptions {
 	debug: boolean;
+	syncInfo?: boolean;
+	syncLinks?: boolean;
 }
 export interface DeviceLinkRecord {
 	address: Byte[];
@@ -98,9 +100,12 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	public async initalize(){
-		// Syncing data		
-		await this.syncInfo();
-		await this.syncLinks();
+		// Syncing data
+		if(this.options.syncInfo !== false)
+			await this.syncInfo();
+		
+		if(this.options.syncLinks !== false)
+			await this.syncLinks();
 
 		/* Emitting ready event */
 		this.emit('ready');
