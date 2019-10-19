@@ -20,6 +20,8 @@ export interface DeviceInfo {
 }
 export interface DeviceOptions {
 	debug: boolean;
+	syncInfo?: boolean;
+	syncLinks?: boolean;
 }
 export interface DeviceLinkRecord {
 	address: Byte[];
@@ -99,8 +101,16 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	public async initalize(){
 		// Syncing data
+<<<<<<< HEAD
 		await this.syncInfo();
 		await this.syncLinks();
+=======
+		if(this.options.syncInfo !== false)
+			await this.syncInfo();
+		
+		if(this.options.syncLinks !== false)
+			await this.syncLinks();
+>>>>>>> f3d8fdf36bc5591450a8d62d9060551f6cdc0600
 
 		/* Emitting ready event */
 		this.emit('ready');
@@ -443,7 +453,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			if(this.options.debug)
 				console.log(`[←][${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)} ${(data.extendedData || []).map(toHex)}`);
 
-			this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
+			this.emit([data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
 
 	}
@@ -454,6 +464,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	//#endregion
+<<<<<<< HEAD
 
 	//#region Static Methods 
 
@@ -494,4 +505,6 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	//#endregion
+=======
+>>>>>>> f3d8fdf36bc5591450a8d62d9060551f6cdc0600
 }
