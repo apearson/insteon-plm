@@ -7,7 +7,7 @@ import { toHex, wait, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
 
 /* Generic Insteon Device */
-import InsteonDevice from './devices/InsteonDevice';
+import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
 
 /* Dimable Devices. Device cat 0x01 */
 import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
@@ -27,10 +27,9 @@ import MotionSensor from './devices/SecurityDevice/MotionSensor';
 import OpenCloseSensor from './devices/SecurityDevice/OpenCloseSensor';
 import LeakSensor from './devices/SecurityDevice/LeakSensor';
 
-
-
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
+import { Device } from './typings/database';
 
 //#region Interfaces
 
@@ -50,9 +49,6 @@ export interface ModemConfig{
 	monitorMode: boolean;
 	autoLED: boolean;
 	deadman: boolean;
-}
-export interface DeviceOptions {
-	debug: boolean;
 }
 
 interface QueueTaskData {
@@ -616,7 +612,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		return packet.ack;
 	}
 
-	public async sendStandardCommand(deviceID: string | Byte[], flags: Byte = 0x0F, cmd1: Byte = 0x00, cmd2: Byte = 0x00){
+	public async sendStandardCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, flags: Byte = 0x0F){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -643,7 +639,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		return packet.ack;
 	}
 
-	public async sendExtendedCommand(deviceID: string | Byte[], flags: Byte = 0x1F, cmd1: Byte = 0x00, cmd2: Byte = 0x00, extendedData: Byte[]){
+	public async sendExtendedCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, extendedData: Byte[], flags: Byte = 0x1F){
 		/* Parsing out device ID */
 		if(typeof deviceID === 'string' ){
 			deviceID = deviceID.split('.').map((byte)=> parseInt(byte, 16) as Byte);
@@ -823,7 +819,9 @@ export default class PowerLincModem extends EventEmitter2 {
 		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
 
 	//#endregion
-	
+
+	//#region Device Methods
+
 	/* Send an insteon command from the modem to a device to find out what it is */
 	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Device>((resolve, reject) => {
 
@@ -836,6 +834,56 @@ export default class PowerLincModem extends EventEmitter2 {
 
 		this.sendStandardCommand(deviceID, 0x0F, 0x10, 0x00);
 	});
+
+	/**
+	 * Factory method for creating a device instance of the correct type
+	 * e.g. user inputs aa.bb.cc, modem queries the device and finds out it's a dimmer
+	 * thus returns an instance of a DimmableLightingDevice
+	 **/
+	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
+		let info = await this.queryDeviceInfo(deviceID);
+
+		switch(Number(info.cat)){
+			case 0x01: 
+				switch(Number(info.subcat)){
+					case 0x1C: return new KeypadDimmer(deviceID, this, options); break;
+					default: return new DimmableLightingDevice(deviceID, this, options);
+				}
+				break;
+				
+			case 0x02: return new SwitchedLightingDevice(deviceID, this, options); break;
+			
+			default: return new InsteonDevice(deviceID, this, options);
+		}
+	}
+
+	//#endregion
+
+	//#region Management Methods
+
+	public async manageDevice(){
+		throw Error("Not Implemented");
+	}
+
+	public async unmanageDevice(){
+		throw Error("Not Implemented");
+	}
+
+	public listManagedDevices(){
+
+		return this.links[1].filter(v => v.Flags.recordType === AllLinkRecordType.Responder).reduce((arr: any[], v, i) => {
+
+			let stringID = toAddressString(v.from);
+
+			if(!arr.includes(stringID))
+				arr.push(v.from);
+
+			return arr;
+
+		}, []);
+	}
+
+	//#endregion
 };
 
 //#endregion
