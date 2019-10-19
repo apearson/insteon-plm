@@ -31,6 +31,7 @@ import LeakSensor from './devices/SecurityDevice/LeakSensor';
 
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
+import { Device } from './typings/database';
 
 //#region Interfaces
 
