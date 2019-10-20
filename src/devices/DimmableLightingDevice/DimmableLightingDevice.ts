@@ -14,9 +14,9 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
 			switch(Number(data.cmd1)){
 				case 0x11: this.emitPhysical(['switch','on'], data); break;
-				case 0x13: this.emitPhysical(['switch','off'], data); break; //console.log("Physically turned Off"); break;
-				case 0x12: this.emitPhysical(['switch','fastOn'], data); break; //console.log("Physically Fast On"); break;
-				case 0x14: this.emitPhysical(['switch','fastOff'], data); break; //console.log("Physically Fast Off"); break;
+				case 0x13: this.emitPhysical(['switch','off'], data); break;
+				case 0x12: this.emitPhysical(['switch','fastOn'], data); break;
+				case 0x14: this.emitPhysical(['switch','fastOff'], data); break;
 				case 0x17:
 					switch(Number(data.cmd2)){
 						case 0x0: this.emitPhysical(['dim','startDimming'], data); break;
@@ -24,7 +24,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 					}
 					break;
 				case 0x18: this.emitPhysical(['dim','stoppedChanging'], data); break;
-				// default: console.log("Uknown Broadcast command",data.cmd1,data.cmd2);
+				// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
 			}
 		});
 	
@@ -46,29 +46,11 @@ export default class DimmableLightingDevice extends InsteonDevice {
 					}
 					break;
 				case 0x18: this.emitRemote(['dim','stoppedChanging'], data); break;
-				// default: console.log("Uknown Ack Command",data.cmd1,data.cmd2);
+				// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
 			}
 		});
 	}
 	
-	/* Event Emitter functions */
-	private emitPhysical(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
-		event.push("physical");
-		this.emit(event, data);
-		
-		if(this.options.debug)
-			console.log(`emit physical ${event.join(".")}; cmd2: ${data.cmd2}`);
-
-	}
-	
-	/* Remote means acknowledgement: a command was received by the device from another device */
-	private emitRemote(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
-		event.push("remote");
-		this.emit(event, data);
-		
-		if(this.options.debug)
-			console.log(`emit remote ${event.join(".")}; cmd2: ${data.cmd2}`);
-	}
 
 	//#region Higher functions
 
