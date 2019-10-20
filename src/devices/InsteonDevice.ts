@@ -457,6 +457,26 @@ export default class InsteonDevice extends EventEmitter2 {
 	public setupEvents(){
 
 	}
+	/* Event Emitter functions
+	   Physical means a person physically interacted with the device
+	 */
+	public emitPhysical(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
+		event.push("physical");
+		this.emit(event, data);
+		
+		if(this.options.debug)
+			console.log(`emit physical ${event.join(".")}; cmd2: ${data.cmd2}`);
+
+	}
+	
+	/* Remote means acknowledgement: a command was received by the device from another device */
+	public emitRemote(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
+		event.push("remote");
+		this.emit(event, data);
+		
+		if(this.options.debug)
+			console.log(`emit remote ${event.join(".")}; cmd2: ${data.cmd2}`);
+	}
 
 	//#endregion
 
