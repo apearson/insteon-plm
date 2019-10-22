@@ -377,8 +377,6 @@ export default class InsteonDevice extends EventEmitter2 {
 		// Creating flag bit
 		const flags = ((+active << 7) | (type << 6) | (1 << 5) | (smartHop << 3) | (+(!highWater) << 1)) as Byte;
 
-		console.log(highWater, flags.toString(2));
-
 		// Setting up command
 		const cmd1 = 0x2F;
 		const cmd2 = 0x00;
@@ -483,7 +481,6 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#region Static Methods 
 
 	public static enterLinking(modem: PowerLincModem, address: Byte[]): Promise<boolean> {
-
 		return new Promise(async (resolve, reject) => {
 			// Setting up command
 			const cmd1 = 0x09;
@@ -512,8 +509,38 @@ export default class InsteonDevice extends EventEmitter2 {
 				reject(false);
 	
 		});
+	}
 
+	public static enterUnlinking(modem: PowerLincModem, address: Byte[]): Promise<boolean> {
 
+		return new Promise(async (resolve, reject) => {
+			// Setting up command
+			const cmd1 = 0x0A;
+			const cmd2 = 0x01;
+			// const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+			
+			// Adding checksum
+			// extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
+			
+			// Waiting for ack of direct message
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
+
+				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
+					resolve(true);
+				}
+				else{
+					reject(false);
+				}
+
+			});
+
+			/* Sending command */
+			const sent = await modem.sendStandardCommand(address, cmd1, cmd2);
+
+			if(!sent)
+				reject(false);
+	
+		});
 	}
 
 	//#endregion

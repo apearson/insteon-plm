@@ -869,22 +869,27 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	public async manageDevice(address: Byte[]){
 
+		// Start Device linking
+		let started = await InsteonDevice.enterLinking(this, address);
+
+		console.log('Device Started', started);
+
+		// Checking we started device linking
+		if(!started)
+			throw Error('Could not start device linking');
+
+		// Waiting for modem to get ready for a network message
+		await wait(2000);
+
 		// Start PLM linking
-		let mStarted = await this.startLinking(AllLinkRecordType.Responder, 1);
+		let mStarted = await this.startLinking(AllLinkRecordType.Either, 1);
+
+		console.log('PLM Started', mStarted);
 
 		// Checking that we started linking
 		if(!mStarted)
 			throw Error('Could not start modem linking');
 
-		// Waiting for modem to get ready for a network message
-		await wait(1000);
-
-		// Start Device linking
-		let started = await InsteonDevice.enterLinking(this, address);
-
-		// Checking we started device linking
-		if(!started)
-			throw Error('Could not start device linking');
 	}
 
 	// TODO: remove record from remote device
@@ -892,9 +897,11 @@ export default class PowerLincModem extends EventEmitter2 {
 		// throw Error("Not Implemented");
 
 		// Remove record from Device
+		await InsteonDevice.enterUnlinking(this, address);
 
 		// Remove record from PLM
-		await this.deleteLink(address, 1, AllLinkRecordType.Responder);
+		await this.startLinking(AllLinkRecordType.Responder, 1);
+		// await this.deleteLink(address, 1, AllLinkRecordType.Responder);
 	}
 
 	public listManagedDevices(){
