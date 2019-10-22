@@ -882,7 +882,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		await wait(2000);
 
 		// Start PLM linking
-		let mStarted = await this.startLinking(AllLinkRecordType.Either, 1);
+		let mStarted = await this.startLinking(AllLinkRecordType.Responder, 1);
 
 		console.log('PLM Started', mStarted);
 
