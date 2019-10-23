@@ -277,28 +277,12 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 
-	public enterLinking(): Promise<Packet.StandardMessageRecieved> {
-
-		// Setting up command
-		const cmd1 = 0x09;
-		const cmd2 = 0x01;
-		const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-		
-		// Adding checksum
-		extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2, extendedData);
+	public enterLinking() {
+		return InsteonDevice.enterLinking(this.modem, this.address);
 	}
 
-	public enterUnlinking(group: Byte): Promise<Packet.StandardMessageRecieved> {
-
-		// Setting up command
-		const cmd1 = 0x0A;
-		const cmd2 = group;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
+	public enterUnlinking(group: Byte) {
+		return InsteonDevice.enterUnlinking(this.modem, this.address);
 	}
 
 	//#endregion
