@@ -6,9 +6,11 @@ import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
    This is where the I/O linc lives, which is commonly used to open & close garage doors
    The rest of the devices in this category seem to be no longer available and otherwise obscure
 
+   ***************
+   *** WARNING ***
+   ***************
    The 0x07 category capabilities defined by the Insteon Developer Guide, Çhapter 8 seem to be completely wrong.
-   None of the described commands work with the I/O Linc, therefore the I/O Linc has been reverse engineered
-   by trial and error.
+   None of the described commands work with the I/O Linc, therefore the I/O Linc has been reverse engineered.
 
 I/O Output On
 cmd1: 0x45 - Turn output on

@@ -4,95 +4,104 @@ import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
 
 /* Class for the I/O Linc low voltage contact closure device
 
- * Due to lack of access to official documentation, all of the commands in this class have been reverse engineered through trial and error.
+ * Due to lack of access to official documentation, all of the commands in this class have been reverse engineered
  * If you find a mistake, please open an issue
+ * Developed against an I/O Linc 2450 rev 1.2
 
  */
 export default class IOLinc extends SensorActuatorDevice {
 
-	// public setupEvents(){
-	// 	/* InsteonDevice emits all packets with type & subtype
-	// 	   type 0x50 = Standard Message Received
-	// 	   subtype 0x06 = Broadcast (Physically Triggered)
-	// 	 */
-	// 	this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-	// 		switch(Number(data.cmd1)){
-	// 			case 0x11: this.emitPhysical(['switch','on'], data); break;
-	// 			case 0x13: this.emitPhysical(['switch','off'], data); break;
-	// 			case 0x12: this.emitPhysical(['switch','fastOn'], data); break;
-	// 			case 0x14: this.emitPhysical(['switch','fastOff'], data); break;
-	// 			default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
-	// 		}
-	// 	});
-	//
-	// 	/* type 0x50 = Standard Message Received
-	// 	   subtype 0x01 = Acknowledgement that a remote command was received
-	// 	 */
-	// 	this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-	// 		switch(Number(data.cmd1)){
-	// 			case 0x11: this.emitRemote(['switch','on'], data); break;
-	// 			case 0x13: this.emitRemote(['switch','off'], data); break;
-	// 			case 0x12: this.emitRemote(['switch','fastOn'],data); break;
-	// 			case 0x14: this.emitRemote(['switch','fastOff'],data); break;
-	// 			default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
-	// 		}
-	// 	});
-	// }
+	public setupEvents(){
+		/* InsteonDevice emits all packets with type & subtype
+		   type 0x50 = Standard Message Received
+		   subtype 0x06 = Broadcast (Physically Triggered)
+		
+		   The I/O Linc broadcasts a packet when the sensor is triggered OR when the set button is pressed
+		   In testing, no messages are broadcast when the device is in momentary mode and the relay opens after the momentaryDuration passes.
+		
+		   The only way to know if the relay is energized is to query the device.
+		 */
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
+			switch(Number(data.cmd1)){
+				case 0x11: this.emitPhysical(['sensor','on'], data); break;
+				case 0x13: this.emitPhysical(['sensor','off'], data); break;
+				// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
+			}
+		});
+
+		/* type 0x50 = Standard Message Received
+		   subtype 0x01 = Acknowledgement that a remote command was received
+		 */
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
+			switch(Number(data.cmd1)){
+				case 0x11: this.emitRemote(['relay','on'], data); break;
+				case 0x13: this.emitRemote(['relay','off'], data); break;
+				case 0x12: this.emitRemote(['relay','fastOn'],data); break;
+				case 0x14: this.emitRemote(['relay','fastOff'],data); break;
+				// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
+			}
+		});
+		
+	}
 
 	/* Command the relay, true = on, false = off */
 	public async switchRelay(state: boolean){
 		return state ? this.sendInsteonCommand(0x11, 0xFF) : this.sendInsteonCommand(0x13, 0x00);
 	}
 
-
 	// Start device configuration methods
-	/* The configuration flags are as follows:
-	   bit 0:
-	   bit 1:
-	   bit 2:
-	   bit 3:
-	   bit 4:
-	   This method parses them out into an object.
-	   There doesn't seem to be a way to write the flags back, instead each bit is set by it's own command.
-	 */
-	public async readConfig(){
-		// Getting configuration
-		const configPacket = await this.configRequest();
 
-		// Convert the flags stored in cmd2 to an array of bits
-		// String to base2, pad leading 0s, then split into an array of ints
-		const bits = configPacket.cmd2.toString(2).padStart(8,"0").split("").map(bit => parseInt(bit));
-		
-		// bit4: 0 = latching; 1 = momentary
-		
-		// let relayMode = `${bits[0]}${bits[3]}${bits[4]}`;
-		// switch(relayMode){
-		// 	case "110": relayMode = "unknown"; break;
-		// 	case "000": relayMode = "latching"; break;
-		// 	case "001": relayMode = "momentary"; break;
-		// 	case "011": relayMode = "momentaryReverse"; break;
-		// 	case "111": relayMode = "momentaryEither"; break;
-		// }
-		
-		// relayMode =
-		return {
-			bit0: bits[0],
-			triggerReversed: bits[1],
-			X10OnOff: bits[2],
-			bit3: bits[3],
-			momentary: bits[4],
-			relayFollowsSensor: bits[5],
-			LEDonTX: bits[6],
-			programLock: bits[7],
-			// relayMode: relayMode
-		}
-	}
-	
 	/* Get the configuration flags from the device */
 	public async configRequest(): Promise<Packet.StandardMessageRecieved>{
 		return this.sendInsteonCommand(0x1F,0x00);
 	}
 	
+	/* Parse the flags into an easy to use object
+
+	   The configuration flags are as follows:
+	   bit 0: for relay mode
+	   bit 1: trigger is reversed
+	   bit 2: send x10 on/off
+	   bit 3: for relay mode
+	   bit 4: for relay mode
+	   bit 5: relay follows the sensor input
+	   bit 6: LED on Transmit
+	   bit 7: Program lock
+
+	   There doesn't seem to be a way to write the flags back, instead each bit is set by it's own command.
+	 */
+	public async readConfig(){
+		// Getting configuration
+		const configPacket = await this.configRequest();
+		const momentaryDuration = await this.getMomentaryDuration();
+
+		// Convert the flags stored in cmd2 to an array of bits
+		// String to base2, pad leading 0s, then split into an array of ints
+		const bits = configPacket.cmd2.toString(2).padStart(8,"0").split("").map(bit => parseInt(bit));
+		
+		let relayMode = `${bits[0]}${bits[3]}${bits[4]}`;
+		switch(relayMode){
+			case "000": relayMode = "latching"; break;
+			case "001": relayMode = "momentaryModeA"; break;
+			case "011": relayMode = "momentaryModeB"; break;
+			case "111": relayMode = "momentaryModeC"; break;
+		}
+		
+		// relayMode =
+		return {
+			// bit0: bits[0],
+			triggerReversed: bits[1],
+			X10OnOff: bits[2],
+			// bit3: bits[3],
+			// bit4: bits[4],
+			relayFollowsSensor: bits[5],
+			LEDonTX: bits[6],
+			programLock: bits[7],
+			relayMode: relayMode,
+			momentaryDuration: momentaryDuration
+		}
+	}
+
 	/* Set the program lock flag
 		0x00 = locked
 		0x01 = unlocked
@@ -117,15 +126,8 @@ export default class IOLinc extends SensorActuatorDevice {
 		return this.sendInsteonCommand(0x20, state ? 0x0E : 0x0F);
 	}
 	
-	/* Set the key beep on or off
-		0x0A = Key Beep True
-		0x0B = Key Beep False
-	 */
-	public async setKeyBeep(state: boolean): Promise<Packet.StandardMessageRecieved>{
-		return this.sendInsteonCommand(0x20, state ? 0x0A : 0x0B);
-	}
 	
-	/* Set the x10 commands are on off
+	/* Set whether the x10 commands are on off or not
 		0x0C = Send X10 On/Off True
 		0x0D = Send X10 On/Off False
 	 */
@@ -142,33 +144,48 @@ export default class IOLinc extends SensorActuatorDevice {
 	}
 
 	/* Set the relay's behavior
-		0x07 = Latching - on activates relay, off deactivates
-		0x06 = Momentary 1 - on activates relay, off deactivates
-		0x12 = Momentary 2 - off activates relay, on deactivates
-		0x14 = Momentary 3 - Both on or off activates the relay
+		0x14/0x15 = Bit 0 hi/low
+		0x12/0x13 = Bit 2 hi/low
+		0x06/0x07 = Bit 3 hi/low
+	
+		// See the I/O Linc manual for the full description of these modes
+		0x15, 0x13, 0x07 = 000 = Latching - on activates relay, off deactivates. Momentary Duration is ignored.
+		0x15, 0x13, 0x06 = 001 = Momentary A - Either an ON or OFF command can be programmed to trigger the I/O Linc relay. The other command will be ignored. For example, if an ON command is programmed to trigger the relay, an OFF command will be ignored.
+		0x15, 0x12, 0x06 = 011 = Momentary B - Send either an ON or an OFF command to trigger the I/O Linc relay. The I/O Linc relay will respond to both.
+		0x14, 0x12, 0x06 = 111 = Momentary C - Use the I/O Linc sensor input to determine whether the I/O Linc relay will trigger. An ON command’s desired state can be programmed to either open or closed. I/O Linc will use the opposite for the OFF command’s desired sensor state. For example, if an ON command is programmed to trigger only when the sensor is closed, an OFF command will trigger only when the sensor is open.
 	 */
-	public async setRelayLatching(): Promise<Packet.StandardMessageRecieved>{
-		return this.setRelayMode(0x07);
+	public async setRelayLatching(): Promise<void>{
+		await this.sendInsteonCommand(0x20,0x07);
+		await this.sendInsteonCommand(0x20,0x13);
+		await this.sendInsteonCommand(0x20,0x15);
 	}
 	
 	/* Set the type of momentary behavior
-		empty = Momentary 1
-		"reverse" = Momentary 2
-		"either" = Momentary 3
+		empty|"modeA" = Momentary A
+		"modeB"       = Momentary B
+		"modeC"       = Momentary C
 	 */
-	public async setRelayMomentary(type?: String): Promise<Packet.StandardMessageRecieved>{
+	public async setRelayMomentary(type?: String): Promise<void>{
 		switch(type){
-			case "reverse": return this.setRelayMode(0x12); // Momentary 2
-			case "either": return this.setRelayMode(0x14); // Momentary 3
-			default: return this.setRelayMode(0x06); // Momentary 1
+			case "mode2": // Momentary B
+				await this.sendInsteonCommand(0x20, 0x06);
+				await this.sendInsteonCommand(0x20, 0x12);
+				await this.sendInsteonCommand(0x20, 0x15);
+				break;
+			case "mode3": // Momentary C
+				await this.sendInsteonCommand(0x20, 0x06);
+				await this.sendInsteonCommand(0x20, 0x12);
+				await this.sendInsteonCommand(0x20, 0x14);
+				break
+			default:      // Momentary A
+				await this.sendInsteonCommand(0x20, 0x06);
+				await this.sendInsteonCommand(0x20, 0x13);
+				await this.sendInsteonCommand(0x20, 0x15);
 		}
 	}
-	public async setRelayMode(flag: Byte): Promise<Packet.StandardMessageRecieved>{
-		return this.sendInsteonCommand(0x20,flag);
-	}
 
 
-	/* Get the relay latch duration setting
+	/* Get the relay latch duration setting in seconds
 		The duration scale is 0x00 to 0xFF (0 to 25.5 seconds)
 		This apparently has to be done with a peek command
 	 */
@@ -178,6 +195,8 @@ export default class IOLinc extends SensorActuatorDevice {
 		
 		return 25.5 * peekPacket.cmd2 / 0xFF;
 	}
+
+	/* Set the relay latch duration in seconds */
 	public async setMomentaryDuration(seconds: number): Promise<Packet.StandardMessageRecieved>{
 		// Seconds must be between 0 and 25.5 - 25.5 is just 0xFF with the decimal moved one position
 		if(seconds > 25.5){ seconds = 25.5; }
