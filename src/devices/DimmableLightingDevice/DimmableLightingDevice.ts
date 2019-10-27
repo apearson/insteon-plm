@@ -4,6 +4,85 @@ import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
 
 /* Base class for device category 0x01 - Dimmable Lighting Control
    All dimmable controls including switches, outlets and plugin modules live here
+
+   Category capabilities defined by the Insteon Developer Guide, Çhapter 8:
+          cmd1  cmd2
+Light On: 0x11, OnLevel: 0x00 - 0xFF
+Light On Fast: 0x12, OnLevel: 0x00 - 0xFF
+Light Off: 0x13, 0x00 (Not Parsed)
+Light Off Fast: 0x14, 0x00 (Not parsed)
+Light Brighten One Step: 0x15, 0x00 (Not parsed)
+Light Dim One Step: 0x16, 0x00 (Not parsed)
+Light Start Manual Change: 0x17, Direction: 0x00 = Down, 0x01 = Up, 0x02-0xFF Unused
+Light Stop Manual Change: 0x18, 0x00 (Not parsed)
+Light Status Request: 0x19, 0x00 -> Returned ACK will contain On Level in CMD2
+Light Instant Change: 0x21, 0x00-0xFF (level)
+Light Manually Turned Off: 0x22, 0x00 (Not parsed) Load sense
+Light Manually Turned On: 0x23, 0x00 (Not parsed) Load sense
+Remote SET Button Tap: 0x25, 0x01 = 1 Tap, 0x02 = 2 Taps
+Light Set Status: 0x27, 0x00-0xFF (level) Updates the LEDs
+Light On @ Ramp Rate: 0x2E, 0x00-0xFF (on level + ramp rate combined Bits 0-3 = 2 x Ramp Rate + 1 Bits 4-7 = On-Level + 0x0F)
+
+
+## These apply to all devices EXCEPT the keypad dimmer
+Get Operating Flags: 0x1F, 0x00 -> Returned ACK will contain requested data in CMD2
+Bit 0: 0 = Program Lock Off, 1 = On
+Bit 1: 0 = LED Off during transmit, 1 = On 
+Bit 2: 0 = Resume Dim Disabled, 1 = Enabled
+Bit 3: Unused
+Bit 4: 0 = LED Off, 1 = on
+Bit 5: 0 = Load Sense Off, 1 = on
+Bit 6&7 are not used
+
+Set Operating Flags: 0x20, cmd2 = The flag to alter
+Flags:
+0x00/0x01: Program Lock On/Off
+0x02/0x03: LED During Tx On/Off
+0x04/0x05: Resume Dim On/Off
+0x06/0x07: Load Sense On/Off
+0x08/0x09: LED Off/On
+
+Extended Get
+cmd1: 0x2E
+cmd2: 0x00
+user data  1: 0x00-0xFF = target button
+and...
+
+user data  2: 0x00 = Data Request
+user data  3-14: 0x00 Unused
+
+user data  2: 0x01 = Data Response to data request 0x00
+user data  3: Unused
+user data  4: Unused
+user data  5: 0x00-0x0F = X10 House Code (0x20 = none);
+user data  6: 0x00-0x0f = X10 Unit Code
+user data  7: 0x00-0x1F = Ramp Rate
+user data  8: 0x00-0xFF = On Level
+user data  9: 0x00-0xFF = Signal to noise threshold (what is this for?)
+user data 10-14: Unused
+
+Extended Set:
+cmd1: 0x2E
+cmd2: 0x00
+user data  1: 0x00-0xFF = target button
+and...
+
+Set X10 Address
+user data  2: 0x04 = Set X10 Address
+user data  3: 0x00-0x0F = X10 House Code (0x20 = none);
+user data  4: 0x00-0x0F = X10 Unit Code
+user data  5-14: unused
+
+Set Ramp Rate
+user data  2: 0x05 = set ramp rate
+user data  3: 0x00-0x1F = ramp rate from .1 seconds to 9 minutes
+user data  4-14: Unused
+
+Set On Level
+user data  2: 0x06 = set on level
+user data  3: 0x00-0xFF = on level
+user data  4-14: Unused
+
  */
 export default class DimmableLightingDevice extends InsteonDevice {
 	public setupEvents(){
