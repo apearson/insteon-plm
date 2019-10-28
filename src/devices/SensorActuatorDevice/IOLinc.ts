@@ -127,7 +127,7 @@ export default class IOLinc extends SensorActuatorDevice {
 	}
 	
 	
-	/* Set whether the x10 commands are on off or not
+	/* Set whether the on/off x10 commands are sent or not
 		0x0C = Send X10 On/Off True
 		0x0D = Send X10 On/Off False
 	 */
