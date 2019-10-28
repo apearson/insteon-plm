@@ -92,7 +92,6 @@ export default class DimmableLightingDevice extends InsteonDevice {
 
 		// Parsing status out
 		return {
-			// state: statusPacket.cmd === 0x00 ? "off" : "on",
 			level: statusPacket.cmd2,
 		};
 
