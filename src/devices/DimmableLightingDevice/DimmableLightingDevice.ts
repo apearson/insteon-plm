@@ -110,9 +110,9 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		bit 0: 0 = Program Lock Off, 1 = On
 		bit 1: 0 = LED Off during transmit, 1 = On 
 		bit 2: 0 = Resume Dim Disabled, 1 = Enabled
-		bit 3: Unused
+		bit 3: 0 = Load Sense Off, 1 = on (docs are wrong?)
 		bit 4: 0 = LED Off, 1 = on
-		bit 5: 0 = Load Sense Off, 1 = on
+		bit 5: Unused
 		bit 6&7 are not used
 	 */
 	public async readConfig(){
@@ -124,11 +124,12 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		const bits = configPacket.cmd2.toString(2).padStart(8,"0").split("").reverse().map(bit => parseInt(bit));
 		
 		return {
+			bits: bits,
 			programLock: bits[0],
 			LEDonTX: bits[1],
 			resumeDim: bits[2],
-			LEDEnabled: bits[4],
-			loadSense: bits[5]
+			loadSense: bits[3],
+			LEDDisabled: bits[4]
 		}
 	}
 	
@@ -177,11 +178,11 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		return this.setConfigurationFlag(state ? 0x06 : 0x07);
 	}
 	
-	/* Set whether the status LED is enabled (on)
+	/* Set whether the status LED is disabled (on)
 		0x08 = true
 		0x09 = false
 	*/
-	public async setLEDEnabled(state: boolean): Promise<Packet.StandardMessageRecieved>{
+	public async setLEDDisabled(state: boolean): Promise<Packet.StandardMessageRecieved>{
 		return this.setConfigurationFlag(state ? 0x08 : 0x09);
 	}
 	
@@ -213,12 +214,12 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		
 		this.sendInsteonCommand(0x2E, 0x00,[button,0x00]);
 	});
-		
-	public async readExtendedConfig(){
-		const packet = await this.extendedConfigRequest();
+
+	public async readExtendedConfig(button: Byte = 0x01){
+		const packet = await this.extendedConfigRequest(button);
 
 		return {
-			// packet: packet,
+			extendedData: packet.extendedData,
 			x10HouseCode: packet.extendedData[4],
 			x10UnitCode: packet.extendedData[5],
 			rampRate: packet.extendedData[6],
