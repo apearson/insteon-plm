@@ -45,7 +45,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 					}
 					break;
 				case 0x18: this.emitPhysical(['dim','stoppedChanging'], data); break;
-				case 0x22: this.emitPhysical(['switch','off','loadSense'], data); break;
+				case 0x22: this.emitPhysical(['switch','off','loadSense'], data); break; // In testing, these do not work as the device only outputs 0x11/0x13
 				case 0x23: this.emitPhysical(['switch','on','loadSense'], data); break;
 				// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
 			}
@@ -134,7 +134,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 	}
 	
 	/* 	Set Operating Flags: 
-		cmd1 =0x20,
+		cmd1 = 0x20,
 		cmd2 = The flag to alter
 		user data 14 = checksum
 	*/
