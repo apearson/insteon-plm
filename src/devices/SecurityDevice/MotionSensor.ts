@@ -78,7 +78,7 @@ export default class MotionSensor extends SecurityDevice {
 		user data  2: 0x01 = Data Response to data request 0x00
 		user data  3: 0x00 - 0xFF = LED Brightness
 		user data  4: 0x00 - 0xFF = motionCountdown 0.5 up to 128 minutes in 30 second increments
-		user data  5: 0x00 - 0xFF = Darkness Sensitivity
+		user data  5: 0x00 - 0xFF = Light Sensitivity
 		user data  6: bits 1-4 Control onCommandsOnly, nightModeOnly, LEDOn, asMotionIsSensed
 		user data  7: 
 		user data  8: 
@@ -107,7 +107,7 @@ export default class MotionSensor extends SecurityDevice {
 			extendedData: packet.extendedData,
 			LEDBrightness: packet.extendedData[2],
 			motionCountdown: packet.extendedData[3],
-			darknessSensitivity: packet.extendedData[4],
+			lightSensitivity: packet.extendedData[4],
 			configBits: configBits,
 			onCommandsOnlyDisabled: configBits[1], // inverted
 			nightOnlyModeDisabled: configBits[2], // inverted
@@ -152,12 +152,12 @@ export default class MotionSensor extends SecurityDevice {
 		return this.setExtendedConfigFlag(0x03, value);
 	}
 	
-	/* Set the darkness sensitivity 
-		user data 2: 0x04 = set darkness sensitivity/threshold
+	/* Set the light sensitivity 
+		user data 2: 0x04 = set light sensitivity/threshold
 		user data 3: 0x00 - 0xFF = threshold value
 		user data 4-14: Unused
 	*/
-	public async setDarknessSensitivity(level: Byte): Promise<Packet.StandardMessageRecieved>{
+	public async setLightSensitivity(level: Byte): Promise<Packet.StandardMessageRecieved>{
 		return this.setExtendedConfigFlag(0x04, level);
 	}
 	
