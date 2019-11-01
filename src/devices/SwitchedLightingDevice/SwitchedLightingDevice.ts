@@ -1,6 +1,7 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
 import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
+import { clamp } from '../../utils';
 
 /* Base class for device category 0x02 - Switched Lighting Control
    All NON dimmable controls including switches, outlets and plugin modules live here
@@ -192,10 +193,10 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 		user data  5-14: unused
 	*/
 	public async setX10Address(house: Byte, unit: Byte, button: Byte = 0x01): Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>{
+		house = clamp(house,0x00,0x20) as Byte;
+		unit = clamp(unit,0x00,0x20) as Byte;
 		if(house > 0x0F){ house = 0x20; } // 0x0F is the upper limit of assignable codes, while 0x20 is none
 		if(unit > 0x0F){ unit = 0x20; }
-		if(house < 0){ house = 0; }
-		if(unit < 0){ unit = 0; }
 		
 		const cmd1 = 0x2E;
 		const cmd2 = 0x00;

@@ -18,6 +18,11 @@ export function toHex(n: number){
   return `0x${n.toString(16).toUpperCase().padStart(2, '0')}`;
 }
 
+export function clamp(val: number, min: number, max: number) {
+    return val > max ? max : val < min ? min : val;
+}
+
+
 export function deviceDbToTable(links: DeviceLinkRecord[]){
   
   // Creating table header

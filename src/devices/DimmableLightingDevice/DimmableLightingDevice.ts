@@ -1,6 +1,7 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
 import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
+import { clamp } from '../../utils';
 
 /* Base class for device category 0x01 - Dimmable Lighting Control
    All dimmable controls including switches, outlets and plugin modules live here
@@ -254,8 +255,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 	*/
 	public async setRampRate(rate: Byte, button: Byte = 0x01): Promise<Packet.StandardMessageRecieved>{
 		// rate must be between 0 and 31
-		if(rate > 31){ rate = 0x1F; }
-		if(rate < 0){ rate = 0x00; }
+		rate = clamp(rate,0,0x1F) as Byte;
 		
 		return this.setExtendedConfigFlag(0x05, rate);
 	}
@@ -266,8 +266,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		user data  4-14: Unused
 	*/
 	public async setOnLevel(level: Byte, button: Byte = 0x01): Promise<Packet.StandardMessageRecieved>{
-		if(level > 255){ level = 0xFF; }
-		if(level < 0){ level = 0x00; }
+		level = clamp(level,0x00,0xFF) as Byte;
 		
 		return this.setExtendedConfigFlag(0x06, level);
 	}
@@ -279,10 +278,10 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		user data  5-14: unused
 	*/
 	public async setX10Address(house: Byte, unit: Byte, button: Byte = 0x01): Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>{
+		house = clamp(house,0x00,0x20) as Byte;
+		unit = clamp(unit,0x00,0x20) as Byte;
 		if(house > 0x0F){ house = 0x20; } // 0x0F is the upper limit of assignable codes, while 0x20 is none
 		if(unit > 0x0F){ unit = 0x20; }
-		if(house < 0){ house = 0; }
-		if(unit < 0){ unit = 0; }
 		
 		const cmd1 = 0x2E;
 		const cmd2 = 0x00;
@@ -375,18 +374,15 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		Ramp rates are 0x00 = 9 minutes thru 0x0F = 0.1 seconds
 	*/
 	public async LightOnAtRate(level: Byte, rate: Byte){
-		if(level < 0){ level = 0x00; }
-		if(level > 15){ level = 0x0F; }
-		if(rate < 0){ rate = 0x00; }
-		if(rate > 15){ rate = 0x0F; }
+		level = clamp(level,0x00,0x0F) as Byte;
+		rate = clamp(rate,0x00,0x0F) as Byte;
 				
 		const muxed = parseInt(`${level.toString(2)}${rate.toString(2)}`,2) as Byte;
 				
 		return this.sendInsteonCommand(0x2E, muxed);
 	}
 	public async LightOffAtRate(rate: Byte){
-		if(rate < 0){ rate = 0x00; }
-		if(rate > 15){ rate = 0x0F; }
+		rate = clamp(rate,0x00,0x0F) as Byte;
 
 		const muxed = parseInt(`0000${rate.toString(2)}`,2) as Byte;
 
