@@ -81,7 +81,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 
 		// Convert the flags stored in cmd2 to an array of bits
 		// String to base2, pad leading 0s, then split into an array of ints. Reverse it so that the array index matches the bit index
-		const bits = configPacket.cmd2.toString(2).padStart(8,"0").split("").reverse().map(bit => parseInt(bit));
+		const bits = configPacket.cmd2.toString(2).padStart(8,"0").split("").reverse().map((bit: string) => parseInt(bit));
 		
 		return {
 			bits: bits,
@@ -98,7 +98,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 		cmd2 = The flag to alter
 		user data 14 = checksum
 	*/
-	public async setConfigurationFlag(cmd2: Byte): Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>{
+	public async setConfigFlag(cmd2: Byte): Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>{
 		const cmd1 = 0x20;
 		const extendedData = new Array(13).fill(0x00);
 		extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
@@ -111,7 +111,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 		0x01 = unlocked
 	*/
 	public async setProgramLock(state: boolean): Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>{
-		return await this.setConfigurationFlag(state ? 0x00 : 0x01);
+		return await this.setConfigFlag(state ? 0x00 : 0x01);
 	}
 
 	/* Set whether the LED flashes on TX
@@ -119,7 +119,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 		0x03 = false
 	*/
 	public async setLEDonTX(state: boolean): Promise<Packet.StandardMessageRecieved>{
-		return await this.setConfigurationFlag(state ? 0x02 : 0x03);
+		return await this.setConfigFlag(state ? 0x02 : 0x03);
 	}
 	
 	/* Set whether the switch resumes its dim state
@@ -127,7 +127,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 		0x05 = false
 	*/
 	public async setResumeDim(state: boolean): Promise<Packet.StandardMessageRecieved>{
-		return this.setConfigurationFlag(state ? 0x04 : 0x05);
+		return this.setConfigFlag(state ? 0x04 : 0x05);
 	}
 	
 	/* Set whether load sense is active
@@ -135,7 +135,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 		0x07 = false
 	*/
 	public async setLoadSense(state: boolean): Promise<Packet.StandardMessageRecieved>{
-		return this.setConfigurationFlag(state ? 0x06 : 0x07);
+		return this.setConfigFlag(state ? 0x06 : 0x07);
 	}
 	
 	/* Set whether the status LED is disabled (on)
@@ -143,7 +143,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 		0x09 = false
 	*/
 	public async setLEDDisabled(state: boolean): Promise<Packet.StandardMessageRecieved>{
-		return this.setConfigurationFlag(state ? 0x08 : 0x09);
+		return this.setConfigFlag(state ? 0x08 : 0x09);
 	}
 		
 	/* Extended Get
