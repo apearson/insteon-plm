@@ -6,8 +6,8 @@ import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
 export interface MotionSensorConfigOptions {
 	onCommandsOnlyDisabled?: boolean;
 	nightOnlyModeDisabled?: boolean;
-	LEDOn?: boolean;
-	asMotionIsSensed?: boolean;
+	LEDEnabled?: boolean;
+	onlyAfterTimeoutDisabled?: boolean;
 }
 
 /* Class */
@@ -79,7 +79,7 @@ export default class MotionSensor extends SecurityDevice {
 		user data  3: 0x00 - 0xFF = LED Brightness
 		user data  4: 0x00 - 0xFF = motionCountdown 0.5 up to 128 minutes in 30 second increments
 		user data  5: 0x00 - 0xFF = Light Sensitivity
-		user data  6: bits 1-4 Control onCommandsOnly, nightModeOnly, LEDOn, asMotionIsSensed
+		user data  6: bits 1-4 Control onCommandsOnly, nightModeOnly, LEDEnabled, onlyAfterTimeoutDisabled
 		user data  7: 
 		user data  8: 
 		user data  9: 
@@ -111,8 +111,8 @@ export default class MotionSensor extends SecurityDevice {
 			configBits: configBits,
 			onCommandsOnlyDisabled: configBits[1], // inverted
 			nightOnlyModeDisabled: configBits[2], // inverted
-			LEDOn: configBits[3],
-			asMotionIsSensed: configBits[4]
+			LEDEnabled: configBits[3],
+			onlyAfterTimeoutDisabled: configBits[4]
 		}
 	}
 	
@@ -169,15 +169,15 @@ export default class MotionSensor extends SecurityDevice {
 		The config flags in this byte are all set at once
 		bit 2 = onCommandsOnlyDisabled
 		bit 3 = nightOnlyModeDisabled
-		bit 4 = LEDOn
-		bit 5 = asMotionIsSensed
+		bit 4 = LEDEnabled
+		bit 5 = onlyAfterTimeoutDisabled
 	*/
 	public async setConfig(options: MotionSensorConfigOptions): Promise<Packet.StandardMessageRecieved>{
 		let flagByte = 0x00;
-		if(options.onCommandsOnlyDisabled) flagByte |= 0x40; //0100 0000
-		if(options.nightOnlyModeDisabled)  flagByte |= 0x20; //0010 0000
-		if(options.LEDOn)                  flagByte |= 0x10; //0001 0000
-		if(options.asMotionIsSensed)       flagByte |= 0x08; //0000 1000
+		if(options.onCommandsOnlyDisabled)   flagByte |= 0x02; //0000 0010
+		if(options.nightOnlyModeDisabled)    flagByte |= 0x04; //0000 0100
+		if(options.LEDEnabled)               flagByte |= 0x08; //0000 1000  - this flag is inverted. Other devices use LED disabled instead of LED enabled
+		if(options.onlyAfterTimeoutDisabled) flagByte |= 0x10; //0001 0000
 		
 		return this.setExtendedConfigFlag(0x05, flagByte as Byte);
 	}
