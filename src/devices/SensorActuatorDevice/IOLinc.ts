@@ -168,12 +168,12 @@ export default class IOLinc extends SensorActuatorDevice {
 	 */
 	public async setRelayMomentary(type?: String): Promise<void>{
 		switch(type){
-			case "mode2": // Momentary B
+			case "modeB": // Momentary B
 				await this.sendInsteonCommand(0x20, 0x06);
 				await this.sendInsteonCommand(0x20, 0x12);
 				await this.sendInsteonCommand(0x20, 0x15);
 				break;
-			case "mode3": // Momentary C
+			case "modeC": // Momentary C
 				await this.sendInsteonCommand(0x20, 0x06);
 				await this.sendInsteonCommand(0x20, 0x12);
 				await this.sendInsteonCommand(0x20, 0x14);
