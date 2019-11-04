@@ -428,7 +428,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			            : 'U';
 
 			if(this.options.debug)
-				console.log(`[←][${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)} ${(data.extendedData || []).map(toHex)}`);
+				console.log(`[←][${this.addressString}][${pType}][${data.Flags.Subtype}]: ${toHex(data.cmd1)} ${toHex(data.cmd2)} ${(data.extendedData || []).map(toHex)} emit: ['p','${toHex(data.type)}','${toHex(data.Flags.subtype)}']`);
 
 			this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
