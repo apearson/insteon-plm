@@ -3,8 +3,9 @@ import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import { InsteonParser, Packet } from 'insteon-packet-parser';
-import { toHex, wait, toAddressString } from './utils';
+import { toHex, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
+import Bluebird, { delay, promisify } from 'bluebird';
 
 /* Generic Insteon Device */
 import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
@@ -58,9 +59,7 @@ export interface ModemLink {
 	linkData: Byte[];
 }
 
-interface QueueTaskData {
-	command: Buffer;
-	retries?: number;
+interface QueueTaskData extends Buffer {
 }
 
 //#endregion
@@ -72,11 +71,10 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	/* Internal Variables */
 	private requestQueue: AsyncQueue<QueueTaskData>;
+	private _queueCommand: (command: QueueTaskData) => Bluebird<Packet.Packet>;
 
 	/* Linking */
 	private _links: ModemLink[] = [];
-	private _responders: ModemLink[] = [];
-
 
 	/* Internal Data holder */
 	private _info: ModemInfo = {
@@ -142,6 +140,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 		/* Setting up request queue */
 		this.requestQueue = queue(this.processQueue, 1);
+		this._queueCommand = promisify(this.requestQueue.push)
 	}
 
 	//#endregion
@@ -411,7 +410,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		this.queueCommand(commandBuffer);
 
 		/* Waiting 40 milliseconds for modem to wake up */
-		await wait(40);
+		await delay(40);
 
 		/* Responding after wake up */
 		return true;
@@ -668,7 +667,7 @@ export default class PowerLincModem extends EventEmitter2 {
 	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<AnyPacket>) => {
 
 		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', task.command[1].toString(16)], (d: Packet.Packet) => {
+		this.once(['p', task[1].toString(16)], (d: Packet.Packet) => {
 			if(d.ack){
 				const packet = d as Packet.SendInsteonMessage;
 					
@@ -676,14 +675,7 @@ export default class PowerLincModem extends EventEmitter2 {
 					callback(null, packet);
 				}
 				else{
-					if(task.retries && task.retries > 2){
 						callback(Error('Could not complete task'));
-					}
-					else{
-						task.retries = (task.retries || 0) + 1;
-
-						this.requestQueue.push(task, callback);
-					}
 				}
 			}
 			else{
@@ -693,7 +685,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 		// Attempting to write command to modem
 		try{
-			const isSuccessful = this.port.write(task.command);
+			const isSuccessful = this.port.write(task);
 			
 			if(!isSuccessful)
 				callback(Error('Could not write to modem'));
@@ -703,12 +695,10 @@ export default class PowerLincModem extends EventEmitter2 {
 		}
 	}
 
-	private queueCommand = (command: Buffer) => new Promise<AnyPacket>((resolve, reject) => {
-
-		this.requestQueue.push({ command }, (error, data?: Packet.Packet) => {
-			error ? reject(error) : resolve(data);
-		});
-	});
+	// Queues the command with a timeout
+	private queueCommand(command: Buffer){
+		return this._queueCommand(command).timeout(1000);
+	}
 
 	//#endregion
 
@@ -869,6 +859,18 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	public async manageDevice(address: Byte[]){
 
+		// Start PLM linking
+		let mStarted = await this.startLinking(AllLinkRecordType.Controller, 1);
+
+		console.log('PLM Started', mStarted);
+
+		// Checking that we started linking
+		if(!mStarted)
+			throw Error('Could not start modem linking');
+
+		// Waiting for modem to get ready for a network message
+		await delay(2000);
+
 		// Start Device linking
 		let started = await InsteonDevice.enterLinking(this, address);
 
@@ -877,19 +879,6 @@ export default class PowerLincModem extends EventEmitter2 {
 		// Checking we started device linking
 		if(!started)
 			throw Error('Could not start device linking');
-
-		// Waiting for modem to get ready for a network message
-		await wait(2000);
-
-		// Start PLM linking
-		let mStarted = await this.startLinking(AllLinkRecordType.Responder, 1);
-
-		console.log('PLM Started', mStarted);
-
-		// Checking that we started linking
-		if(!mStarted)
-			throw Error('Could not start modem linking');
-
 	}
 
 	// TODO: remove record from remote device
@@ -899,14 +888,17 @@ export default class PowerLincModem extends EventEmitter2 {
 		// Remove record from Device
 		await InsteonDevice.enterUnlinking(this, address);
 
+		// Waiting for modem to get ready for a network message
+		await delay(2000);
+
 		// Remove record from PLM
-		await this.startLinking(AllLinkRecordType.Responder, 1);
+		await this.startLinking(AllLinkRecordType.Either, 1);
 		// await this.deleteLink(address, 1, AllLinkRecordType.Responder);
 	}
 
 	public listManagedDevices(){
 
-		return this.links.filter(l => l.type === AllLinkRecordType.Responder).reduce((arr: any[], l, i) => {
+		return this.links.reduce((arr: any[], l, i) => {
 
 			let stringID = toAddressString(l.device);
 

@@ -73,5 +73,3 @@ export function modemDbToTable(links: ModemLink[]){
   return table;
 
 }
-
-export const wait = (t: number) => new Promise(r => setTimeout(r, t));
