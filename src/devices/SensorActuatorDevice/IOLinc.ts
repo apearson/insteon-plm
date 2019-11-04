@@ -1,6 +1,7 @@
 /* Libraries */
 import SensorActuatorDevice from './SensorActuatorDevice';
 import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
+import { clamp } from '../../utils';
 
 /* Class for the I/O Linc low voltage contact closure device
 
@@ -127,7 +128,7 @@ export default class IOLinc extends SensorActuatorDevice {
 	}
 	
 	
-	/* Set whether the x10 commands are on off or not
+	/* Set whether the on/off x10 commands are sent or not
 		0x0C = Send X10 On/Off True
 		0x0D = Send X10 On/Off False
 	 */
@@ -167,12 +168,12 @@ export default class IOLinc extends SensorActuatorDevice {
 	 */
 	public async setRelayMomentary(type?: String): Promise<void>{
 		switch(type){
-			case "mode2": // Momentary B
+			case "modeB": // Momentary B
 				await this.sendInsteonCommand(0x20, 0x06);
 				await this.sendInsteonCommand(0x20, 0x12);
 				await this.sendInsteonCommand(0x20, 0x15);
 				break;
-			case "mode3": // Momentary C
+			case "modeC": // Momentary C
 				await this.sendInsteonCommand(0x20, 0x06);
 				await this.sendInsteonCommand(0x20, 0x12);
 				await this.sendInsteonCommand(0x20, 0x14);
@@ -199,8 +200,7 @@ export default class IOLinc extends SensorActuatorDevice {
 	/* Set the relay latch duration in seconds */
 	public async setMomentaryDuration(seconds: number): Promise<Packet.StandardMessageRecieved>{
 		// Seconds must be between 0 and 25.5 - 25.5 is just 0xFF with the decimal moved one position
-		if(seconds > 25.5){ seconds = 25.5; }
-		if(seconds < 0){ seconds = 0; }
+		seconds = clamp(seconds,0,25.5);
 		
 		// Scale the seconds value
 		// 25.5 seconds should be 255(0xFF)
