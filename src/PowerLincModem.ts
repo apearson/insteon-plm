@@ -892,7 +892,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		await delay(2000);
 
 		// Remove record from PLM
-		await this.startLinking(AllLinkRecordType.Either, 1);
+		await this.startLinking(AllLinkRecordType.Controller, 1);
 		// await this.deleteLink(address, 1, AllLinkRecordType.Responder);
 	}
 
