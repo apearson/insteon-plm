@@ -4,6 +4,7 @@ import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
+import Bluebird, { promisify } from 'bluebird';
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -55,6 +56,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
 
+	private queueCommand: (command: DeviceCommandTask) => 
+		Bluebird<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>;
+
 	/* Class Info */
 	public address: Byte[];
 
@@ -88,6 +92,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		/* Setting up request queue */
 		this.requestQueue = queue(this.processQueue, 1);
+		this.queueCommand = promisify(this.requestQueue.push)
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
@@ -137,15 +142,12 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Insteon Send Methods
 
-	public sendInsteonCommand = (cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte) => new Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>((resolve, reject) => {
+	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
 
 		/* Sending command */
-		this.requestQueue.push({cmd1, cmd2, extendedData: extendedData, flags }, (err?: Error | null, data?: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
-			if(err) reject(err)
-			else resolve(data);
-		});	
+		return this.queueCommand({ cmd1, cmd2, extendedData, flags }).timeout(1000);
 
-	});
+	}
 
 	//#endregion
 
