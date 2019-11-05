@@ -4,6 +4,7 @@ import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
+import Bluebird, { promisify, delay } from 'bluebird';
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -55,6 +56,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
 
+	private queueCommand: (command: DeviceCommandTask) => 
+		Bluebird<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>;
+
 	/* Class Info */
 	public address: Byte[];
 
@@ -88,6 +92,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		/* Setting up request queue */
 		this.requestQueue = queue(this.processQueue, 1);
+		this.queueCommand = promisify(this.requestQueue.push)
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
@@ -106,6 +111,11 @@ export default class InsteonDevice extends EventEmitter2 {
 		
 		if(this.options.syncLinks !== false)
 			await this.syncLinks();
+
+		/* Workaround to keep async function from emitting before 
+		 * constuctor is done constucting 
+		 */
+		await delay(0);
 
 		/* Emitting ready event */
 		this.emit('ready');
@@ -137,15 +147,12 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Insteon Send Methods
 
-	public sendInsteonCommand = (cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte) => new Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>((resolve, reject) => {
+	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
 
 		/* Sending command */
-		this.requestQueue.push({cmd1, cmd2, extendedData: extendedData, flags }, (err?: Error | null, data?: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
-			if(err) reject(err)
-			else resolve(data);
-		});	
+		return this.queueCommand({ cmd1, cmd2, extendedData, flags }).timeout(1000);
 
-	});
+	}
 
 	//#endregion
 
@@ -250,6 +257,10 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 
+	public statusRequest(type?: Byte): Promise<Packet.StandardMessageRecieved> {
+		return InsteonDevice.statusRequest(this.modem, this.address, type);
+	}
+
 	// TODO: NotImplimented
 	public allLinkRecall = () => { }
 
@@ -277,28 +288,16 @@ export default class InsteonDevice extends EventEmitter2 {
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
 
-	public enterLinking(): Promise<Packet.StandardMessageRecieved> {
-
-		// Setting up command
-		const cmd1 = 0x09;
-		const cmd2 = 0x01;
-		const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-		
-		// Adding checksum
-		extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2, extendedData);
+	public enterLinking(group?: Byte) {
+		return InsteonDevice.enterLinking(this.modem, this.address, group);
 	}
 
-	public enterUnlinking(group: Byte): Promise<Packet.StandardMessageRecieved> {
+	public enterUnlinking(group?: Byte) {
+		return InsteonDevice.enterUnlinking(this.modem, this.address, group);
+	}
 
-		// Setting up command
-		const cmd1 = 0x0A;
-		const cmd2 = group;
-
-		/* Sending command */
-		return this.sendInsteonCommand(cmd1, cmd2);
+	public exitLinking() {
+		return InsteonDevice.exitLinking(this.modem, this.address);
 	}
 
 	//#endregion
@@ -376,8 +375,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		// Creating flag bit
 		const flags = ((+active << 7) | (type << 6) | (1 << 5) | (smartHop << 3) | (+(!highWater) << 1)) as Byte;
-
-		console.log(highWater, flags.toString(2));
 
 		// Setting up command
 		const cmd1 = 0x2F;
@@ -482,12 +479,11 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Static Methods 
 
-	public static enterLinking(modem: PowerLincModem, address: Byte[]): Promise<boolean> {
-
+	public static enterLinking(modem: PowerLincModem, address: Byte[], group: Byte = 0x01): Promise<boolean> {
 		return new Promise(async (resolve, reject) => {
 			// Setting up command
 			const cmd1 = 0x09;
-			const cmd2 = 0x01;
+			const cmd2 = group;
 			const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 			
 			// Adding checksum
@@ -512,8 +508,90 @@ export default class InsteonDevice extends EventEmitter2 {
 				reject(false);
 	
 		});
+	}
 
+	public static enterUnlinking(modem: PowerLincModem, address: Byte[], group: Byte = 0x01): Promise<boolean> {
 
+		return new Promise(async (resolve, reject) => {
+			// Setting up command
+			const cmd1 = 0x0A;
+			const cmd2 = group;
+			// const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+			
+			// Adding checksum
+			// extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
+			
+			// Waiting for ack of direct message
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
+
+				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
+					resolve(true);
+				}
+				else{
+					reject(false);
+				}
+
+			});
+
+			/* Sending command */
+			const sent = await modem.sendStandardCommand(address, cmd1, cmd2);
+
+			if(!sent)
+				reject(false);
+	
+		});
+	}
+
+	public static exitLinking(modem: PowerLincModem, address: Byte[]): Promise<boolean> {
+		return new Promise(async (resolve, reject) => {
+			// Setting up command
+			const cmd1 = 0x08;
+			const cmd2 = 0x00;
+			const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+			
+			// Adding checksum
+			extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
+			
+			// Waiting for ack of direct message
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
+
+				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
+					resolve(true);
+				}
+				else{
+					reject(false);
+				}
+
+			});
+
+			/* Sending command */
+			const sent = await modem.sendExtendedCommand(address, cmd1, cmd2, extendedData);
+
+			if(!sent)
+				reject(false);
+	
+		});
+	}
+
+	public static statusRequest(modem: PowerLincModem, address: Byte[], type = 0x00 as Byte): Promise<Packet.StandardMessageRecieved> {
+		
+		return new Promise(async (resolve, reject) => {
+			// Setting up command
+			const cmd1 = 0x19;
+			const cmd2 = type;
+			
+			// Waiting for ack of direct message
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
+				resolve(packet);
+			});
+
+			/* Sending command */
+			const sent = await modem.sendStandardCommand(address, cmd1, cmd2);
+
+			if(!sent)
+				reject(false);
+	
+		});
 	}
 
 	//#endregion
