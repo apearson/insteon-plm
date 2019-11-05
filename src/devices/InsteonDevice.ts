@@ -4,7 +4,7 @@ import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
-import Bluebird, { promisify } from 'bluebird';
+import Bluebird, { promisify, delay } from 'bluebird';
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -111,6 +111,11 @@ export default class InsteonDevice extends EventEmitter2 {
 		
 		if(this.options.syncLinks !== false)
 			await this.syncLinks();
+
+		/* Workaround to keep async function from emitting before 
+		 * constuctor is done constucting 
+		 */
+		await delay(0);
 
 		/* Emitting ready event */
 		this.emit('ready');
