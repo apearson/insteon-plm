@@ -70,9 +70,9 @@ export default class InsteonDevice extends EventEmitter2 {
 	public links: DeviceLinkRecord[] = [];
 
 	/* Inernal Variables */
-	public modem: PowerLincModem;
-	public requestQueue: AsyncQueue<DeviceCommandTask>;
-	public options: DeviceOptions = { debug: false };
+	private modem: PowerLincModem;
+	private requestQueue: AsyncQueue<DeviceCommandTask>;
+	private options: DeviceOptions = { debug: false };
 
 	//#endregion
 
