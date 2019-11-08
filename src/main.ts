@@ -25,6 +25,9 @@ import LeakSensor from './devices/SecurityDevice/LeakSensor';
 /* PLM Types */
 import { Packet, PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, MessageSubtype } from 'insteon-packet-parser';
 
+/* Utilities */
+import * as Utilities from './utils';
+
 /* Exporting Modem as default */
 export default PowerLincModem;
 
@@ -50,6 +53,9 @@ export {
 	MotionSensor,
 	OpenCloseSensor,
 	LeakSensor,
+
+	// Utilities
+	Utilities,
 
 	// PLM Types
 	Packet,
