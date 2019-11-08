@@ -24,7 +24,7 @@
     "serialport": "^7.1.5"
   },
   "devDependencies": {
-    "@types/async": "^3.0.2",
+    "@types/async": "^3.0.3",
     "@types/bluebird": "^3.5.28",
     "@types/debug": "^4.1.5",
     "@types/dotenv": "^6.1.1",
