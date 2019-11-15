@@ -857,12 +857,10 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Management Methods
 
-	public async manageDevice(address: Byte[]){
+	public async linkDevice(address: Byte[], group: Byte = 0x01){
 
 		// Start PLM linking
-		let mStarted = await this.startLinking(AllLinkRecordType.Controller, 1);
-
-		console.log('PLM Started', mStarted);
+		let mStarted = await this.startLinking(AllLinkRecordType.Controller, group);
 
 		// Checking that we started linking
 		if(!mStarted)
@@ -874,29 +872,32 @@ export default class PowerLincModem extends EventEmitter2 {
 		// Start Device linking
 		let started = await InsteonDevice.enterLinking(this, address);
 
-		console.log('Device Started', started);
-
 		// Checking we started device linking
 		if(!started)
 			throw Error('Could not start device linking');
 	}
 
-	// TODO: remove record from remote device
-	public async unmanageDevice(address: Byte[]){
-		// throw Error("Not Implemented");
+	public async unlinkDevice(address: Byte[], group: Byte = 0x01){
 
 		// Remove record from Device
-		await InsteonDevice.enterUnlinking(this, address);
+		let started = await InsteonDevice.enterUnlinking(this, address, group);
+
+		// Checking we started device linking
+		if(!started)
+			throw Error('Could not start device unlinking');
 
 		// Waiting for modem to get ready for a network message
 		await delay(2000);
 
 		// Remove record from PLM
-		await this.startLinking(AllLinkRecordType.Controller, 1);
-		// await this.deleteLink(address, 1, AllLinkRecordType.Responder);
+		let mStarted = await this.startLinking(AllLinkRecordType.Responder, group);
+
+			// Checking that we started linking
+		if(!mStarted)
+			throw Error('Could not start modem unlinking');
 	}
 
-	public listManagedDevices(){
+	public listLinkedDevices(){
 
 		return this.links.reduce((arr: any[], l, i) => {
 
