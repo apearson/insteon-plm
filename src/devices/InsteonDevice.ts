@@ -415,7 +415,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		if(this.options.debug)
 		{
-			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} Cmd: ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;
+			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;
 
 			if(task.extendedData)
 				consoleLine += ` | Extended Data: ${(task.extendedData || []).map(toHex)}`
