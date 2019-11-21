@@ -66,7 +66,7 @@ interface QueueTaskData extends Buffer {
 
 //#region PLM Class
 export default class PowerLincModem extends EventEmitter2 {
-	
+
 	//#region Private Variables
 
 	/* Internal Variables */
@@ -153,7 +153,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	get links(){ return this._links; }
 
-	get groups(){ 
+	get groups(){
 
 		let groups = [...Array(255).keys()].map(i => [] as ModemLink[]);
 
@@ -528,7 +528,7 @@ export default class PowerLincModem extends EventEmitter2 {
 			// If database is empty then remove listener and return a false
 			if(!data.ack){
 				this.removeListener(['p', PacketID.AllLinkRecordResponse.toString(16)], onData);
-				
+
 				resolve(null);
 			}
 		};
@@ -555,7 +555,7 @@ export default class PowerLincModem extends EventEmitter2 {
 			// If database is empty then remove listener and return a false
 			if(!data.ack){
 				this.removeListener(['p', PacketID.AllLinkRecordResponse.toString(16)], onData);
-				
+
 				resolve(null);
 			}
 		};
@@ -670,7 +670,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		this.once(['p', task[1].toString(16)], (d: Packet.Packet) => {
 			if(d.ack){
 				const packet = d as Packet.SendInsteonMessage;
-					
+
 				if(packet.ack){
 					callback(null, packet);
 				}
@@ -686,7 +686,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		// Attempting to write command to modem
 		try{
 			const isSuccessful = this.port.write(task);
-			
+
 			if(!isSuccessful)
 				callback(Error('Could not write to modem'));
 		}
@@ -697,7 +697,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	// Queues the command with a timeout
 	private queueCommand(command: Buffer){
-		return this._queueCommand(command).timeout(1000);
+		return this._queueCommand(command).timeout(2000);
 	}
 
 	//#endregion
@@ -752,11 +752,11 @@ export default class PowerLincModem extends EventEmitter2 {
 		if(this.options.debug){
 			if(packet.type === PacketID.SendInsteonMessage){
 				const p = packet as Packet.SendInsteonMessage;
-				console.log(`[→][${toAddressString(p.to)}][${(p.flags & 0x10) == 16 ? 'E' : 'S'}][${p.Type}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.extendedData? p.extendedData.map(toHex) : ''}`);	
+				console.log(`[→][${toAddressString(p.to)}][${(p.flags & 0x10) == 16 ? 'E' : 'S'}][${p.Type}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.extendedData? p.extendedData.map(toHex) : ''}`);
 			}
 			else if(packet.type === PacketID.ExtendedMessageReceived || packet.type === PacketID.StandardMessageReceived){
 				const p = packet as Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved;
-				console.log(`[←][${toAddressString(p.from)}][${p.Flags.extended ? 'E' : 'S'}][${p.Flags.Subtype}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.Flags.extended ? p.extendedData.map(toHex) : ''}`);	
+				console.log(`[←][${toAddressString(p.from)}][${p.Flags.extended ? 'E' : 'S'}][${p.Flags.Subtype}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.Flags.extended ? p.extendedData.map(toHex) : ''}`);
 			}
 			else{
 				console.log(`[⇄][${packet.Type}]: ${packet.cmd1? toHex(packet.cmd1) : ''} ${packet.cmd2? toHex(packet.cmd2) : ''}`);
@@ -794,17 +794,17 @@ export default class PowerLincModem extends EventEmitter2 {
 	//#region Device Methods
 
 	/* Send an insteon command from the modem to a device to find out what it is */
-	public queryDeviceInfo = (deviceID: Byte[]) => new Promise<Device>((resolve, reject) => {
+	public queryDeviceInfo = (deviceID: Byte[]) => new Bluebird<Device>((resolve, reject) => {
 
 		// Catching broadcast message
 		this.once(
 			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16), toAddressString(deviceID)],
-			(data: Packet.StandardMessageRecieved) => 
+			(data: Packet.StandardMessageRecieved) =>
 				resolve(PowerLincModem.getDeviceInfo(data.to[0],data.to[1]))
 		);
 
 		this.sendStandardCommand(deviceID, 0x10, 0x00);
-	});
+	}).timeout(2000);
 
 	/**
 	 * Factory method for creating a device instance of the correct type
@@ -815,20 +815,20 @@ export default class PowerLincModem extends EventEmitter2 {
 		let info = await this.queryDeviceInfo(deviceID);
 
 		switch(Number(info.cat)){
-			case 0x01: 
+			case 0x01:
 				switch(Number(info.subcat)){
 					case 0x1C: return new KeypadDimmer(deviceID, this, options);
 					default: return new DimmableLightingDevice(deviceID, this, options);
 				}
-				
+
 			case 0x02: return new SwitchedLightingDevice(deviceID, this, options);
-			
+
 			case 0x07:
 				switch(Number(info.subcat)){
 					case 0x00: return new IOLinc(deviceID, this, options);
 					default: return new SensorActuatorDevice(deviceID, this, options);
 				}
-			
+
 			case 0x10:
 				switch(Number(info.subcat)){
 					case 0x01:
@@ -839,16 +839,16 @@ export default class PowerLincModem extends EventEmitter2 {
 					case 0x02:
 					case 0x06:
 					case 0x07:
-					case 0x09: 
-					case 0x11: 
-					case 0x14: 
+					case 0x09:
+					case 0x11:
+					case 0x14:
 					case 0x015: return new OpenCloseSensor(deviceID, this, options);
 
 					case 0x08: return new LeakSensor(deviceID, this, options);
 
 					default: return new SecurityDevice(deviceID, this, options);
 				}
-			
+
 			default: return new InsteonDevice(deviceID, this, options);
 		}
 	}
