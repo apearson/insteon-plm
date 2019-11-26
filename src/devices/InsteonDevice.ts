@@ -56,7 +56,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
 
-	private queueCommand: (command: DeviceCommandTask) => 
+	private queueCommand: (command: DeviceCommandTask) =>
 		Bluebird<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>;
 
 	/* Class Info */
@@ -96,7 +96,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
-		
+
 		/* Setting up device events */
 		this.setupEvents();
 
@@ -108,12 +108,12 @@ export default class InsteonDevice extends EventEmitter2 {
 		// Syncing data
 		if(this.options.syncInfo !== false)
 			await this.syncInfo();
-		
+
 		if(this.options.syncLinks !== false)
 			await this.syncLinks();
 
-		/* Workaround to keep async function from emitting before 
-		 * constuctor is done constucting 
+		/* Workaround to keep async function from emitting before
+		 * constuctor is done constucting
 		 */
 		await delay(0);
 
@@ -138,11 +138,11 @@ export default class InsteonDevice extends EventEmitter2 {
 		let lastByte = sum & 0xFF;
 
 		let compliment = -lastByte;
-		
+
 		let sign2unsigned = (compliment >>> 0) & 0xFF;
 
 		return sign2unsigned as Byte;
-	}	
+	}
 	//#endregion
 
 	//#region Insteon Send Methods
@@ -150,7 +150,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
 
 		/* Sending command */
-		return this.queueCommand({ cmd1, cmd2, extendedData, flags }).timeout(1000);
+		return this.queueCommand({ cmd1, cmd2, extendedData, flags }).timeout(2000);
 
 	}
 
@@ -185,7 +185,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#region Higher Level Methods
 
 	// Reading entire database
-	public getDatabase = () => 
+	public getDatabase = () =>
 		this.readDatabase([0x0F, 0xFF], 0x00);
 
 	// Get device info and parse info out of packet
@@ -205,10 +205,10 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Raw Metadata Commands 
+	//#region Raw Metadata Commands
 
 	public productDataRequest(): Promise<Packet.StandardMessageRecieved>{
-		
+
 		// Setting up command
 		const cmd1 = 0x03;
 		const cmd2 = 0x00;
@@ -216,7 +216,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		/* Sending command */
 		return this.sendInsteonCommand(cmd1, cmd2);
 	}
-	
+
 	public getEngineVersion(): Promise<Packet.StandardMessageRecieved>{
 
 		// Setting up command
@@ -231,7 +231,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		// Catching broadcast message
 		this.once(
-			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16)], 
+			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16)],
 			(data: Packet.StandardMessageRecieved) => resolve(data)
 		);
 
@@ -245,7 +245,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Raw Commands 
+	//#region Raw Commands
 
 	public ping(): Promise<Packet.StandardMessageRecieved>{
 
@@ -303,7 +303,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#endregion
 
 	//#region Database Commands
-	
+
 	public readDatabase = (startAddress: Byte[], numberOfRecords: Byte) => new Promise<DeviceLinkRecord[]>(async (resolve, reject) => {
 
 		// Device links
@@ -317,7 +317,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			// Getting record type (Controller/Responder)
 			const type = data.extendedData[5];
-			
+
 			// Creating link from data
 			const link: DeviceLinkRecord = {
 				address: [data.extendedData[2], data.extendedData[3]],
@@ -344,12 +344,12 @@ export default class InsteonDevice extends EventEmitter2 {
 			else {
 				links.push(link);
 			}
-	
+
 		}
 
 		// Catching broadcast message
 		this.on(dbRecordEvent, handleDbRecordResponse);
-		
+
 		// Setting up command
 		const cmd1 = 0x2F;
 		const cmd2 = 0x00;
@@ -390,7 +390,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		/* Sending command */
 		return this.sendInsteonCommand(cmd1, cmd2, extendedData);
 	}
-	
+
 	//#endregion
 
 	//#region Queue Functions
@@ -415,11 +415,11 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		if(this.options.debug)
 		{
-			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} Cmd: ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;		
+			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;
 
 			if(task.extendedData)
 				consoleLine += ` | Extended Data: ${(task.extendedData || []).map(toHex)}`
-			
+
 			console.log(consoleLine);
 		}
 		// Attempting to write command to modem
@@ -432,7 +432,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Event functions 
+	//#region Event functions
 
 	public setupRebroadcast(){
 
@@ -449,35 +449,33 @@ export default class InsteonDevice extends EventEmitter2 {
 		});
 
 	}
-	
-	// To be overriden by the device subclass
-	public setupEvents(){
 
-	}
+	// To be overriden by the device subclass
+	public setupEvents(){ }
 	/* Event Emitter functions
 	   Physical means a person physically interacted with the device
 	 */
 	public emitPhysical(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
 		event.push("physical");
 		this.emit(event, data);
-		
+
 		if(this.options.debug)
 			console.log(`emit physical ${event.join(".")}; cmd2: ${data.cmd2}`);
 
 	}
-	
+
 	/* Remote means acknowledgement: a command was received by the device from another device */
 	public emitRemote(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
 		event.push("remote");
 		this.emit(event, data);
-		
+
 		if(this.options.debug)
 			console.log(`emit remote ${event.join(".")}; cmd2: ${data.cmd2}`);
 	}
 
 	//#endregion
 
-	//#region Static Methods 
+	//#region Static Methods
 
 	public static enterLinking(modem: PowerLincModem, address: Byte[], group: Byte = 0x01): Promise<boolean> {
 		return new Promise(async (resolve, reject) => {
@@ -485,10 +483,10 @@ export default class InsteonDevice extends EventEmitter2 {
 			const cmd1 = 0x09;
 			const cmd2 = group;
 			const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-			
+
 			// Adding checksum
 			extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
-			
+
 			// Waiting for ack of direct message
 			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 
@@ -506,7 +504,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			if(!sent)
 				reject(false);
-	
+
 		});
 	}
 
@@ -517,10 +515,10 @@ export default class InsteonDevice extends EventEmitter2 {
 			const cmd1 = 0x0A;
 			const cmd2 = group;
 			// const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-			
+
 			// Adding checksum
 			// extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
-			
+
 			// Waiting for ack of direct message
 			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 
@@ -538,7 +536,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			if(!sent)
 				reject(false);
-	
+
 		});
 	}
 
@@ -548,10 +546,10 @@ export default class InsteonDevice extends EventEmitter2 {
 			const cmd1 = 0x08;
 			const cmd2 = 0x00;
 			const extendedData: Byte[] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-			
+
 			// Adding checksum
 			extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
-			
+
 			// Waiting for ack of direct message
 			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 
@@ -569,17 +567,17 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			if(!sent)
 				reject(false);
-	
+
 		});
 	}
 
 	public static statusRequest(modem: PowerLincModem, address: Byte[], type = 0x00 as Byte): Promise<Packet.StandardMessageRecieved> {
-		
+
 		return new Promise(async (resolve, reject) => {
 			// Setting up command
 			const cmd1 = 0x19;
 			const cmd2 = type;
-			
+
 			// Waiting for ack of direct message
 			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 				resolve(packet);
@@ -590,7 +588,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			if(!sent)
 				reject(false);
-	
+
 		});
 	}
 
