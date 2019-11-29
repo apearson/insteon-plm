@@ -683,7 +683,7 @@ export default class PowerLincModem extends EventEmitter2 {
 					callback(null, packet);
 				}
 				else{
-						callback(Error('Could not complete task'));
+					callback(Error('Could not complete task'));
 				}
 			}
 			else{
