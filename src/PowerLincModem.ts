@@ -573,7 +573,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Send Commands
 
-	public async sendAllLinkCommand(group: Byte, cmd1: Byte, cmd2: Byte){
+	public sendAllLinkCommand = (group: Byte, cmd1: Byte, cmd2: Byte) => new Promise(async (resolve, reject) => {
 		/* Allocating command buffer */
 		const command = PacketID.SendAllLinkCommand;
 		const commandBuffer = Buffer.alloc(5);
@@ -588,9 +588,17 @@ export default class PowerLincModem extends EventEmitter2 {
 		/* Sending command */
 		const packet = await this.queueCommand(commandBuffer) as Packet.SendAllLinkCommand;
 
+		if(!packet.ack)
+			reject('Could not send all link command');
+
+		/* Waiting on cleanup report */
+		this.once(['p', PacketID.AllLinkCleanupStatusReport.toString(16)],
+		          (d: Packet.AllLinkCleanupStatusReport) => resolve(d.status)
+		);
+
 		/* Returning ack of command */
-		return packet.ack;
-	}
+		// return packet.ack;
+	});
 
 	public async sendStandardCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, flags: Byte = 0x0F){
 		/* Parsing out device ID */
@@ -675,7 +683,7 @@ export default class PowerLincModem extends EventEmitter2 {
 					callback(null, packet);
 				}
 				else{
-						callback(Error('Could not complete task'));
+					callback(Error('Could not complete task'));
 				}
 			}
 			else{
