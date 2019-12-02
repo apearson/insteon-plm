@@ -20,7 +20,7 @@ export function validateAddress(address: String){
 	
 	for(var i = 0; i < 3; i++){
 		let val = parseInt(adr[i],16);
-		if(val < 0 || val > 255) return false;
+		if(isNaN(val) || val < 0 || val > 255) return false;
 	}
 	
 	return true;
