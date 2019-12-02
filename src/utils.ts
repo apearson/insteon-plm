@@ -90,3 +90,7 @@ export function modemDbToTable(links: ModemLink[]){
   return table;
 
 }
+
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
