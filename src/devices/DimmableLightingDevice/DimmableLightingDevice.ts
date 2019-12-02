@@ -31,7 +31,6 @@ export default class DimmableLightingDevice extends InsteonDevice {
 
 
 	public setupEvents(){
-		console.log('Setting up events');
 		/* InsteonDevice emits all packets with type & subtype
 		   type 0x50 = Standard Message Received
 		   subtype 0x06 = Broadcast (Physically Triggered)
