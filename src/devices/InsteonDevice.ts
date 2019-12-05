@@ -459,6 +459,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	// To be overriden by the device subclass
 	public setupEvents(){ }
+	public readConfig(){ return {}; }
+	public readExtendedConfig(){ return {}; }
+	
 	/* Event Emitter functions
 	   Physical means a person physically interacted with the device
 	 */
