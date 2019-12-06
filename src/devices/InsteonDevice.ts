@@ -499,14 +499,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			// Waiting for ack of direct message
 			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
-
-				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
-					resolve(true);
-				}
-				else{
-					reject(false);
-				}
-
+				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(true) : reject(false);
 			});
 
 			/* Sending command */
@@ -531,14 +524,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			// Waiting for ack of direct message
 			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
-
-				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
-					resolve(true);
-				}
-				else{
-					reject(false);
-				}
-
+				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(true) : reject(false);
 			});
 
 			/* Sending command */

@@ -498,6 +498,24 @@ export default class PowerLincModem extends EventEmitter2 {
 		return packet.ack;
 	}
 
+	public async startUnlinking(group: Byte){
+		/* Allocating command buffer */
+		const command = PacketID.StartAllLinking;
+		const commandBuffer = Buffer.alloc(4);
+
+		/* Creating command */
+		commandBuffer.writeUInt8(0x02, 0);    //PLM Command
+		commandBuffer.writeUInt8(command, 1); //Start Linking Byte
+		commandBuffer.writeUInt8(0xFF, 2);    //Link Code
+		commandBuffer.writeUInt8(group, 3);   //Group
+
+		/* Sending command */
+		const packet = await this.queueCommand(commandBuffer) as Packet.StartAllLinking;
+
+		/* Returning ack of command */
+		return packet.ack;
+	}
+
 	public async cancelLinking(){
 		/* Allocating command buffer */
 		const command = PacketID.CancelAllLinking;
@@ -873,54 +891,64 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Management Methods
 
-	public async linkDevice(address: Byte[], group: Byte = 0x01){
+	public linkDevice = (address: Byte[], group: Byte = 0x01, type: AllLinkRecordType = AllLinkRecordType.Controller) => new Bluebird<ModemLink[]>(async (resolve, reject) => {
 
-		// Start PLM linking
-		let mStarted = await this.startLinking(AllLinkRecordType.Controller, group);
+		// Waiting until linking is complete
+		this.once(['p', PacketID.AllLinkingCompleted.toString(16), '**'], async (p: Packet.AllLinkingCompleted) => {
+			// Syncing Links to keep correct state
+			resolve(await this.syncLinks());
+		});
 
-		// Checking that we started linking
-		if(!mStarted)
-			throw Error('Could not start modem linking');
+		// Start controller unlinking
+		let cStarted = await this.startLinking(type, group)
 
-		// Waiting for modem to get ready for a network message
+		if(!cStarted)
+			throw Error('Could not start controller linking');
+
+		// Wait
 		await delay(2000);
 
-		// Start Device linking
-		let started = await InsteonDevice.enterLinking(this, address);
+		// Start responder unlinking
+		let rStarted = await InsteonDevice.enterLinking(this, address, group)
 
-		// Checking we started device linking
-		if(!started)
-			throw Error('Could not start device linking');
-	}
+		if(!rStarted)
+			throw Error('Could not start responder linking');
+	}).timeout(10000);
 
-	public async unlinkDevice(address: Byte[], group: Byte = 0x01){
+	public unlinkDevice = (address: Byte[], group: Byte = 0x01, type: AllLinkRecordType = AllLinkRecordType.Controller) => new Bluebird<ModemLink[]>(async (resolve, reject) => {
 
-		// Remove record from Device
-		let started = await InsteonDevice.enterUnlinking(this, address, group);
+		// Waiting until linking is complete
+		this.once(['p', PacketID.AllLinkingCompleted.toString(16), '**'], async (p: Packet.AllLinkingCompleted) => {
+			// Syncing Links to keep correct state
+			resolve(await this.syncLinks());
+		});
 
-		// Checking we started device linking
-		if(!started)
-			throw Error('Could not start device unlinking');
+		// Start controller unlinking
+		let cStarted = type === AllLinkRecordType.Controller ? await this.startUnlinking(group)
+		                                                     : await InsteonDevice.enterUnlinking(this, address, group);
 
-		// Waiting for modem to get ready for a network message
+		if(!cStarted)
+			throw Error('Could not start controller unlinking');
+
+			// Wait
 		await delay(2000);
 
-		// Remove record from PLM
-		let mStarted = await this.startLinking(AllLinkRecordType.Responder, group);
+		// Start responder unlinking
+		let rStarted = type === AllLinkRecordType.Controller ? await InsteonDevice.enterUnlinking(this, address, group)
+		                                                     : await this.startUnlinking(group)
 
-			// Checking that we started linking
-		if(!mStarted)
-			throw Error('Could not start modem unlinking');
-	}
+		if(!rStarted)
+			throw Error('Could not start responder unlinking');
+	}).timeout(10000);
 
 	public listLinkedDevices(){
 
-		return this.links.reduce((arr: any[], l, i) => {
+		return this.links.reduce((arr: string[], l, i) => {
 
 			let stringID = toAddressString(l.device);
 
 			if(!arr.includes(stringID))
-				arr.push(l.device);
+				arr.push(stringID);
 
 			return arr;
 
