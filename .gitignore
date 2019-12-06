@@ -9,3 +9,6 @@ packet-types.txt
 tests/debug.ts
 *.tsbuildinfo
 notes.*
+
+# Test
+update.sh

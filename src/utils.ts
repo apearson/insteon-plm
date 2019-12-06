@@ -14,6 +14,18 @@ export function toAddressArray(address: String){
 	return address.split(".").map(el => parseInt(el,16));
 }
 
+export function validateAddress(address: String){
+	let adr = address.split('.');
+	if(adr.length !== 3) return false;
+	
+	for(var i = 0; i < 3; i++){
+		let val = parseInt(adr[i],16);
+		if(isNaN(val) || val < 0 || val > 255) return false;
+	}
+	
+	return true;
+}
+
 export function toHex(n: number){
   return `0x${n.toString(16).toUpperCase().padStart(2, '0')}`;
 }
