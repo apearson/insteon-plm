@@ -823,11 +823,9 @@ export default class PowerLincModem extends EventEmitter2 {
 	public queryDeviceInfo = (deviceID: Byte[], options?: DeviceOptions) => new Bluebird<Device>((resolve, reject) => {
 		// We got cached device info, no need to query the device.
 		if(options?.cache){
-			// console.log("Cache used",options);
 			resolve(options?.cache.info);
 			return;
 		}
-		// console.log("Cache not used, querying for device info");
 		
 		// Catching broadcast message
 		this.once(
