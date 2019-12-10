@@ -203,6 +203,23 @@ export default class InsteonDevice extends EventEmitter2 {
 		return deviceInfo;
 	}
 
+	public clearDatabaseRecord(address: Byte[], highwater: boolean = false){
+
+		return this.modifyDatabase(address, {
+			device: [0x00, 0x00, 0x00],
+			group: 0,
+			onLevel: 0,
+			rampRate: 0,
+			Type: {
+				control: AllLinkRecordType.Responder,
+				active: false,
+				highwater,
+				smartHop: 0
+			}
+		});
+
+	}
+
 	//#endregion
 
 	//#region Raw Metadata Commands
