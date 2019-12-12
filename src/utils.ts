@@ -17,12 +17,12 @@ export function toAddressArray(address: String){
 export function validateAddress(address: String){
 	let adr = address.split('.');
 	if(adr.length !== 3) return false;
-	
+
 	for(var i = 0; i < 3; i++){
 		let val = parseInt(adr[i],16);
 		if(isNaN(val) || val < 0 || val > 255) return false;
 	}
-	
+
 	return true;
 }
 
@@ -36,10 +36,10 @@ export function clamp(val: number, min: number, max: number) {
 
 
 export function deviceDbToTable(links: DeviceLinkRecord[]){
-  
+
   // Creating table header
-  let table = '| Address | Device   | Type       | Group | Level | Rate | ~ |\n' +
-              '|---------|----------|------------|-------|-------|------|---|';
+  let table = '| Address | Active | Device   | Type       | Group | Level | Rate | ~ |\n' +
+              '|---------|--------|----------|------------|-------|-------|------|---|';
               // '| 0x0fe7 | Controller | 254   | 31.15.C9 | 255   | 255  |'
 
   // Looping over links
@@ -47,6 +47,7 @@ export function deviceDbToTable(links: DeviceLinkRecord[]){
 
     //Grabbing data from links
     let address = `0x${link.address.map(a => toHex(a).substring(2).toUpperCase()).join('')}`;
+    let active = link.Type.active ? '✓' : '×';
     let type = AllLinkRecordType[link.Type.control];
     let group = link.group.toString();
     let device = link.device.map(toHex).map(a => a.substring(2)).join('.').toUpperCase();
@@ -55,7 +56,7 @@ export function deviceDbToTable(links: DeviceLinkRecord[]){
     let highWater = link.Type.highWater;
 
     // Creating row
-    let row = `| ${address.padStart(7)} | ${device.padEnd(8)} | ${type.padEnd(10)} | ${group.padStart(5)} | ${level.padStart(5)} | ${rate.padStart(4)} | ${highWater? '~' : '-'} |`;
+    let row = `| ${address.padStart(7)} | ${active.padEnd(6)} | ${device.padEnd(8)} | ${type.padEnd(10)} | ${group.padStart(5)} | ${level.padStart(5)} | ${rate.padStart(4)} | ${highWater? '~' : '-'} |`;
 
     // Adding row to table
     table += `\n${row}`
@@ -66,7 +67,7 @@ export function deviceDbToTable(links: DeviceLinkRecord[]){
 }
 
 export function modemDbToTable(links: ModemLink[]){
-  
+
   // Creating table header
   let table = '| Group | Device   | Type       | Link Data      |\n' +
               '|-------|----------|------------|----------------|';
