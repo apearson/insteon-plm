@@ -820,8 +820,13 @@ export default class PowerLincModem extends EventEmitter2 {
 	//#region Device Methods
 
 	/* Send an insteon command from the modem to a device to find out what it is */
-	public queryDeviceInfo = (deviceID: Byte[]) => new Bluebird<Device>((resolve, reject) => {
-
+	public queryDeviceInfo = (deviceID: Byte[], options?: DeviceOptions) => new Bluebird<Device>((resolve, reject) => {
+		// We got cached device info, no need to query the device.
+		if(options?.cache){
+			resolve(options?.cache.info);
+			return;
+		}
+		
 		// Catching broadcast message
 		this.once(
 			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16), toAddressString(deviceID)],
@@ -831,6 +836,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 		this.sendStandardCommand(deviceID, 0x10, 0x00);
 	}).timeout(2000);
+	
 
 	/**
 	 * Factory method for creating a device instance of the correct type
@@ -838,7 +844,7 @@ export default class PowerLincModem extends EventEmitter2 {
 	 * thus returns an instance of a DimmableLightingDevice
 	 **/
 	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
-		let info = await this.queryDeviceInfo(deviceID);
+		let info = await this.queryDeviceInfo(deviceID, options);
 
 		switch(Number(info.cat)){
 			case 0x01:

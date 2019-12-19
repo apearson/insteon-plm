@@ -5,6 +5,8 @@ import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
 import Bluebird, { promisify, delay } from 'bluebird';
+import { Device } from '../typings/database';
+
 
 /* Interface */
 export interface DeviceCommandTask {
@@ -23,6 +25,11 @@ export interface DeviceOptions {
 	debug: boolean;
 	syncInfo?: boolean;
 	syncLinks?: boolean;
+	cache?: DeviceCache;
+}
+export interface DeviceCache {
+	info: Device;
+	links: DeviceLinkRecord[];
 }
 export interface DeviceLinkRecord {
 	address: Byte[];
@@ -469,6 +476,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	// To be overriden by the device subclass
 	public setupEvents(){ }
+	public readConfig(){ return {}; }
+	public readExtendedConfig(){ return {}; }
+	
 	/* Event Emitter functions
 	   Physical means a person physically interacted with the device
 	 */

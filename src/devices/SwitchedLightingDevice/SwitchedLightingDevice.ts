@@ -88,7 +88,6 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 			bits: bits,
 			programLock: bits[0],
 			LEDonTX: bits[1],
-			// resumeDim: bits[2],
 			loadSense: bits[3],
 			LEDDisabled: bits[4]
 		}
@@ -122,15 +121,7 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 	public async setLEDonTX(state: boolean): Promise<Packet.StandardMessageRecieved>{
 		return await this.setConfigFlag(state ? 0x02 : 0x03);
 	}
-	
-	/* Set whether the switch resumes its dim state
-		0x04 = true
-		0x05 = false
-	*/
-	public async setResumeDim(state: boolean): Promise<Packet.StandardMessageRecieved>{
-		return this.setConfigFlag(state ? 0x04 : 0x05);
-	}
-	
+		
 	/* Set whether load sense is active
 		0x06 = true
 		0x07 = false
