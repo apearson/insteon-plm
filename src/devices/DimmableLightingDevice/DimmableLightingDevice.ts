@@ -43,11 +43,11 @@ export default class DimmableLightingDevice extends InsteonDevice {
 				case 0x14: this.emitPhysical(['switch','off','fast'], data); break;
 				case 0x17:
 					switch(data.cmd2){
-						case 0x0: this.emitPhysical(['dim','startDimming'], data); break;
-						case 0x1: this.emitPhysical(['dim','startBrigthening'], data); break;
+						case 0x0: this.emitPhysical(['dim','continuous','down'], data); break;
+						case 0x1: this.emitPhysical(['dim','continuous','up'], data); break;
 					}
 					break;
-				case 0x18: this.emitPhysical(['dim','stoppedChanging'], data); break;
+				case 0x18: this.emitPhysical(['dim','continuous','stop'], data); break;
 				case 0x22: this.emitPhysical(['switch','off','loadSense'], data); break; // In testing, these do not work as the device only outputs 0x11/0x13
 				case 0x23: this.emitPhysical(['switch','on','loadSense'], data); break;
 				// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
@@ -63,15 +63,15 @@ export default class DimmableLightingDevice extends InsteonDevice {
 				case 0x13: this.emitRemote(['switch','off'], data); break;
 				case 0x12: this.emitRemote(['switch','on','fast'],data); break;
 				case 0x14: this.emitRemote(['switch','off','fast'],data); break;
-				case 0x15: this.emitRemote(['dim','brightenOneStep'],data); break;
-				case 0x16: this.emitRemote(['dim','dimOneStep'],data); break;
+				case 0x15: this.emitRemote(['dim','step','up'],data); break;
+				case 0x16: this.emitRemote(['dim','step','down'],data); break;
 				case 0x17:
 					switch(data.cmd2){
-						case 0x0: this.emitRemote(['dim','startDimming'],data); break;
-						case 0x1: this.emitRemote(['dim','startBrigthening'],data); break;
+						case 0x0: this.emitRemote(['dim','continuous','down'],data); break;
+						case 0x1: this.emitRemote(['dim','continuous','up'],data); break;
 					}
 					break;
-				case 0x18: this.emitRemote(['dim','stoppedChanging'], data); break;
+				case 0x18: this.emitRemote(['dim','continuous','stop'], data); break;
 				case 0x21: this.emitRemote(['switch','on','instant'], data); break;
 				// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
 			}
