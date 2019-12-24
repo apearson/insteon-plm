@@ -69,7 +69,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		}
 	}
 	
-	private remoteEventEmitter(data: Packet.StandardMessageRecieved){		
+	private remoteEventEmitter(data: Packet.StandardMessageRecieved){
 		switch(data.cmd1){
 			case 0x11: this.emitRemote(['switch','on'], data); break;
 			case 0x13: this.emitRemote(['switch','off'], data); break;
