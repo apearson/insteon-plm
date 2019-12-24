@@ -1,7 +1,7 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
 import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
-import { clamp, toAddressString } from '../../utils';
+import { clamp } from '../../utils';
 
 /* Base class for device category 0x01 - Dimmable Lighting Control
    All dimmable controls including switches, outlets and plugin modules live here
