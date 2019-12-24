@@ -496,11 +496,8 @@ export default class InsteonDevice extends EventEmitter2 {
 
 				// check to see if this device has a responder link for the controller in this packet for this group number
 				if(this.links.find(link => toAddressString(link.device) === toAddressString(data.from) && link.group === group && !link.Type.control) !== undefined){
-					console.log(`MATCH ${this.addressString}`, `from device ${toAddressString(data.from)}`, `group ${group}`, this.links.find(link => toAddressString(link.device) === toAddressString(data.from) && link.group === group && !link.Type.control));
-					
-					this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
-				}else{
-					console.log(`no match ${this.addressString}`, `from device ${toAddressString(data.from)}`, `group ${group}`);
+					// this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
+					this.emit(['p', 'scene', 'responder'], data);
 				}
 			}
 		});
@@ -529,8 +526,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	/* Remote means acknowledgement: a command was received by the device from another device */
 	public emitRemote(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
-		// Skip group broadcast events that were emitted from this device
-		if(toAddressString(data.from) === this.addressString) return;
 
 		event.push("remote");
 		this.emit(event, data);

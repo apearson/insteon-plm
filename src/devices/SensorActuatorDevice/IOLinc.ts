@@ -29,11 +29,10 @@ export default class IOLinc extends SensorActuatorDevice {
 		 */
 		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], this.remoteEventEmitter);
 		
-		/* type 0x50 = Standard Message Received
-		   subtype 0x06 = Broadcast (Remotely Triggered) when the from address DOES NOT match this device
-		   The device responds to the group message using the link data. A group `on` message can result in a device turning off if the device's
+		/* Scene responder event
+		   The device responds to the group message using the setting in the link data.
 		 */
-		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.remoteEventEmitter);
+		this.on(['p', 'scene', 'responder'], this.remoteEventEmitter);
 	}
 	
 	private physicalEventEmitter(data: Packet.StandardMessageRecieved){
