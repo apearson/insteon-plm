@@ -112,12 +112,23 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	public async initalize(){
-		// Syncing data
+		// If a cache was provided, set the device's links and info to the cache data
+		if(this.options.cache){
+			this.cat = parseInt(this.options.cache.info.cat,16) as Byte;
+			this.subcat = parseInt(this.options.cache.info.subcat,16) as Byte;
+			// this.firmware = parsethis.options.cache.info.firmware; 
+			// this.hardward = this.options.cache.info.hardward;
+			
+			this.links = this.options.cache.links;
+		}
+		
+		// Syncing data (will overwrite cached data)
 		if(this.options.syncInfo !== false)
 			await this.syncInfo();
 
 		if(this.options.syncLinks !== false)
 			await this.syncLinks();
+			
 
 		/* Workaround to keep async function from emitting before
 		 * constuctor is done constucting
@@ -471,6 +482,28 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
+		
+
+		/* Look for group broadcasts that were sent by any controller of this device
+		 * The device will physically respond to an Insteon group broadcast messages if has a responder record for the controller with the same group #
+		 * When an insteon device responds to a group broadcast message, it does not send any packets even though the device is physically changing state.
+		 * For this reason, we want to emit the device's responder link state & level so that the virtual state of the device matches the physical state.
+		 */
+		this.modem.on(['p', '*', MessageSubtype.GroupBroadcastMessage.toString(16), '**'], (data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
+			// Ignore the second group broadcast message. The group message we care about is addressd to 0.0.group#. This logic might be improved...
+			if(data.cmd1 !== 0x06){
+				let group = data.to[2];
+
+				// check to see if this device has a responder link for the controller in this packet for this group number
+				if(this.links.find(link => toAddressString(link.device) === toAddressString(data.from) && link.group === group && !link.Type.control) !== undefined){
+					console.log(`MATCH ${this.addressString}`, `from device ${toAddressString(data.from)}`, `group ${group}`, this.links.find(link => toAddressString(link.device) === toAddressString(data.from) && link.group === group && !link.Type.control));
+					
+					this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
+				}else{
+					console.log(`no match ${this.addressString}`, `from device ${toAddressString(data.from)}`, `group ${group}`);
+				}
+			}
+		});
 
 	}
 
@@ -483,6 +516,9 @@ export default class InsteonDevice extends EventEmitter2 {
 	   Physical means a person physically interacted with the device
 	 */
 	public emitPhysical(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
+		// Skip group broadcast events that were emitted from a different device
+		if(toAddressString(data.from) !== this.addressString) return;
+		
 		event.push("physical");
 		this.emit(event, data);
 
@@ -493,6 +529,9 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	/* Remote means acknowledgement: a command was received by the device from another device */
 	public emitRemote(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
+		// Skip group broadcast events that were emitted from this device
+		if(toAddressString(data.from) === this.addressString) return;
+
 		event.push("remote");
 		this.emit(event, data);
 

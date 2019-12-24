@@ -1,7 +1,7 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
 import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
-import { clamp } from '../../utils';
+import { clamp, toAddressString } from '../../utils';
 
 /* Base class for device category 0x01 - Dimmable Lighting Control
    All dimmable controls including switches, outlets and plugin modules live here
@@ -33,49 +33,60 @@ export default class DimmableLightingDevice extends InsteonDevice {
 	public setupEvents(){
 		/* InsteonDevice emits all packets with type & subtype
 		   type 0x50 = Standard Message Received
-		   subtype 0x06 = Broadcast (Physically Triggered)
+		   subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
 		 */
-		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-			switch(data.cmd1){
-				case 0x11: this.emitPhysical(['switch','on'], data); break;
-				case 0x13: this.emitPhysical(['switch','off'], data); break;
-				case 0x12: this.emitPhysical(['switch','on','fast'], data); break;
-				case 0x14: this.emitPhysical(['switch','off','fast'], data); break;
-				case 0x17:
-					switch(data.cmd2){
-						case 0x0: this.emitPhysical(['dim','continuous','down'], data); break;
-						case 0x1: this.emitPhysical(['dim','continuous','up'], data); break;
-					}
-					break;
-				case 0x18: this.emitPhysical(['dim','continuous','stop'], data); break;
-				case 0x22: this.emitPhysical(['switch','off','loadSense'], data); break; // In testing, these do not work as the device only outputs 0x11/0x13
-				case 0x23: this.emitPhysical(['switch','on','loadSense'], data); break;
-				// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
-			}
-		});
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.physicalEventEmitter);
 
 		/* type 0x50 = Standard Message Received
 		   subtype 0x01 = Acknowledgement that a remote command was received
 		 */
-		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-			switch(data.cmd1){
-				case 0x11: this.emitRemote(['switch','on'], data); break;
-				case 0x13: this.emitRemote(['switch','off'], data); break;
-				case 0x12: this.emitRemote(['switch','on','fast'],data); break;
-				case 0x14: this.emitRemote(['switch','off','fast'],data); break;
-				case 0x15: this.emitRemote(['dim','step','up'],data); break;
-				case 0x16: this.emitRemote(['dim','step','down'],data); break;
-				case 0x17:
-					switch(data.cmd2){
-						case 0x0: this.emitRemote(['dim','continuous','down'],data); break;
-						case 0x1: this.emitRemote(['dim','continuous','up'],data); break;
-					}
-					break;
-				case 0x18: this.emitRemote(['dim','continuous','stop'], data); break;
-				case 0x21: this.emitRemote(['switch','on','instant'], data); break;
-				// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
-			}
-		});
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], this.remoteEventEmitter);
+		
+		/* type 0x50 = Standard Message Received
+		   subtype 0x06 = Broadcast (Remotely Triggered) when the from address DOES NOT match this device
+		   The device responds to the group message using the link data. A group `on` message can result in a device turning off if the device's
+		 */
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.remoteEventEmitter);
+		
+	}
+	
+	private physicalEventEmitter(data: Packet.StandardMessageRecieved){
+		switch(data.cmd1){
+			case 0x11: this.emitPhysical(['switch','on'], data); break;
+			case 0x13: this.emitPhysical(['switch','off'], data); break;
+			case 0x12: this.emitPhysical(['switch','on','fast'], data); break;
+			case 0x14: this.emitPhysical(['switch','off','fast'], data); break;
+			case 0x17:
+				switch(data.cmd2){
+					case 0x0: this.emitPhysical(['dim','continuous','down'], data); break;
+					case 0x1: this.emitPhysical(['dim','continuous','up'], data); break;
+				}
+				break;
+			case 0x18: this.emitPhysical(['dim','continuous','stop'], data); break;
+			case 0x22: this.emitPhysical(['switch','off','loadSense'], data); break; // In testing, these do not work as the device only outputs 0x11/0x13
+			case 0x23: this.emitPhysical(['switch','on','loadSense'], data); break;
+			// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
+		}
+	}
+	
+	private remoteEventEmitter(data: Packet.StandardMessageRecieved){		
+		switch(data.cmd1){
+			case 0x11: this.emitRemote(['switch','on'], data); break;
+			case 0x13: this.emitRemote(['switch','off'], data); break;
+			case 0x12: this.emitRemote(['switch','on','fast'],data); break;
+			case 0x14: this.emitRemote(['switch','off','fast'],data); break;
+			case 0x15: this.emitRemote(['dim','step','up'],data); break;
+			case 0x16: this.emitRemote(['dim','step','down'],data); break;
+			case 0x17:
+				switch(data.cmd2){
+					case 0x0: this.emitRemote(['dim','continuous','down'],data); break;
+					case 0x1: this.emitRemote(['dim','continuous','up'],data); break;
+				}
+				break;
+			case 0x18: this.emitRemote(['dim','continuous','stop'], data); break;
+			case 0x21: this.emitRemote(['switch','on','instant'], data); break;
+			// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
+		}
 	}
 
 	//#region Higher functions
