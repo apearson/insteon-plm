@@ -430,10 +430,10 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#region Queue Functions
 
 	private processQueue = async (task: DeviceCommandTask, callback: AsyncResultCallback<Packet.Packet>) => {
+		callback();
+		
 		!!task.extendedData ? await this.modem.sendExtendedCommand(this.address, task.cmd1, task.cmd2, task.extendedData, task.flags)
 							: await this.modem.sendStandardCommand(this.address, task.cmd1, task.cmd2, task.flags);
-												 
-		callback();
 	}
 	
 
