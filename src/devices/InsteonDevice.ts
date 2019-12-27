@@ -168,8 +168,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
 
 		/* Sending command */
-		return this.queueCommand({ cmd1, cmd2, extendedData, flags }).timeout(2000);
-
+		return this.queueCommand({ cmd1, cmd2, extendedData, flags });
 	}
 
 	//#endregion
@@ -431,39 +430,12 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#region Queue Functions
 
 	private processQueue = async (task: DeviceCommandTask, callback: AsyncResultCallback<Packet.Packet>) => {
-
-		const callbackFunction = (d: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
-
-			// Removing any listeners
-			this.removeListener(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-			this.removeListener(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
-
-			// Calling callback after cooldown
-			setTimeout(() =>
-				callback(null, d)
-			, 200); // Modem needs time to reset after command
-		};
-
-		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-		this.once(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
-
-		if(this.options.debug)
-		{
-			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;
-
-			if(task.extendedData)
-				consoleLine += ` | Extended Data: ${(task.extendedData || []).map(toHex)}`
-
-			console.log(consoleLine);
-		}
-		// Attempting to write command to modem
-		const isSuccessful = !!task.extendedData ? await this.modem.sendExtendedCommand(this.address, task.cmd1, task.cmd2, task.extendedData, task.flags)
-		                                         : await this.modem.sendStandardCommand(this.address, task.cmd1, task.cmd2, task.flags);
-
-		if(!isSuccessful)
-			callback(Error('Could not execute device packet'));
+		!!task.extendedData ? await this.modem.sendExtendedCommand(this.address, task.cmd1, task.cmd2, task.extendedData, task.flags)
+							: await this.modem.sendStandardCommand(this.address, task.cmd1, task.cmd2, task.flags);
+												 
+		callback();
 	}
+	
 
 	//#endregion
 
