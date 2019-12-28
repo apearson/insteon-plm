@@ -1,6 +1,5 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
-import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
@@ -63,9 +62,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
 
-	private queueCommand: (command: DeviceCommandTask) =>
-		Bluebird<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>;
-
 	/* Class Info */
 	public address: Byte[];
 
@@ -78,7 +74,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	/* Inernal Variables */
 	private modem: PowerLincModem;
-	private requestQueue: AsyncQueue<DeviceCommandTask>;
 	private options: DeviceOptions = { debug: false };
 
 	//#endregion
@@ -96,10 +91,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		/* Setting up info */
 		this.address = deviceID;
-
-		/* Setting up request queue */
-		this.requestQueue = queue(this.processQueue, 1);
-		this.queueCommand = promisify(this.requestQueue.push)
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
@@ -166,9 +157,13 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#region Insteon Send Methods
 
 	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
-
 		/* Sending command */
-		return this.queueCommand({ cmd1, cmd2, extendedData, flags });
+		return new Promise<Packet.StandardMessageRecieved>((resolve, reject) => {
+			!!extendedData ? this.modem.sendExtendedCommand(this.address, cmd1, cmd2, extendedData, flags)
+						: this.modem.sendStandardCommand(this.address, cmd1, cmd2, flags);
+			
+			resolve();
+		});
 	}
 
 	//#endregion
@@ -427,17 +422,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Queue Functions
-
-	private processQueue = async (task: DeviceCommandTask, callback: AsyncResultCallback<Packet.Packet>) => {
-		callback();
-		
-		!!task.extendedData ? await this.modem.sendExtendedCommand(this.address, task.cmd1, task.cmd2, task.extendedData, task.flags)
-							: await this.modem.sendStandardCommand(this.address, task.cmd1, task.cmd2, task.flags);
-	}
-	
-
-	//#endregion
 
 	//#region Event functions
 
