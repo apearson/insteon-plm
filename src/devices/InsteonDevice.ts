@@ -155,14 +155,22 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#endregion
 
 	//#region Insteon Send Methods
-
-	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
+	
+	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte): Promise<Packet.StandardMessageRecieved> {	
+		
 		/* Sending command */
-		return new Promise<Packet.StandardMessageRecieved>((resolve, reject) => {
-			!!extendedData ? this.modem.sendExtendedCommand(this.address, cmd1, cmd2, extendedData, flags)
-						: this.modem.sendStandardCommand(this.address, cmd1, cmd2, flags);
-			
-			resolve();
+		return new Promise<Packet.StandardMessageRecieved>(async (resolve, reject) => {
+			// Waiting for ack of direct message
+			this.once(['p', '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], (packet: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) =>  {
+				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(packet) : reject(packet);
+			});
+
+			/* catch the response */			
+			const sent = !!extendedData ? await this.modem.sendExtendedCommand(this.address, cmd1, cmd2, extendedData, flags)
+						: await this.modem.sendStandardCommand(this.address, cmd1, cmd2, flags);
+	
+			if(!sent)
+				reject(false);
 		});
 	}
 
