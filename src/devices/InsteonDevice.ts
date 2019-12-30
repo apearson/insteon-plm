@@ -1,6 +1,5 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
-import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
@@ -63,9 +62,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
 
-	private queueCommand: (command: DeviceCommandTask) =>
-		Bluebird<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>;
-
 	/* Class Info */
 	public address: Byte[];
 
@@ -78,7 +74,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	/* Inernal Variables */
 	private modem: PowerLincModem;
-	private requestQueue: AsyncQueue<DeviceCommandTask>;
 	private options: DeviceOptions = { debug: false };
 
 	//#endregion
@@ -96,10 +91,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 		/* Setting up info */
 		this.address = deviceID;
-
-		/* Setting up request queue */
-		this.requestQueue = queue(this.processQueue, 1);
-		this.queueCommand = promisify(this.requestQueue.push)
 
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
@@ -164,12 +155,23 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#endregion
 
 	//#region Insteon Send Methods
-
-	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
-
+	
+	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte): Promise<Packet.StandardMessageRecieved> {	
+		
 		/* Sending command */
-		return this.queueCommand({ cmd1, cmd2, extendedData, flags }).timeout(2000);
+		return new Promise<Packet.StandardMessageRecieved>(async (resolve, reject) => {
+			// Waiting for ack of direct message
+			this.once(['p', '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], (packet: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) =>  {
+				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(packet) : reject(packet);
+			});
 
+			/* catch the response */			
+			const sent = !!extendedData ? await this.modem.sendExtendedCommand(this.address, cmd1, cmd2, extendedData, flags)
+						: await this.modem.sendStandardCommand(this.address, cmd1, cmd2, flags);
+	
+			if(!sent)
+				reject(false);
+		});
 	}
 
 	//#endregion
@@ -428,44 +430,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Queue Functions
-
-	private processQueue = async (task: DeviceCommandTask, callback: AsyncResultCallback<Packet.Packet>) => {
-
-		const callbackFunction = (d: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
-
-			// Removing any listeners
-			this.removeListener(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-			this.removeListener(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
-
-			// Calling callback after cooldown
-			setTimeout(() =>
-				callback(null, d)
-			, 200); // Modem needs time to reset after command
-		};
-
-		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-		this.once(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
-
-		if(this.options.debug)
-		{
-			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;
-
-			if(task.extendedData)
-				consoleLine += ` | Extended Data: ${(task.extendedData || []).map(toHex)}`
-
-			console.log(consoleLine);
-		}
-		// Attempting to write command to modem
-		const isSuccessful = !!task.extendedData ? await this.modem.sendExtendedCommand(this.address, task.cmd1, task.cmd2, task.extendedData, task.flags)
-		                                         : await this.modem.sendStandardCommand(this.address, task.cmd1, task.cmd2, task.flags);
-
-		if(!isSuccessful)
-			callback(Error('Could not execute device packet'));
-	}
-
-	//#endregion
 
 	//#region Event functions
 
