@@ -1,6 +1,5 @@
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
-import { queue, AsyncQueue, AsyncResultCallback } from 'async';
 import PowerLincModem from '../PowerLincModem';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import { toHex, toAddressString, toAddressArray } from '../utils';
@@ -63,9 +62,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
 
-	private queueCommand: (command: DeviceCommandTask) =>
-		Bluebird<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>;
-
 	/* Class Info */
 	public address: Byte[];
 
@@ -78,7 +74,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	/* Inernal Variables */
 	private modem: PowerLincModem;
-	private requestQueue: AsyncQueue<DeviceCommandTask>;
 	private options: DeviceOptions = { debug: false };
 
 	//#endregion
@@ -97,10 +92,6 @@ export default class InsteonDevice extends EventEmitter2 {
 		/* Setting up info */
 		this.address = deviceID;
 
-		/* Setting up request queue */
-		this.requestQueue = queue(this.processQueue, 1);
-		this.queueCommand = promisify(this.requestQueue.push)
-
 		/* Setting up packet rebroadcasting */
 		this.setupRebroadcast();
 
@@ -112,12 +103,23 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	public async initalize(){
-		// Syncing data
+		// If a cache was provided, set the device's links and info to the cache data
+		if(this.options.cache){
+			this.cat = parseInt(this.options.cache.info.cat,16) as Byte;
+			this.subcat = parseInt(this.options.cache.info.subcat,16) as Byte;
+			// this.firmware = parsethis.options.cache.info.firmware; 
+			// this.hardward = this.options.cache.info.hardward;
+			
+			this.links = this.options.cache.links;
+		}
+		
+		// Syncing data (will overwrite cached data)
 		if(this.options.syncInfo !== false)
 			await this.syncInfo();
 
 		if(this.options.syncLinks !== false)
 			await this.syncLinks();
+			
 
 		/* Workaround to keep async function from emitting before
 		 * constuctor is done constucting
@@ -153,12 +155,23 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#endregion
 
 	//#region Insteon Send Methods
-
-	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte){
-
+	
+	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte): Promise<Packet.StandardMessageRecieved> {	
+		
 		/* Sending command */
-		return this.queueCommand({ cmd1, cmd2, extendedData, flags }).timeout(2000);
+		return new Promise<Packet.StandardMessageRecieved>(async (resolve, reject) => {
+			// Waiting for ack of direct message
+			this.once(['p', '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], (packet: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) =>  {
+				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(packet) : reject(packet);
+			});
 
+			/* catch the response */			
+			const sent = !!extendedData ? await this.modem.sendExtendedCommand(this.address, cmd1, cmd2, extendedData, flags)
+						: await this.modem.sendStandardCommand(this.address, cmd1, cmd2, flags);
+	
+			if(!sent)
+				reject(false);
+		});
 	}
 
 	//#endregion
@@ -417,44 +430,6 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
-	//#region Queue Functions
-
-	private processQueue = async (task: DeviceCommandTask, callback: AsyncResultCallback<Packet.Packet>) => {
-
-		const callbackFunction = (d: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
-
-			// Removing any listeners
-			this.removeListener(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-			this.removeListener(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
-
-			// Calling callback after cooldown
-			setTimeout(() =>
-				callback(null, d)
-			, 200); // Modem needs time to reset after command
-		};
-
-		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', '*',  MessageSubtype.ACKofDirectMessage.toString(16), '**'], callbackFunction);
-		this.once(['p', '*',  MessageSubtype.NAKofDirectMessage.toString(16), '**'], callbackFunction);
-
-		if(this.options.debug)
-		{
-			let consoleLine = `[→][${this.addressString}][${!!task.extendedData? 'E':'S'}]:${task.flags ? `Flag: ${toHex(task.flags)} |` : ''} ${toHex(task.cmd1)} ${toHex(task.cmd2)}`;
-
-			if(task.extendedData)
-				consoleLine += ` | Extended Data: ${(task.extendedData || []).map(toHex)}`
-
-			console.log(consoleLine);
-		}
-		// Attempting to write command to modem
-		const isSuccessful = !!task.extendedData ? await this.modem.sendExtendedCommand(this.address, task.cmd1, task.cmd2, task.extendedData, task.flags)
-		                                         : await this.modem.sendStandardCommand(this.address, task.cmd1, task.cmd2, task.flags);
-
-		if(!isSuccessful)
-			callback(Error('Could not execute device packet'));
-	}
-
-	//#endregion
 
 	//#region Event functions
 
@@ -471,6 +446,25 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
+		
+
+		/* Look for group broadcasts that were sent by any controller of this device
+		 * The device will physically respond to an Insteon group broadcast messages if has a responder record for the controller with the same group #
+		 * When an insteon device responds to a group broadcast message, it does not send any packets even though the device is physically changing state.
+		 * For this reason, we want to emit the device's responder link state & level so that the virtual state of the device matches the physical state.
+		 */
+		this.modem.on(['p', '*', MessageSubtype.GroupBroadcastMessage.toString(16), '**'], (data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
+			// Ignore the second group broadcast message. The group message we care about is addressd to 0.0.group#. This logic might be improved...
+			if(data.cmd1 !== 0x06){
+				let group = data.to[2];
+
+				// check to see if this device has a responder link for the controller in this packet for this group number
+				if(this.links.find(link => toAddressString(link.device) === toAddressString(data.from) && link.group === group && !link.Type.control) !== undefined){
+					// this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
+					this.emit(['p', 'scene', 'responder'], data);
+				}
+			}
+		});
 
 	}
 
@@ -483,6 +477,9 @@ export default class InsteonDevice extends EventEmitter2 {
 	   Physical means a person physically interacted with the device
 	 */
 	public emitPhysical(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
+		// Skip group broadcast events that were emitted from a different device
+		if(toAddressString(data.from) !== this.addressString) return;
+		
 		event.push("physical");
 		this.emit(event, data);
 
@@ -493,6 +490,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	/* Remote means acknowledgement: a command was received by the device from another device */
 	public emitRemote(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
+
 		event.push("remote");
 		this.emit(event, data);
 

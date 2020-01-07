@@ -15,34 +15,42 @@ export default class IOLinc extends SensorActuatorDevice {
 	public setupEvents(){
 		/* InsteonDevice emits all packets with type & subtype
 		   type 0x50 = Standard Message Received
-		   subtype 0x06 = Broadcast (Physically Triggered)
+		   subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
 		
 		   The I/O Linc broadcasts a packet when the sensor is triggered OR when the set button is pressed
 		   In testing, no messages are broadcast when the device is in momentary mode and the relay opens after the momentaryDuration passes.
 		
 		   The only way to know if the relay is energized is to query the device.
 		 */
-		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-			switch(Number(data.cmd1)){
-				case 0x11: this.emitPhysical(['sensor','on'], data); break;
-				case 0x13: this.emitPhysical(['sensor','off'], data); break;
-				// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
-			}
-		});
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.physicalEventEmitter);
 
 		/* type 0x50 = Standard Message Received
 		   subtype 0x01 = Acknowledgement that a remote command was received
 		 */
-		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-			switch(Number(data.cmd1)){
-				case 0x11: this.emitRemote(['relay','on'], data); break;
-				case 0x13: this.emitRemote(['relay','off'], data); break;
-				case 0x12: this.emitRemote(['relay','fastOn'],data); break;
-				case 0x14: this.emitRemote(['relay','fastOff'],data); break;
-				// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
-			}
-		});
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], this.remoteEventEmitter);
 		
+		/* Scene responder event
+		   The device responds to the group message using the setting in the link data.
+		 */
+		this.on(['p', 'scene', 'responder'], this.remoteEventEmitter);
+	}
+	
+	private physicalEventEmitter(data: Packet.StandardMessageRecieved){
+		switch(Number(data.cmd1)){
+			case 0x11: this.emitPhysical(['sensor','on'], data); break;
+			case 0x13: this.emitPhysical(['sensor','off'], data); break;
+			// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
+		}	
+	}
+	
+	private remoteEventEmitter(data: Packet.StandardMessageRecieved){
+		switch(Number(data.cmd1)){
+			case 0x11: this.emitRemote(['relay','on'], data); break;
+			case 0x13: this.emitRemote(['relay','off'], data); break;
+			case 0x12: this.emitRemote(['relay','on','fast'],data); break;
+			case 0x14: this.emitRemote(['relay','off','fast'],data); break;
+			// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
+		}	
 	}
 
 	/* Command the relay, true = on, false = off */

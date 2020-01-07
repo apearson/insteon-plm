@@ -1,3 +1,8 @@
+import logger from 'debug';
+/* Configuring logging */
+const debug = logger('node-red-contrib-insteon:powerLincModem');
+debug.enabled = true;
+
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
@@ -691,27 +696,54 @@ export default class PowerLincModem extends EventEmitter2 {
 	//#region Queue Functions
 
 	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<AnyPacket>) => {
+		let timer:NodeJS.Timer;
+		
+		const callbackFunction = (d: Packet.Packet) => {
+		
+			debug(`pong`);
+			clearTimeout(timer);
 
-		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', task[1].toString(16)], (d: Packet.Packet) => {
 			if(d.ack){
 				const packet = d as Packet.SendInsteonMessage;
 
 				if(packet.ack){
-					callback(null, packet);
+					debug('waiting for ack setTimeout');
+					setTimeout(() => {
+						debug('ack setTimeout finished');
+						callback(null, packet);
+					}, 450);
 				}
 				else{
 					callback(Error('Could not complete task'));
 				}
 			}
 			else{
-				callback(null, d)
+				debug('waiting for setTimeout')
+				setTimeout(() => {
+					debug('setTimeout finished')
+					callback(null, d);
+				}, 450);
 			}
-		});
+		}
+			
+		// Once we hear an echo (same command back) the modem is ready for another command
+		this.once(['p', task[1].toString(16)], callbackFunction);
 
 		// Attempting to write command to modem
 		try{
+			timer = setTimeout(() => {
+				debug("No response received within 10 seconds");
+				
+				// if we use the callback here, we have to remove the 'once' event listener otherwise the callback could be called twice, which crashes NodeJS.
+				// Throwing an error here requires a try/catch around every single insteon call? Use null instead?
+				this.removeListener(['p', task[1].toString(16)], callbackFunction);
+				callback(null);
+				// callback(Error('No response received within 10 seconds'));
+			},10000);
+		
 			const isSuccessful = this.port.write(task);
+		
+			debug(`ping`);
 
 			if(!isSuccessful)
 				callback(Error('Could not write to modem'));
@@ -723,7 +755,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	// Queues the command with a timeout
 	private queueCommand(command: Buffer){
-		return this._queueCommand(command).timeout(2000);
+		return this._queueCommand(command);
 	}
 
 	//#endregion
@@ -778,14 +810,14 @@ export default class PowerLincModem extends EventEmitter2 {
 		if(this.options.debug){
 			if(packet.type === PacketID.SendInsteonMessage){
 				const p = packet as Packet.SendInsteonMessage;
-				console.log(`[→][${toAddressString(p.to)}][${(p.flags & 0x10) == 16 ? 'E' : 'S'}][${p.Type}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.extendedData? p.extendedData.map(toHex) : ''}`);
+				debug(`[→][${toAddressString(p.to)}][${(p.flags & 0x10) == 16 ? 'E' : 'S'}][${p.Type}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.extendedData? p.extendedData.map(toHex) : ''}`);
 			}
 			else if(packet.type === PacketID.ExtendedMessageReceived || packet.type === PacketID.StandardMessageReceived){
 				const p = packet as Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved;
-				console.log(`[←][${toAddressString(p.from)}][${p.Flags.extended ? 'E' : 'S'}][${p.Flags.Subtype}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.Flags.extended ? p.extendedData.map(toHex) : ''}`);
+				debug(`[←][${toAddressString(p.from)}][${p.Flags.extended ? 'E' : 'S'}][${p.Flags.Subtype}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.Flags.extended ? p.extendedData.map(toHex) : ''}`);
 			}
 			else{
-				console.log(`[⇄][${packet.Type}]: ${packet.cmd1? toHex(packet.cmd1) : ''} ${packet.cmd2? toHex(packet.cmd2) : ''}`);
+				debug(`[⇄][${packet.Type}]: ${packet.cmd1? toHex(packet.cmd1) : ''} ${packet.cmd2? toHex(packet.cmd2) : ''}`);
 			}
 		}
 
@@ -834,6 +866,7 @@ export default class PowerLincModem extends EventEmitter2 {
 				resolve(PowerLincModem.getDeviceInfo(data.to[0],data.to[1]))
 		);
 
+		debug(`queryDeviceInfo: ${toAddressString(deviceID)}`);
 		this.sendStandardCommand(deviceID, 0x10, 0x00);
 	}).timeout(2000);
 	

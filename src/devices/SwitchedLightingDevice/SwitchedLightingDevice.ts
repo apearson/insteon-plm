@@ -10,29 +10,38 @@ export default class SwitchedLightingDevice extends InsteonDevice {
 	public setupEvents(){
 		/* InsteonDevice emits all packets with type & subtype
 		   type 0x50 = Standard Message Received
-		   subtype 0x06 = Broadcast (Physically Triggered)
+		   subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
 		 */
-		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-			switch(Number(data.cmd1)){
-				case 0x11: this.emitPhysical(['switch','on'], data); break;
-				case 0x13: this.emitPhysical(['switch','off'], data); break;
-				// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
-			}
-		});
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.physicalEventEmitter);
 	
 		/* type 0x50 = Standard Message Received
 		   subtype 0x01 = Acknowledgement that a remote command was received
 		 */		
-		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], (data: Packet.StandardMessageRecieved) => {
-			switch(Number(data.cmd1)){
-				case 0x11: this.emitRemote(['switch','on'], data); break;
-				case 0x13: this.emitRemote(['switch','off'], data); break;
-				case 0x12: this.emitRemote(['switch','on','fast'],data); break;
-				case 0x14: this.emitRemote(['switch','off','fast'],data); break;
-				case 0x21: this.emitRemote(['switch','on','instant'], data); break;
-				// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
-			}
-		});
+		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], this.remoteEventEmitter);
+		
+		/* Scene responder event
+		   The device responds to the group message using the setting in the link data.
+		 */
+		this.on(['p', 'scene', 'responder'], this.remoteEventEmitter);
+	}
+	
+	private physicalEventEmitter(data: Packet.StandardMessageRecieved){
+		switch(Number(data.cmd1)){
+			case 0x11: this.emitPhysical(['switch','on'], data); break;
+			case 0x13: this.emitPhysical(['switch','off'], data); break;
+			// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
+		}	
+	}
+	
+	private remoteEventEmitter(data: Packet.StandardMessageRecieved){
+		switch(Number(data.cmd1)){
+			case 0x11: this.emitRemote(['switch','on'], data); break;
+			case 0x13: this.emitRemote(['switch','off'], data); break;
+			case 0x12: this.emitRemote(['switch','on','fast'],data); break;
+			case 0x14: this.emitRemote(['switch','off','fast'],data); break;
+			case 0x21: this.emitRemote(['switch','on','instant'], data); break;
+			// default: console.log("Unknown Ack Command",data.cmd1,data.cmd2);
+		}	
 	}
 	
 
