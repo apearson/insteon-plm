@@ -26,6 +26,21 @@ export function validateAddress(address: String){
 	return true;
 }
 
+export function nextLinkAddress(address: Byte[]){
+	if(address[1] - 8 > 0){
+		address[1] = address[1] - 8 as Byte;
+	}else{
+		address[0] = address[0] - 1 as Byte;
+		address[1] = 255;
+	}
+	
+	if(address[0] < 0){
+		throw Error("Out of address space");
+	}
+	
+	return address;
+}
+
 export function toHex(n: number){
   return `0x${n.toString(16).toUpperCase().padStart(2, '0')}`;
 }

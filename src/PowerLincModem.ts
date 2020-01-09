@@ -1,7 +1,6 @@
 import logger from 'debug';
 /* Configuring logging */
-const debug = logger('node-red-contrib-insteon:powerLincModem');
-debug.enabled = true;
+const debug = logger('insteon-plm:powerLincModem');
 
 /* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
