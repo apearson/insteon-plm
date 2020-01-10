@@ -1,6 +1,5 @@
 /* Libraries */
 import InsteonDevice from '../InsteonDevice';
-import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
 
 /* Base class for device category 0x07 - Sensors & Actuators
    This is where the I/O linc lives, which is commonly used to open & close garage doors
@@ -35,7 +34,7 @@ cmd2: 0x00 = Factory Reset
       0x0D = Disable Sensor Reading
       0x0E = Diagnostics On - put device into self diagnostics mode
       0x0F = Diagnostics Off
- 
+
 I/O Read Configuration Port
 cmd1 = 0x4E - Send read request. The 0x4D ACK contains the byte read in CMD2
 cmd2 = 0x00

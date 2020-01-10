@@ -1,27 +1,27 @@
 {
-  "compilerOptions": {
-    // Strict typechecking
-    "strict": true,
+	"compilerOptions": {
+		// Strict typechecking
+		"strict": true,
 
-    // Modules
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
+		// Modules
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
 
-    // Output
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "target": "es2015",
-    "rootDir": "./src",
-    "outDir": "dist",
+		// Output
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"target": "es2015",
+		"rootDir": "./src",
+		"outDir": "dist",
 
-    // Build and Debugging
-    "composite": true,
-  },
-  "include": [
-    "./src/**/*.ts",
-    "./src/**/*.json"
-  ]
+		// Build and Debugging
+		"composite": true,
+	},
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.json"
+	]
 }

@@ -1,17 +1,17 @@
 /* Libraries */
 import SecurityDevice from './SecurityDevice';
-import { Packet, Byte, PacketID, MessageSubtype } from 'insteon-packet-parser';
+import { Packet, PacketID, MessageSubtype } from 'insteon-packet-parser';
 
 /* Class */
 export default class LeakSensor extends SecurityDevice {
 	public setupEvents(){
 		/* InsteonDevice emits all packets with type & subtype
-		   type 0x50 = Standard Message Received
-		   subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
+		 * type 0x50 = Standard Message Received
+		 * subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
 		 */
 		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.physicalEventEmitter);
 	}
-	
+
 	private physicalEventEmitter(data: Packet.StandardMessageRecieved){
 		switch(true){
 			case data.cmd1 === 0x11 && data.cmd2 === 0x01: this.emitPhysical(['sensor','dry'], data); break; // Doesn't trigger automatically. You have to click the set button to reset after water is detected

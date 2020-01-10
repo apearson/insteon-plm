@@ -14,12 +14,12 @@ export interface MotionSensorConfigOptions {
 export default class MotionSensor extends SecurityDevice {
 	public setupEvents(){
 		/* InsteonDevice emits all packets with type & subtype
-		   type 0x50 = Standard Message Received
-		   subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
+		 * type 0x50 = Standard Message Received
+		 * subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
 		 */
 		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.physicalEventEmitter);
 	}
-	
+
 	private physicalEventEmitter(data: Packet.StandardMessageRecieved){
 		switch(true){
 			case data.cmd1 === 0x11 && data.cmd2 === 0x01: this.emitPhysical(['motion','on'], data); break;
@@ -31,13 +31,13 @@ export default class MotionSensor extends SecurityDevice {
 			// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
 		}
 	}
-	
+
 	// Start device configuration methods
 	/* Get the configuration flags from the device */
 	public async configRequest(): Promise<Packet.StandardMessageRecieved>{
 		return this.sendInsteonCommand(0x1F,0x00);
 	}
-	
+
 	/* Parse the flags into an easy to use object
 		Get Operating Flags: 0x1F, 0x00 -> Returned ACK will contain requested data in CMD2
 		These settings do not appear to be used by the motion sensor.
@@ -50,13 +50,13 @@ export default class MotionSensor extends SecurityDevice {
 		// Convert the flags stored in cmd2 to an array of bits
 		// String to base2, pad leading 0s, then split into an array of ints. Reverse it so that the array index matches the bit index
 		const bits = configPacket.cmd2.toString(2).padStart(8,"0").split("").reverse().map(bit => parseInt(bit));
-		
+
 		return {
 			bits: bits,
 		}
 	}
-	
-	/* 	Set Operating Flags: 
+
+	/* 	Set Operating Flags:
 		cmd1 = 0x20,
 		cmd2 = The flag to alter
 		user data 14 = checksum
@@ -65,10 +65,10 @@ export default class MotionSensor extends SecurityDevice {
 		const cmd1 = 0x20;
 		const extendedData = new Array(13).fill(0x00);
 		extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
-		
+
 		return this.sendInsteonCommand(cmd1, cmd2, extendedData);
 	}
-	
+
 	/* Extended Get
 		cmd1: 0x2E
 		cmd2: 0x00
@@ -82,9 +82,9 @@ export default class MotionSensor extends SecurityDevice {
 		user data  4: 0x00 - 0xFF = motionCountdown 0.5 up to 128 minutes in 30 second increments
 		user data  5: 0x00 - 0xFF = Light Sensitivity
 		user data  6: bits 1-4 Control onCommandsOnly, nightModeOnly, LEDEnabled, onlyAfterTimeoutDisabled
-		user data  7: 
-		user data  8: 
-		user data  9: 
+		user data  7:
+		user data  8:
+		user data  9:
 		user data 10:
 		user data 11: light level?
 		user data 12: battery?
@@ -95,9 +95,9 @@ export default class MotionSensor extends SecurityDevice {
 		// Catch the extended configuration data packet
 		this.once(
 			['p',PacketID.ExtendedMessageReceived.toString(16),0x00.toString(16)],
-			(packet: Packet.ExtendedMessageRecieved) =>  resolve(packet)
+			(packet: Packet.ExtendedMessageRecieved) => resolve(packet)
 		);
-		
+
 		this.sendInsteonCommand(0x2E, 0x00,[0x01,0x00]);
 	});
 
@@ -117,13 +117,13 @@ export default class MotionSensor extends SecurityDevice {
 			onlyAfterTimeoutDisabled: configBits[4]
 		}
 	}
-	
+
 	/* Extended Set:
 		cmd1: 0x2E
 		cmd2: 0x00
 		user data  1: 0x00-0xFF = target button. Always using 0x01 in this class because these devices have a single button.
 	*/
-	
+
 	public async setExtendedConfigFlag(setting: Byte, value: Byte): Promise<Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved>{
 		const cmd1 = 0x2E;
 		const cmd2 = 0x00;
@@ -132,10 +132,10 @@ export default class MotionSensor extends SecurityDevice {
 		extendedData[1] = setting;
 		extendedData[2] = value;
 		extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
-		
+
 		return this.sendInsteonCommand(cmd1, cmd2, extendedData);
 	}
-	
+
 	/*	Set LED Brightness
 		user data  2: 0x02 = set LED Brightness
 		user data  3: 0x00-0xFF = brightness value
@@ -153,8 +153,8 @@ export default class MotionSensor extends SecurityDevice {
 	public async setMotionCountdown(value: Byte): Promise<Packet.StandardMessageRecieved>{
 		return this.setExtendedConfigFlag(0x03, value);
 	}
-	
-	/* Set the light sensitivity 
+
+	/* Set the light sensitivity
 		user data 2: 0x04 = set light sensitivity/threshold
 		user data 3: 0x00 - 0xFF = threshold value
 		user data 4-14: Unused
@@ -162,7 +162,7 @@ export default class MotionSensor extends SecurityDevice {
 	public async setLightSensitivity(level: Byte): Promise<Packet.StandardMessageRecieved>{
 		return this.setExtendedConfigFlag(0x04, level);
 	}
-	
+
 	/* Set the configuration byte
 		user data 2: 0x05 = set config byte
 		user data 3: byte to set
@@ -178,10 +178,10 @@ export default class MotionSensor extends SecurityDevice {
 		let flagByte = 0x00;
 		if(options.onCommandsOnlyDisabled)   flagByte |= 0x02; //0000 0010
 		if(options.nightOnlyModeDisabled)    flagByte |= 0x04; //0000 0100
-		if(options.LEDEnabled)               flagByte |= 0x08; //0000 1000  - this flag is inverted. Other devices use LED disabled instead of LED enabled
+		if(options.LEDEnabled)               flagByte |= 0x08; //0000 1000 - this flag is inverted. Other devices use LED disabled instead of LED enabled
 		if(options.onlyAfterTimeoutDisabled) flagByte |= 0x10; //0001 0000
-		
+
 		return this.setExtendedConfigFlag(0x05, flagByte as Byte);
 	}
-	
+
 }
