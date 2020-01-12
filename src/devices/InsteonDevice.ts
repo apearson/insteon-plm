@@ -408,10 +408,10 @@ export default class InsteonDevice extends EventEmitter2 {
 		const rampRate = options.rampRate;
 
 		// Flags
-		const active = options.Type.active || true;
+		const active = options.Type.active ?? true;
 		const type = options.Type.control;
-		const smartHop = options.Type.smartHop || 3;
-		const highWater = options.Type.highwater || false;
+		const smartHop = options.Type.smartHop ?? 3;
+		const highWater = options.Type.highwater ?? false;
 
 		// Creating flag bit
 		const flags = ((+active << 7) | (type << 6) | (1 << 5) | (smartHop << 3) | (+(!highWater) << 1)) as Byte;
