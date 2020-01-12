@@ -594,7 +594,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Send Commands
 
-	public sendAllLinkCommand = (group: Byte, cmd1: Byte, cmd2: Byte) => new Promise(async (resolve, reject) => {
+	public async sendAllLinkCommand(group: Byte, cmd1: Byte, cmd2: Byte){
 		/* Allocating command buffer */
 		const command = PacketID.SendAllLinkCommand;
 		const commandBuffer = Buffer.alloc(5);
@@ -607,19 +607,13 @@ export default class PowerLincModem extends EventEmitter2 {
 		commandBuffer.writeUInt8(cmd2,  4);   //Device Low Address Byte
 
 		/* Sending command */
-		const packet = await this.queueCommand(commandBuffer) as Packet.SendAllLinkCommand;
+		const packet = await this.queueCommand(commandBuffer) as Packet.AllLinkCleanupStatusReport;
 
-		if(!packet.ack)
-			reject('Could not send all link command');
-
-		/* Waiting on cleanup report */
-		this.once(['p', PacketID.AllLinkCleanupStatusReport.toString(16)],
-		          (d: Packet.AllLinkCleanupStatusReport) => resolve(d.status)
-		);
-
-		/* Returning ack of command */
-		// return packet.ack;
-	});
+		if(!packet.status)
+			throw Error('Failed to send all link command');
+		else
+			return packet;
+	}
 
 	public async sendStandardCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, flags: Byte = 0x0F){
 		/* Parsing out device ID */
@@ -642,10 +636,10 @@ export default class PowerLincModem extends EventEmitter2 {
 		commandBuffer.writeUInt8(cmd2, 7);        //Command Byte 2
 
 		/* Sending command */
-		const packet = await this.queueCommand(commandBuffer) as Packet.SendInsteonMessage;
+		const packet = await this.queueCommand(commandBuffer) as Packet.StandardMessageRecieved;
 
 		/* Returning ack of command */
-		return packet.ack;
+		return packet;
 	}
 
 	public async sendExtendedCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, extendedData: Byte[], flags: Byte = 0x1F){
@@ -683,10 +677,10 @@ export default class PowerLincModem extends EventEmitter2 {
 		commandBuffer.writeUInt8(extendedData[13] || 0x00, 21); //User Data 14
 
 		/* Sending command */
-		const packet = await this.queueCommand(commandBuffer) as Packet.SendInsteonMessage;
+		const packet = await this.queueCommand(commandBuffer) as Packet.ExtendedMessageRecieved;
 
 		/* Returning ack of command */
-		return packet.ack;
+		return packet;
 	}
 
 	//#endregion
@@ -694,57 +688,91 @@ export default class PowerLincModem extends EventEmitter2 {
 	//#region Queue Functions
 
 	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<AnyPacket>) => {
-		let timer:NodeJS.Timer;
 
-		const callbackFunction = (d: Packet.Packet) => {
+		let timer: NodeJS.Timer;
 
-			debug(`pong`);
+		const onPacket = (p: Packet.Packet) => {
+
+			// Clearing timeout
 			clearTimeout(timer);
 
-			if(d.ack){
-				const packet = d as Packet.SendInsteonMessage;
+			const isNetworkPacket =  p.type === PacketID.SendInsteonMessage
+														|| p.type === PacketID.SendAllLinkCommand;
 
-				if(packet.ack){
-					debug('waiting for ack setTimeout');
-					setTimeout(() => {
-						debug('ack setTimeout finished');
-						callback(null, packet);
-					}, 450);
+			if(isNetworkPacket && p.ack){
+
+				if(p.type == PacketID.SendInsteonMessage){
+					// Waiting for ack of direct message
+					this.once(['p',  '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], onNetworkPacket);
 				}
-				else{
-					callback(Error('Could not complete task'));
+				else if(p.type == PacketID.SendAllLinkCommand){
+					// Waiting for ack of direct message
+					this.once(['p',  PacketID.AllLinkCleanupStatusReport.toString(16), '**'], onSceneCleanupPacket);
 				}
+
+				// Setting a timeout of 10sec for network messages and 100 ms for modem messages
+				timer = setTimeout(onNetworkTimeout, 10000);
+			}
+			else if(isNetworkPacket && !p.ack){
+				callback(Error('Modem could not send packet, not ready'), p);
 			}
 			else{
-				debug('waiting for setTimeout')
-				setTimeout(() => {
-					debug('setTimeout finished')
-					callback(null, d);
-				}, 450);
+				// Successful callback with packet
+				callback(null, p);
 			}
 		}
 
+		const onModemTimeout = () => {
+			const timeoutMsg = "No response received within timeout";
+
+			debug(timeoutMsg);
+
+			this.removeListener(['p', task[1].toString(16)], onPacket);
+
+			callback(Error(timeoutMsg));
+		}
+
+		const onNetworkPacket = (packet: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
+			// Clearing timeout
+			clearTimeout(timer);
+
+			// Waiting 500 ms for modem to be ready
+			this.requestQueue.pause();
+			setTimeout(_ => this.requestQueue.resume(), 200);
+
+			packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? callback(null, packet) : callback(Error(packet.Flags.Subtype), packet);
+		}
+
+		const onSceneCleanupPacket = (packet: Packet.AllLinkCleanupStatusReport) => {
+			clearTimeout(timer);
+
+			callback(null, packet)
+		}
+
+		const onNetworkTimeout = () => {
+			const timeoutMsg = "No device response received within timeout";
+
+			debug(timeoutMsg);
+
+			this.removeListener(['p', '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], onNetworkPacket);
+
+			callback(Error(timeoutMsg));
+		}
+
 		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', task[1].toString(16)], callbackFunction);
+		this.once(['p', task[1].toString(16)], onPacket);
 
 		// Attempting to write command to modem
 		try{
-			timer = setTimeout(() => {
-				debug("No response received within 10 seconds");
-
-				// if we use the callback here, we have to remove the 'once' event listener otherwise the callback could be called twice, which crashes NodeJS.
-				// Throwing an error here requires a try/catch around every single insteon call? Use null instead?
-				this.removeListener(['p', task[1].toString(16)], callbackFunction);
-				callback(null);
-				// callback(Error('No response received within 10 seconds'));
-			},10000);
-
 			const isSuccessful = this.port.write(task);
 
-			debug(`ping`);
-
-			if(!isSuccessful)
+			if(!isSuccessful){
 				callback(Error('Could not write to modem'));
+				return;
+			}
+
+			// Setting a timeout of 10sec for network messages and 100 ms for modem messages
+			timer = setTimeout(onModemTimeout, 1000);
 		}
 		catch(error){
 			callback(error);
