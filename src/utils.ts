@@ -11,7 +11,7 @@ export function toAddressString(address: Byte[]){
 }
 
 export function toAddressArray(address: String){
-	return address.split(".").map(el => parseInt(el,16));
+	return address.split(".").map(el => parseInt(el,16)) as Byte[];
 }
 
 export function validateAddress(address: String){
@@ -39,6 +39,28 @@ export function nextLinkAddress(address: Byte[]){
 	}
 	
 	return address;
+}
+
+export function calculateHighWaterAddress(links: DeviceLinkRecord[]){
+	let highWater = [] as Byte[];
+
+	for(var i = 0; i < links.length; i++){
+		highWater = links[i].address;
+	
+		for(var j = i; j < links.length; j++){
+			if(toAddressString(links[j].device) !== '00.00.00'){
+				highWater = [];
+			}
+		}
+	
+		if(highWater.length) break;
+	}
+	
+	if(highWater.length === 0){
+		highWater = nextLinkAddress(links[links.length-1].address);
+	}
+	
+	return highWater;
 }
 
 export function toHex(n: number){
