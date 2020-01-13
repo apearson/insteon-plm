@@ -1,6 +1,6 @@
 {
-	"extends": "./tsconfig",
-	"references": [
-		{ "path": "../insteon-packet-parser" }
-	]
+  "extends": "./tsconfig",
+  "references": [
+    { "path": "../insteon-packet-parser" }
+  ]
 }
