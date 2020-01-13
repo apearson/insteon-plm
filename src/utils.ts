@@ -26,19 +26,15 @@ export function validateAddress(address: String){
 	return true;
 }
 
-export function nextLinkAddress(address: Byte[]){
-	if(address[1] - 8 > 0){
-		address[1] = address[1] - 8 as Byte;
-	}else{
-		address[0] = address[0] - 1 as Byte;
-		address[1] = 255;
-	}
-	
-	if(address[0] < 0){
+export function nextLinkAddress(address: Byte[]) {
+	var next = ((address[0] << 8 | address[1]) - 8);
+	var result = [next >> 8, next & 255] as Byte[];
+
+	if (result[0] < 0) {
 		throw Error("Out of address space");
 	}
-	
-	return address;
+
+	return result;
 }
 
 export function calculateHighWaterAddress(links: DeviceLinkRecord[]){
