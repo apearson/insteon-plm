@@ -2,7 +2,7 @@
 import PowerLincModem  from './PowerLincModem';
 
 /* Devices */
-import InsteonDevice from './devices/InsteonDevice';
+import InsteonDevice, { DeviceLinkRecord } from './devices/InsteonDevice';
 
 /* Dimable Devices. Device cat 0x01 */
 import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
@@ -63,7 +63,9 @@ export {
 	Byte,
 	AllLinkRecordOperation,
 	AllLinkRecordType,
-	MessageSubtype
+	MessageSubtype,
+	
+	DeviceLinkRecord
 }
 
 
