@@ -1,37 +1,37 @@
 {
-	"name": "insteon-plm",
-	"version": "0.3.7",
-	"description": "Insteon PLM is a TypeScript/JavaScript library for the Insteon PowerLinc Modem family of devices",
-	"main": "./dist/main.js",
-	"types": "./dist/main.d.ts",
-	"scripts": {
-		"prepublishOnly": "yarn run build",
-		"build": "tsc",
-		"build:dev": "tsc -p ./tsconfig.dev.json",
-		"debug": "ts-node ./tests/debug.ts"
-	},
-	"author": "John Andrew Tyler Pearson",
-	"license": "MIT",
-	"files": [
-		"dist/"
-	],
-	"dependencies": {
-		"@types/bluebird": "^3.5.28",
-		"async": "^3.1.0",
-		"bluebird": "^3.7.1",
-		"debug": "^4.1.1",
-		"eventemitter2": "^5.0.0",
-		"insteon-packet-parser": "^3.3.0",
-		"serialport": "^7.1.5"
-	},
-	"devDependencies": {
-		"@types/async": "^3.0.3",
-		"@types/debug": "^4.1.5",
-		"@types/dotenv": "^6.1.1",
-		"@types/node": "^12.12.6",
-		"@types/serialport": "^7.0.4",
-		"dotenv": "^8.1.0",
-		"ts-node": "^8.3.0",
-		"typescript": "^3.7.2"
-	}
+  "name": "insteon-plm",
+  "version": "0.3.7",
+  "description": "Insteon PLM is a TypeScript/JavaScript library for the Insteon PowerLinc Modem family of devices",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "scripts": {
+    "prepublishOnly": "yarn run build",
+    "build": "tsc",
+    "build:dev": "tsc -p ./tsconfig.dev.json",
+    "debug": "ts-node ./tests/debug.ts"
+  },
+  "author": "John Andrew Tyler Pearson",
+  "license": "MIT",
+  "files": [
+    "dist/"
+  ],
+  "dependencies": {
+    "@types/bluebird": "^3.5.28",
+    "async": "^3.1.0",
+    "bluebird": "^3.7.1",
+    "debug": "^4.1.1",
+    "eventemitter2": "^5.0.0",
+    "insteon-packet-parser": "^3.3.0",
+    "serialport": "^7.1.5"
+  },
+  "devDependencies": {
+    "@types/async": "^3.0.3",
+    "@types/debug": "^4.1.5",
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^12.12.6",
+    "@types/serialport": "^7.0.4",
+    "dotenv": "^8.1.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.7.2"
+  }
 }

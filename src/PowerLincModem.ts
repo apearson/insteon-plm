@@ -1,5 +1,8 @@
-//#region Libraries
 import logger from 'debug';
+/* Configuring logging */
+const debug = logger('insteon-plm:powerLincModem');
+
+/* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
 import SerialPort from 'serialport';
 import { queue, AsyncQueue, AsyncResultCallback } from 'async';
@@ -13,7 +16,7 @@ import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
 
 /* Dimable Devices. Device cat 0x01 */
 import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
-import KeypadDimmer from './devices/DimmableLightingDevice/KeypadDimmer';
+import KeypadDimmer  from './devices/DimmableLightingDevice/KeypadDimmer';
 
 /* Switched On/Off Devices. Device cat 0x02 */
 import SwitchedLightingDevice from './devices/SwitchedLightingDevice/SwitchedLightingDevice';
@@ -33,13 +36,8 @@ import LeakSensor from './devices/SecurityDevice/LeakSensor';
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
 import { Device } from './typings/database';
 
-//#endregion
-
-//#region Configuring Logging
-const debug = logger('insteon-plm:powerLincModem');
-//#endregion
-
 //#region Interfaces
+
 export interface ModemOptions {
 	debug: boolean;
 }
@@ -67,10 +65,12 @@ export interface ModemLink {
 
 interface QueueTaskData extends Buffer {
 }
+
 //#endregion
 
 //#region PLM Class
 export default class PowerLincModem extends EventEmitter2 {
+
 	//#region Private Variables
 
 	/* Internal Variables */
@@ -314,6 +314,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		return this.config;
 	}
 
+	// TODO: Abtract away from packets
 	public async syncLinks(){
 		this._links= await this.getAllLinks();
 
@@ -328,10 +329,10 @@ export default class PowerLincModem extends EventEmitter2 {
 		/* Configuration byte */
 		let flagByte = 0x00;
 
-		if(!autoLinking) flagByte |= 0x80; //1000 0000
-		if(monitorMode)  flagByte |= 0x40; //0100 0000
-		if(!autoLED)     flagByte |= 0x20; //0010 0000
-		if(!deadman)     flagByte |= 0x10; //0001 0000
+		if(!autoLinking) flagByte |= 0x80;  //1000 0000
+		if(monitorMode)  flagByte |= 0x40;  //0100 0000
+		if(!autoLED)     flagByte |= 0x20;  //0010 0000
+		if(!deadman)     flagByte |= 0x10;  //0001 0000
 
 		/* Allocating command buffer */
 		const command = PacketID.SetIMConfiguration
@@ -594,26 +595,32 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Send Commands
 
-	public async sendAllLinkCommand(group: Byte, cmd1: Byte, cmd2: Byte){
+	public sendAllLinkCommand = (group: Byte, cmd1: Byte, cmd2: Byte) => new Promise(async (resolve, reject) => {
 		/* Allocating command buffer */
 		const command = PacketID.SendAllLinkCommand;
 		const commandBuffer = Buffer.alloc(5);
 
 		/* Creating command */
-		commandBuffer.writeUInt8(0x02,  0);   //PLM Command
-		commandBuffer.writeUInt8(command, 1); //Standard Length Message
-		commandBuffer.writeUInt8(group, 2);   //Device High Address Byte
-		commandBuffer.writeUInt8(cmd1,  3);   //Device Middle Address Byte
-		commandBuffer.writeUInt8(cmd2,  4);   //Device Low Address Byte
+		commandBuffer.writeUInt8(0x02,  0);    //PLM Command
+		commandBuffer.writeUInt8(command, 1);  //Standard Length Message
+		commandBuffer.writeUInt8(group, 2);    //Device High Address Byte
+		commandBuffer.writeUInt8(cmd1,  3);    //Device Middle Address Byte
+		commandBuffer.writeUInt8(cmd2,  4);    //Device Low Address Byte
 
 		/* Sending command */
-		const packet = await this.queueCommand(commandBuffer) as Packet.AllLinkCleanupStatusReport;
+		const packet = await this.queueCommand(commandBuffer) as Packet.SendAllLinkCommand;
 
-		if(!packet.status)
-			throw Error('Failed to send all link command');
-		else
-			return packet;
-	}
+		if(!packet.ack)
+			reject('Could not send all link command');
+
+		/* Waiting on cleanup report */
+		this.once(['p', PacketID.AllLinkCleanupStatusReport.toString(16)],
+		          (d: Packet.AllLinkCleanupStatusReport) => resolve(d.status)
+		);
+
+		/* Returning ack of command */
+		// return packet.ack;
+	});
 
 	public async sendStandardCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, flags: Byte = 0x0F){
 		/* Parsing out device ID */
@@ -626,20 +633,20 @@ export default class PowerLincModem extends EventEmitter2 {
 		const commandBuffer = Buffer.alloc(8);
 
 		/* Creating command */
-		commandBuffer.writeUInt8(0x02, 0);        //PLM Command
-		commandBuffer.writeUInt8(command, 1);     //Standard Length Message
+		commandBuffer.writeUInt8(0x02, 0);  //PLM Command
+		commandBuffer.writeUInt8(command, 1);  //Standard Length Message
 		commandBuffer.writeUInt8(deviceID[0], 2); //Device High Address Byte
 		commandBuffer.writeUInt8(deviceID[1], 3); //Device Middle Address Byte
 		commandBuffer.writeUInt8(deviceID[2], 4); //Device Low Address Byte
-		commandBuffer.writeUInt8(flags, 5);       //Message Flag Byte
-		commandBuffer.writeUInt8(cmd1, 6);        //Command Byte 1
-		commandBuffer.writeUInt8(cmd2, 7);        //Command Byte 2
+		commandBuffer.writeUInt8(flags, 5); //Message Flag Byte
+		commandBuffer.writeUInt8(cmd1, 6);  //Command Byte 1
+		commandBuffer.writeUInt8(cmd2, 7);  //Command Byte 2
 
 		/* Sending command */
-		const packet = await this.queueCommand(commandBuffer) as Packet.StandardMessageRecieved;
+		const packet = await this.queueCommand(commandBuffer) as Packet.SendInsteonMessage;
 
 		/* Returning ack of command */
-		return packet;
+		return packet.ack;
 	}
 
 	public async sendExtendedCommand(deviceID: string | Byte[], cmd1: Byte = 0x00, cmd2: Byte = 0x00, extendedData: Byte[], flags: Byte = 0x1F){
@@ -653,34 +660,34 @@ export default class PowerLincModem extends EventEmitter2 {
 		const commandBuffer = Buffer.alloc(22);
 
 		/* Creating command */
-		commandBuffer.writeUInt8(0x02, 0);                      //PLM Command
-		commandBuffer.writeUInt8(command, 1);                   //Standard Length Message
-		commandBuffer.writeUInt8(deviceID[0], 2);               //Device High Address Byte
-		commandBuffer.writeUInt8(deviceID[1], 3);               //Device Middle Address Byte
-		commandBuffer.writeUInt8(deviceID[2], 4);               //Device Low Address Byte
-		commandBuffer.writeUInt8(flags, 5);                     //Message Flag Byte
-		commandBuffer.writeUInt8(cmd1, 6);                      //Command Byte 1
-		commandBuffer.writeUInt8(cmd2, 7);                      //Command Byte 2
+		commandBuffer.writeUInt8(0x02, 0);  //PLM Command
+		commandBuffer.writeUInt8(command, 1);  //Standard Length Message
+		commandBuffer.writeUInt8(deviceID[0], 2); //Device High Address Byte
+		commandBuffer.writeUInt8(deviceID[1], 3); //Device Middle Address Byte
+		commandBuffer.writeUInt8(deviceID[2], 4); //Device Low Address Byte
+		commandBuffer.writeUInt8(flags, 5); //Message Flag Byte
+		commandBuffer.writeUInt8(cmd1, 6);  //Command Byte 1
+		commandBuffer.writeUInt8(cmd2, 7);  //Command Byte 2
 		commandBuffer.writeUInt8(extendedData[0]  || 0x00, 8);  //User Data 1
 		commandBuffer.writeUInt8(extendedData[1]  || 0x00, 9);  //User Data 2
-		commandBuffer.writeUInt8(extendedData[2]  || 0x00, 10); //User Data 3
-		commandBuffer.writeUInt8(extendedData[3]  || 0x00, 11); //User Data 4
-		commandBuffer.writeUInt8(extendedData[4]  || 0x00, 12); //User Data 5
-		commandBuffer.writeUInt8(extendedData[5]  || 0x00, 13); //User Data 6
-		commandBuffer.writeUInt8(extendedData[6]  || 0x00, 14); //User Data 7
-		commandBuffer.writeUInt8(extendedData[7]  || 0x00, 15); //User Data 8
-		commandBuffer.writeUInt8(extendedData[8]  || 0x00, 16); //User Data 9
-		commandBuffer.writeUInt8(extendedData[9]  || 0x00, 17); //User Data 10
-		commandBuffer.writeUInt8(extendedData[10] || 0x00, 18); //User Data 11
-		commandBuffer.writeUInt8(extendedData[11] || 0x00, 19); //User Data 12
-		commandBuffer.writeUInt8(extendedData[12] || 0x00, 20); //User Data 13
-		commandBuffer.writeUInt8(extendedData[13] || 0x00, 21); //User Data 14
+		commandBuffer.writeUInt8(extendedData[2]  || 0x00, 10);  //User Data 3
+		commandBuffer.writeUInt8(extendedData[3]  || 0x00, 11);  //User Data 4
+		commandBuffer.writeUInt8(extendedData[4]  || 0x00, 12);  //User Data 5
+		commandBuffer.writeUInt8(extendedData[5]  || 0x00, 13);  //User Data 6
+		commandBuffer.writeUInt8(extendedData[6]  || 0x00, 14);  //User Data 7
+		commandBuffer.writeUInt8(extendedData[7]  || 0x00, 15);  //User Data 8
+		commandBuffer.writeUInt8(extendedData[8]  || 0x00, 16);  //User Data 9
+		commandBuffer.writeUInt8(extendedData[9]  || 0x00, 17);  //User Data 10
+		commandBuffer.writeUInt8(extendedData[10] || 0x00, 18);  //User Data 11
+		commandBuffer.writeUInt8(extendedData[11] || 0x00, 19);  //User Data 12
+		commandBuffer.writeUInt8(extendedData[12] || 0x00, 20);  //User Data 13
+		commandBuffer.writeUInt8(extendedData[13] || 0x00, 21);  //User Data 14
 
 		/* Sending command */
-		const packet = await this.queueCommand(commandBuffer) as Packet.ExtendedMessageRecieved;
+		const packet = await this.queueCommand(commandBuffer) as Packet.SendInsteonMessage;
 
 		/* Returning ack of command */
-		return packet;
+		return packet.ack;
 	}
 
 	//#endregion
@@ -688,91 +695,57 @@ export default class PowerLincModem extends EventEmitter2 {
 	//#region Queue Functions
 
 	private processQueue = async (task: QueueTaskData, callback: AsyncResultCallback<AnyPacket>) => {
-
-		let timer: NodeJS.Timer;
-
-		const onPacket = (p: Packet.Packet) => {
-
-			// Clearing timeout
+		let timer:NodeJS.Timer;
+		
+		const callbackFunction = (d: Packet.Packet) => {
+		
+			debug(`pong`);
 			clearTimeout(timer);
 
-			const isNetworkPacket =  p.type === PacketID.SendInsteonMessage
-														|| p.type === PacketID.SendAllLinkCommand;
+			if(d.ack){
+				const packet = d as Packet.SendInsteonMessage;
 
-			if(isNetworkPacket && p.ack){
-
-				if(p.type == PacketID.SendInsteonMessage){
-					// Waiting for ack of direct message
-					this.once(['p',  '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], onNetworkPacket);
+				if(packet.ack){
+					debug('waiting for ack setTimeout');
+					setTimeout(() => {
+						debug('ack setTimeout finished');
+						callback(null, packet);
+					}, 450);
 				}
-				else if(p.type == PacketID.SendAllLinkCommand){
-					// Waiting for ack of direct message
-					this.once(['p',  PacketID.AllLinkCleanupStatusReport.toString(16), '**'], onSceneCleanupPacket);
+				else{
+					callback(Error('Could not complete task'));
 				}
-
-				// Setting a timeout of 10sec for network messages and 100 ms for modem messages
-				timer = setTimeout(onNetworkTimeout, 10000);
-			}
-			else if(isNetworkPacket && !p.ack){
-				callback(Error('Modem could not send packet, not ready'), p);
 			}
 			else{
-				// Successful callback with packet
-				callback(null, p);
+				debug('waiting for setTimeout')
+				setTimeout(() => {
+					debug('setTimeout finished')
+					callback(null, d);
+				}, 450);
 			}
 		}
-
-		const onModemTimeout = () => {
-			const timeoutMsg = "No response received within timeout";
-
-			debug(timeoutMsg);
-
-			this.removeListener(['p', task[1].toString(16)], onPacket);
-
-			callback(Error(timeoutMsg));
-		}
-
-		const onNetworkPacket = (packet: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
-			// Clearing timeout
-			clearTimeout(timer);
-
-			// Waiting 500 ms for modem to be ready
-			this.requestQueue.pause();
-			setTimeout(_ => this.requestQueue.resume(), 200);
-
-			packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? callback(null, packet) : callback(Error(packet.Flags.Subtype), packet);
-		}
-
-		const onSceneCleanupPacket = (packet: Packet.AllLinkCleanupStatusReport) => {
-			clearTimeout(timer);
-
-			callback(null, packet)
-		}
-
-		const onNetworkTimeout = () => {
-			const timeoutMsg = "No device response received within timeout";
-
-			debug(timeoutMsg);
-
-			this.removeListener(['p', '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], onNetworkPacket);
-
-			callback(Error(timeoutMsg));
-		}
-
+			
 		// Once we hear an echo (same command back) the modem is ready for another command
-		this.once(['p', task[1].toString(16)], onPacket);
+		this.once(['p', task[1].toString(16)], callbackFunction);
 
 		// Attempting to write command to modem
 		try{
+			timer = setTimeout(() => {
+				debug("No response received within 10 seconds");
+				
+				// if we use the callback here, we have to remove the 'once' event listener otherwise the callback could be called twice, which crashes NodeJS.
+				// Throwing an error here requires a try/catch around every single insteon call? Use null instead?
+				this.removeListener(['p', task[1].toString(16)], callbackFunction);
+				callback(null);
+				// callback(Error('No response received within 10 seconds'));
+			},10000);
+		
 			const isSuccessful = this.port.write(task);
+		
+			debug(`ping`);
 
-			if(!isSuccessful){
+			if(!isSuccessful)
 				callback(Error('Could not write to modem'));
-				return;
-			}
-
-			// Setting a timeout of 10sec for network messages and 100 ms for modem messages
-			timer = setTimeout(onModemTimeout, 1000);
 		}
 		catch(error){
 			callback(error);
@@ -884,7 +857,7 @@ export default class PowerLincModem extends EventEmitter2 {
 			resolve(options?.cache.info);
 			return;
 		}
-
+		
 		// Catching broadcast message
 		this.once(
 			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16), toAddressString(deviceID)],
@@ -895,7 +868,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		debug(`queryDeviceInfo: ${toAddressString(deviceID)}`);
 		this.sendStandardCommand(deviceID, 0x10, 0x00);
 	}).timeout(2000);
-
+	
 
 	/**
 	 * Factory method for creating a device instance of the correct type

@@ -1,12 +1,12 @@
 /* Modem */
-import PowerLincModem from './PowerLincModem';
+import PowerLincModem  from './PowerLincModem';
 
 /* Devices */
 import InsteonDevice, { DeviceLinkRecord } from './devices/InsteonDevice';
 
 /* Dimable Devices. Device cat 0x01 */
 import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
-import KeypadDimmer from './devices/DimmableLightingDevice/KeypadDimmer';
+import KeypadDimmer  from './devices/DimmableLightingDevice/KeypadDimmer';
 
 /* Switched On/Off Devices. Device cat 0x02 */
 import SwitchedLightingDevice from './devices/SwitchedLightingDevice/SwitchedLightingDevice';
@@ -39,15 +39,15 @@ export {
 	// Dimmable
 	DimmableLightingDevice,
 	KeypadDimmer,
-
+	
 	// Switched
 	SwitchedLightingDevice,
 	OutletLinc,
-
+	
 	// Sensors & Actuators
 	SensorActuatorDevice,
 	IOLinc,
-
+	
 	// Security / battery operated sensors
 	SecurityDevice,
 	MotionSensor,

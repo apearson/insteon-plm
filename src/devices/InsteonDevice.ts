@@ -1,14 +1,13 @@
-//#region Libraries
-import { delay } from 'bluebird';
+/* Libraries */
 import { EventEmitter2 } from 'eventemitter2';
-import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import PowerLincModem from '../PowerLincModem';
+import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
+import { toHex, toAddressString, toAddressArray } from '../utils';
+import Bluebird, { promisify, delay } from 'bluebird';
 import { Device } from '../typings/database';
-import { toHex, toAddressString } from '../utils';
-//#endregion
 
-//#region Interfaces
 
+/* Interface */
 export interface DeviceCommandTask {
 	cmd1: Byte;
 	cmd2: Byte;
@@ -58,9 +57,7 @@ export interface DeviceLinkRecordOptions {
 	}
 }
 
-//#endregion
-
-//#region Class for Insteon Devices
+/* Class for Insteon Devices */
 export default class InsteonDevice extends EventEmitter2 {
 
 	//#region Private Variables
@@ -110,19 +107,19 @@ export default class InsteonDevice extends EventEmitter2 {
 		if(this.options.cache){
 			this.cat = parseInt(this.options.cache.info.cat,16) as Byte;
 			this.subcat = parseInt(this.options.cache.info.subcat,16) as Byte;
-			// this.firmware = parsethis.options.cache.info.firmware;
+			// this.firmware = parsethis.options.cache.info.firmware; 
 			// this.hardward = this.options.cache.info.hardward;
-
+			
 			this.links = this.options.cache.links;
 		}
-
+		
 		// Syncing data (will overwrite cached data)
 		if(this.options.syncInfo !== false)
 			await this.syncInfo();
 
 		if(this.options.syncLinks !== false)
 			await this.syncLinks();
-
+			
 
 		/* Workaround to keep async function from emitting before
 		 * constuctor is done constucting
@@ -158,20 +155,20 @@ export default class InsteonDevice extends EventEmitter2 {
 	//#endregion
 
 	//#region Insteon Send Methods
-
-	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte): Promise<Packet.StandardMessageRecieved> {
-
+	
+	public sendInsteonCommand(cmd1: Byte, cmd2: Byte, extendedData?: Byte[], flags?: Byte): Promise<Packet.StandardMessageRecieved> {	
+		
 		/* Sending command */
 		return new Promise<Packet.StandardMessageRecieved>(async (resolve, reject) => {
 			// Waiting for ack of direct message
-			this.once(['p', '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], (packet: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) => {
+			this.once(['p', '*', MessageSubtype.ACKofDirectMessage.toString(16), '**'], (packet: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved) =>  {
 				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(packet) : reject(packet);
 			});
 
-			/* catch the response */
+			/* catch the response */			
 			const sent = !!extendedData ? await this.modem.sendExtendedCommand(this.address, cmd1, cmd2, extendedData, flags)
 						: await this.modem.sendStandardCommand(this.address, cmd1, cmd2, flags);
-
+	
 			if(!sent)
 				reject(false);
 		});
@@ -347,7 +344,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public readDatabase = (startAddress: Byte[], numberOfRecords: Byte) => new Promise<DeviceLinkRecord[]>(async (resolve, reject) => {
 
 		// Device links
-		const links: DeviceLinkRecord[] = [];
+		const links: DeviceLinkRecord[]  = [];
 
 		// Device listener event name
 		const dbRecordEvent = ['p', PacketID.ExtendedMessageReceived.toString(16), MessageSubtype.DirectMessage.toString(16)];
@@ -408,10 +405,10 @@ export default class InsteonDevice extends EventEmitter2 {
 		const rampRate = options.rampRate;
 
 		// Flags
-		const active = options.Type.active ?? true;
+		const active = options.Type.active || true;
 		const type = options.Type.control;
-		const smartHop = options.Type.smartHop ?? 3;
-		const highWater = options.Type.highwater ?? false;
+		const smartHop = options.Type.smartHop || 3;
+		const highWater = options.Type.highwater || false;
 
 		// Creating flag bit
 		const flags = ((+active << 7) | (type << 6) | (1 << 5) | (smartHop << 3) | (+(!highWater) << 1)) as Byte;
@@ -433,6 +430,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 
+
 	//#region Event functions
 
 	public setupRebroadcast(){
@@ -448,7 +446,7 @@ export default class InsteonDevice extends EventEmitter2 {
 
 			this.emit(['p', data.type.toString(16), data.Flags.subtype.toString(16)], data);
 		});
-
+		
 
 		/* Look for group broadcasts that were sent by any controller of this device
 		 * The device will physically respond to an Insteon group broadcast messages if has a responder record for the controller with the same group #
@@ -474,14 +472,14 @@ export default class InsteonDevice extends EventEmitter2 {
 	public setupEvents(){ }
 	public readConfig(){ return {}; }
 	public readExtendedConfig(){ return {}; }
-
+	
 	/* Event Emitter functions
-	 * Physical means a person physically interacted with the device
+	   Physical means a person physically interacted with the device
 	 */
 	public emitPhysical(event: string[], data: Packet.StandardMessageRecieved | Packet.ExtendedMessageRecieved){
 		// Skip group broadcast events that were emitted from a different device
 		if(toAddressString(data.from) !== this.addressString) return;
-
+		
 		event.push("physical");
 		this.emit(event, data);
 
@@ -515,7 +513,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
 
 			// Waiting for ack of direct message
-			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) => {
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(true) : reject(false);
 			});
 
@@ -540,7 +538,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			// extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
 
 			// Waiting for ack of direct message
-			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) => {
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 				packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? resolve(true) : reject(false);
 			});
 
@@ -564,7 +562,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			extendedData.push(InsteonDevice.calulateChecksum(cmd1, cmd2, extendedData));
 
 			// Waiting for ack of direct message
-			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) => {
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 
 				if(packet.Flags.subtype === MessageSubtype.ACKofDirectMessage){
 					resolve(true);
@@ -592,7 +590,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			const cmd2 = type;
 
 			// Waiting for ack of direct message
-			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) => {
+			modem.once(['p', PacketID.StandardMessageReceived.toString(16), '*', 	toAddressString(address)], (packet: Packet.StandardMessageRecieved) =>  {
 				resolve(packet);
 			});
 
@@ -607,5 +605,3 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	//#endregion
 }
-
-//#endregion

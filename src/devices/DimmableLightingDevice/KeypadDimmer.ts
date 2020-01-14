@@ -11,7 +11,7 @@ Each button can have it's own ramp rate, on level, LED backlight state, toggle m
 This class provides methods for dealing with all of these keypad dimmer specifics
 
 
-  Category capabilities defined by the Insteon Developer Guide, Çhapter 8:
+   Category capabilities defined by the Insteon Developer Guide, Çhapter 8:
 
 FOR SUBCAT 0x09 & 0x0A ONLY (keypad dimmer):
 Light Status Request: 0x19, 0x01 -> Returned ACK will contain LED Bit Flags in CMD2
@@ -20,7 +20,7 @@ Light Status Request: 0x19, 0x01 -> Returned ACK will contain LED Bit Flags in C
 
 Get Operating Flags: 0x1F, 0x00 -> Returned ACK will contain requested data in CMD2
 Bit 0: 0 = Program Lock Off, 1 = On
-Bit 1: 0 = LED Off during transmit, 1 = On
+Bit 1: 0 = LED Off during transmit, 1 = On 
 Bit 2: 0 = Resume Dim Disabled, 1 = Enabled
 Bit 3: 0 = 6 keys, 1 = 8 keys
 Bit 4: 0 = Backlight Off, 1 = on
@@ -127,18 +127,18 @@ user data  4-14: 0x00 (not used)
  */
 export default class KeypadDimmer extends DimmableLightingDevice {
 
-	public async getDeviceStatus(){
+  public async getDeviceStatus(){
 
-		const status = await super.getDeviceStatus();
+    const status = await super.getDeviceStatus();
 
-		const ledStatus = await this.sendInsteonCommand(0x2E, 0x00, [0x00, 0x00]) as Packet.ExtendedMessageRecieved;
+    const ledStatus = await this.sendInsteonCommand(0x2E, 0x00, [0x00, 0x00]) as Packet.ExtendedMessageRecieved;
 
-		// console.log(ledStatus);
+    // console.log(ledStatus);
 
-		return {
-			level: status.level,
-			// led: ledStatus.extendedData[9],
-		}
+    return {
+      level: status.level,
+      // led: ledStatus.extendedData[9],
+    }
 
-	}
+  }
 }
