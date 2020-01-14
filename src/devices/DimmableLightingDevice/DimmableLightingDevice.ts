@@ -32,23 +32,23 @@ export default class DimmableLightingDevice extends InsteonDevice {
 
 	public setupEvents(){
 		/* InsteonDevice emits all packets with type & subtype
-		 * type 0x50 = Standard Message Received
-		 * subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
+		   type 0x50 = Standard Message Received
+		   subtype 0x06 = Broadcast (Physically Triggered) when the from address matches this device.
 		 */
 		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.GroupBroadcastMessage.toString(16)], this.physicalEventEmitter);
 
 		/* type 0x50 = Standard Message Received
-		 * subtype 0x01 = Acknowledgement that a remote command was received
+		   subtype 0x01 = Acknowledgement that a remote command was received
 		 */
 		this.on(['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.ACKofDirectMessage.toString(16)], this.remoteEventEmitter);
-
+		
 		/* Scene responder event
-		 * The device responds to the group message using the setting in the link data.
+		   The device responds to the group message using the setting in the link data.
 		 */
 		this.on(['p', 'scene', 'responder'], this.remoteEventEmitter);
-
+		
 	}
-
+	
 	private physicalEventEmitter(data: Packet.StandardMessageRecieved){
 		switch(data.cmd1){
 			case 0x11: this.emitPhysical(['switch','on'], data); break;
@@ -67,7 +67,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 			// default: console.log("Unknown Broadcast command",data.cmd1,data.cmd2);
 		}
 	}
-
+	
 	private remoteEventEmitter(data: Packet.StandardMessageRecieved){
 		switch(data.cmd1){
 			case 0x11: this.emitRemote(['switch','on'], data); break;
@@ -93,11 +93,11 @@ export default class DimmableLightingDevice extends InsteonDevice {
 	public switch(state: boolean, level?: Byte, fast: boolean = false){
 
 		return state ? fast ? this.LightOnFast(level)  : this.LightOn(level)
-		             : fast ? this.LightOffFast()      : this.LightOff();
+					       : fast ? this.LightOffFast() : this.LightOff();
 
 	}
 
-	public async getDeviceStatus(){
+    public async getDeviceStatus(){
 
 		// Getting status
 		const statusPacket = await this.statusRequest();
@@ -222,7 +222,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		// Catch the extended configuration data packet
 		this.once(
 			['p',PacketID.ExtendedMessageReceived.toString(16),0x00.toString(16)],
-			(packet: Packet.ExtendedMessageRecieved) => resolve(packet)
+			(packet: Packet.ExtendedMessageRecieved) =>  resolve(packet)
 		);
 
 		this.sendInsteonCommand(0x2E, 0x00,[button,0x00]);
