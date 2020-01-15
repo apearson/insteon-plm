@@ -14,6 +14,7 @@ export interface Device {
 	description: string;
 	cat: string;
 	subcat: string;
+	firmware?: string;
 	firmwares: string[];
 	flags?: string;
 }

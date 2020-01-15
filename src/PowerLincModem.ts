@@ -870,8 +870,14 @@ export default class PowerLincModem extends EventEmitter2 {
 		return devices.filter(d => d.vendorId === '0403' && d.productId === '6001');
 	}
 
-	public static getDeviceInfo = (cat: Byte, subcat: Byte): Device | undefined =>
-		deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat);
+	public static getDeviceInfo = (cat: Byte, subcat: Byte, firmware: Byte): Device | undefined => {
+		let info = deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat) as Device;
+		if(info !== undefined){
+			info.firmware = `0x${firmware.toString(16).toUpperCase()}`;
+		}
+		console.log('got info',info);
+		return info;
+	}
 
 	//#endregion
 
@@ -889,7 +895,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		this.once(
 			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16), toAddressString(deviceID)],
 			(data: Packet.StandardMessageRecieved) =>
-				resolve(PowerLincModem.getDeviceInfo(data.to[0],data.to[1]))
+				resolve(PowerLincModem.getDeviceInfo(data.to[0],data.to[1],data.to[2]))
 		);
 
 		debug(`queryDeviceInfo: ${toAddressString(deviceID)}`);
@@ -904,7 +910,7 @@ export default class PowerLincModem extends EventEmitter2 {
 	 **/
 	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
 		let info = await this.queryDeviceInfo(deviceID, options);
-
+		console.log('awaited info for factory',info);
 		switch(Number(info.cat)){
 			case 0x01:
 				switch(Number(info.subcat)){
