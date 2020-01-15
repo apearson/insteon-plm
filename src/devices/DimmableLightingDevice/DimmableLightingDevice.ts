@@ -260,7 +260,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		return this.sendInsteonCommand(cmd1, cmd2, extendedData);
 	}
 
-	/*	Set Ramp Rate
+	/* Set Ramp Rate
 		user data  2: 0x05 = set ramp rate
 		user data  3: 0x00-0x1F = ramp rate from .1 seconds (0x1F) to 9 minutes (0x00)
 		user data  4-14: Unused
@@ -272,7 +272,7 @@ export default class DimmableLightingDevice extends InsteonDevice {
 		return this.setExtendedConfigFlag(0x05, rate);
 	}
 
-	/* 	Set On Level
+	/* Set On Level
 		user data  2: 0x06 = set on level
 		user data  3: 0x00-0xFF = on level
 		user data  4-14: Unused
