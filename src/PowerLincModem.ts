@@ -875,7 +875,6 @@ export default class PowerLincModem extends EventEmitter2 {
 		if(info !== undefined){
 			info.firmware = `0x${firmware.toString(16).toUpperCase()}`;
 		}
-		console.log('got info',info);
 		return info;
 	}
 
@@ -910,7 +909,6 @@ export default class PowerLincModem extends EventEmitter2 {
 	 **/
 	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
 		let info = await this.queryDeviceInfo(deviceID, options);
-		console.log('awaited info for factory',info);
 		switch(Number(info.cat)){
 			case 0x01:
 				switch(Number(info.subcat)){
