@@ -10,7 +10,7 @@ export function toAddressString(address: Byte[]){
 }
 
 export function toAddressArray(address: String){
-	return address.split(".").map(el => parseInt(el,16));
+	return address.split(".").map(el => parseInt(el,16)) as Byte[];
 }
 
 export function validateAddress(address: String){
@@ -25,19 +25,37 @@ export function validateAddress(address: String){
 	return true;
 }
 
-export function nextLinkAddress(address: Byte[]){
-	if(address[1] - 8 > 0){
-		address[1] = address[1] - 8 as Byte;
-	}else{
-		address[0] = address[0] - 1 as Byte;
-		address[1] = 255;
-	}
+export function nextLinkAddress(address: Byte[]) {
+	var next = ((address[0] << 8 | address[1]) - 8);
+	var result = [next >> 8, next & 255] as Byte[];
 
-	if(address[0] < 0){
+	if (result[0] < 0) {
 		throw Error("Out of address space");
 	}
 
-	return address;
+	return result;
+}
+
+export function calculateHighWaterAddress(links: DeviceLinkRecord[]){
+	let highWater = [] as Byte[];
+
+	for(var i = 0; i < links.length; i++){
+		highWater = links[i].address;
+	
+		for(var j = i; j < links.length; j++){
+			if(toAddressString(links[j].device) !== '00.00.00'){
+				highWater = [];
+			}
+		}
+	
+		if(highWater.length) break;
+	}
+	
+	if(highWater.length === 0){
+		highWater = nextLinkAddress(links[links.length-1].address);
+	}
+	
+	return highWater;
 }
 
 export function toHex(n: number){
