@@ -900,12 +900,12 @@ export default class PowerLincModem extends EventEmitter2 {
 			const promises = ports.map((p) => {
 				return new Promise((res, rej) => {
 
-					const plm = new PowerLincModem(p.comName, {syncConfig: false, syncLinks: false});
+					const plm = new PowerLincModem(p.path, {syncConfig: false, syncLinks: false});
 
 					plm.on('ready', () => {
 						res({
 							id: plm.info.id,
-							port: p.comName,
+							path: p.path,
 							info: PowerLincModem.getDeviceInfo(plm.info.devcat, plm.info.subcat, plm.info.firmware)
 						});
 
@@ -914,7 +914,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 					plm.on('error', (e: Error) => {
 						res({
-							port: p.comName,
+							path: p.path,
 							error: e.message,
 						});
 
