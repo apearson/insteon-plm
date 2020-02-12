@@ -41,7 +41,10 @@ const debug = logger('insteon-plm:powerLincModem');
 
 //#region Interfaces
 export interface ModemOptions {
-	debug: boolean;
+	debug?: boolean;
+	syncInfo?: boolean;
+	syncConfig?: boolean;
+	syncLinks?: boolean;
 }
 
 export interface ModemInfo{
@@ -49,6 +52,13 @@ export interface ModemInfo{
 	devcat: Byte;
 	subcat: Byte;
 	firmware: Byte;
+}
+
+export interface FoundModemDevice{
+	port: string;
+	id?: Byte[];
+	info?: ModemInfo;
+	error?: string;
 }
 
 export interface ModemConfig{
@@ -99,7 +109,7 @@ export default class PowerLincModem extends EventEmitter2 {
 	private parser: InsteonParser;
 
 	/* Debug */
-	private options: ModemOptions = { debug: false };
+	private options?: ModemOptions;
 
 	//#endregion
 
@@ -135,7 +145,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		this.port.pipe(this.parser);
 
 		/* Waiting for serial port to open */
-		this.port.on('open', this.handlePortOpen);
+		this.port.on('open', _ => this.handlePortOpen(options));
 		this.port.on('error', this.handlePortError);
 		this.port.on('close', this.handlePortClose);
 
@@ -788,7 +798,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Port Handlers
 
-	private handlePortOpen = async () => {
+	private handlePortOpen = async (options?: ModemOptions) => {
 		/* Updating connected */
 		this.connected = true;
 
@@ -797,9 +807,21 @@ export default class PowerLincModem extends EventEmitter2 {
 		this.emit(['e', 'connected']);
 
 		/* Inital Sync of info */
-		await this.syncInfo();
-		await this.syncConfig();
-		await this.syncLinks();
+		try{
+			if(options?.syncInfo ?? true)
+				await this.syncInfo();
+
+			if(options?.syncConfig ?? true)
+				await this.syncConfig();
+
+			if(options?.syncLinks ?? true)
+				await this.syncLinks();
+		}
+		catch(error){
+			this.emit('error', error);
+			this.emit(['e', 'error'], error);
+			return;
+		}
 
 		/* Emitting ready */
 		this.emit('ready');
@@ -833,7 +855,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		/* Emitting packet for others to use */
 		this.emit('packet', packet);
 
-		if(this.options.debug){
+		if(this.options?.debug){
 			if(packet.type === PacketID.SendInsteonMessage){
 				const p = packet as Packet.SendInsteonMessage;
 				debug(`[→][${toAddressString(p.to)}][${(p.flags & 0x10) == 16 ? 'E' : 'S'}][${p.Type}]: ${toHex(p.cmd1)} ${toHex(p.cmd2)} ${p.extendedData? p.extendedData.map(toHex) : ''}`);
@@ -864,10 +886,48 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	//#region Static Methods
 
-	public static async getPlmDevices(){
+	public static async getPlmPorts(){
 		const devices = await SerialPort.list();
 
 		return devices.filter(d => d.vendorId === '0403' && d.productId === '6001');
+	}
+
+	public static getPlmDevices(): Promise<FoundModemDevice[]>{
+		return new Promise(async (resolve, reject) => {
+
+			const ports = await this.getPlmPorts();
+
+			const promises = ports.map((p) => {
+				return new Promise((res, rej) => {
+
+					const plm = new PowerLincModem(p.comName, {syncConfig: false, syncLinks: false});
+
+					plm.on('ready', () => {
+						res({
+							id: plm.info.id,
+							port: p.comName,
+							info: PowerLincModem.getDeviceInfo(plm.info.devcat, plm.info.subcat, plm.info.firmware)
+						});
+
+						plm.close();
+					});
+
+					plm.on('error', (e: Error) => {
+						res({
+							port: p.comName,
+							error: e.message,
+						});
+
+						plm.close();
+					});
+
+				});
+			});
+
+			const devices = await Promise.all(promises) as FoundModemDevice[];
+
+			resolve(devices);
+		});
 	}
 
 	public static getDeviceInfo = (cat: Byte, subcat: Byte, firmware: Byte): Device | undefined => {
