@@ -209,7 +209,10 @@ export default class InsteonDevice extends EventEmitter2 {
 
 	// Reading entire database
 	public getDatabase = () =>
-		this.readDatabase([0x0F, 0xFF], 0x00);
+	{
+		// TODO: Need to get one record at a time and look for ending record
+		return this.readDatabase([0x0F, 0xFF], 0x00);
+	}
 
 	// Get device info and parse info out of packet
 	public async getDeviceInfo(){
@@ -375,7 +378,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			};
 
 			// If link is a highwater mark then remove listener and fullfil promise, else add link to cache
-			if(link.Type.highWater){
+			if(links.length - 1 === numberOfRecords || link.Type.highWater){
 				this.removeListener(dbRecordEvent, handleDbRecordResponse);
 
 				links.push(link);

@@ -126,8 +126,12 @@ export default class PowerLincModem extends EventEmitter2 {
 		super({ wildcard: true, delimiter: '::' });
 
 		/* Saving options */
-		if(options)
+		if(options){
 			this.options = options;
+
+			if(this.options.debug)
+				debug.enabled = this.options.debug;
+		}
 
 		/* Opening serial port */
 		this.port = new SerialPort(portPath, {
@@ -748,7 +752,12 @@ export default class PowerLincModem extends EventEmitter2 {
 
 			// Waiting 500 ms for modem to be ready
 			this.requestQueue.pause();
-			setTimeout(_ => this.requestQueue.resume(), 200);
+			debug('[!]: Paused queue');
+
+			setTimeout(_ => {
+				debug('[!]: Resuming queue');
+				this.requestQueue.resume();
+			}, 500);
 
 			packet.Flags.subtype === MessageSubtype.ACKofDirectMessage ? callback(null, packet) : callback(Error(packet.Flags.Subtype), packet);
 		}
@@ -756,7 +765,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		const onSceneCleanupPacket = (packet: Packet.AllLinkCleanupStatusReport) => {
 			clearTimeout(timer);
 
-			callback(null, packet)
+			callback(null, packet);
 		}
 
 		const onNetworkTimeout = () => {
@@ -959,7 +968,7 @@ export default class PowerLincModem extends EventEmitter2 {
 
 		debug(`queryDeviceInfo: ${toAddressString(deviceID)}`);
 		this.sendStandardCommand(deviceID, 0x10, 0x00);
-	}).timeout(2000);
+	});
 
 
 	/**
@@ -969,6 +978,7 @@ export default class PowerLincModem extends EventEmitter2 {
 	 **/
 	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
 		let info = await this.queryDeviceInfo(deviceID, options);
+
 		switch(Number(info.cat)){
 			case 0x01:
 				switch(Number(info.subcat)){
