@@ -7,31 +7,14 @@ import { InsteonParser, Packet } from 'insteon-packet-parser';
 import { toHex, toAddressString } from './utils';
 import deviceDB from './deviceDB.json';
 import Bluebird, { delay, promisify } from 'bluebird';
+import { Device } from './typings/Device';
 
 /* Generic Insteon Device */
 import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
 
-/* Dimable Devices. Device cat 0x01 */
-import DimmableLightingDevice from './devices/DimmableLightingDevice/DimmableLightingDevice';
-import KeypadDimmer from './devices/DimmableLightingDevice/KeypadDimmer';
-
-/* Switched On/Off Devices. Device cat 0x02 */
-import SwitchedLightingDevice from './devices/SwitchedLightingDevice/SwitchedLightingDevice';
-import OutletLinc from './devices/SwitchedLightingDevice/OutletLinc';
-
-/* Sensors and Actuators. Device cat 0x07 */
-import SensorActuatorDevice from './devices/SensorActuatorDevice/SensorActuatorDevice';
-import IOLinc from './devices/SensorActuatorDevice/IOLinc';
-
-/* Security / battery operated sensors. Device cat 0x10 */
-import SecurityDevice from './devices/SecurityDevice/SecurityDevice';
-import MotionSensor from './devices/SecurityDevice/MotionSensor';
-import OpenCloseSensor from './devices/SecurityDevice/OpenCloseSensor';
-import LeakSensor from './devices/SecurityDevice/LeakSensor';
-
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
-import { Device } from './typings/database';
+import { Utilities } from './main';
 
 //#endregion
 
@@ -941,9 +924,11 @@ export default class PowerLincModem extends EventEmitter2 {
 
 	public static getDeviceInfo = (cat: Byte, subcat: Byte, firmware: Byte): Device | undefined => {
 		let info = deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat) as Device;
+
 		if(info !== undefined){
 			info.firmware = `0x${firmware.toString(16).toUpperCase()}`;
 		}
+
 		return info;
 	}
 
@@ -977,45 +962,14 @@ export default class PowerLincModem extends EventEmitter2 {
 	 * thus returns an instance of a DimmableLightingDevice
 	 **/
 	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
-		let info = await this.queryDeviceInfo(deviceID, options);
+		const info = await this.queryDeviceInfo(deviceID, options);
 
-		switch(Number(info.cat)){
-			case 0x01:
-				switch(Number(info.subcat)){
-					case 0x1C: return new KeypadDimmer(deviceID, this, options);
-					default: return new DimmableLightingDevice(deviceID, this, options);
-				}
+		const DeviceClass = await Utilities.getDeviceClass(Number(info.cat), Number(info.subcat));
 
-			case 0x02: return new SwitchedLightingDevice(deviceID, this, options);
+		if(DeviceClass == null)
+			throw new Error('Device does not have class map');
 
-			case 0x07:
-				switch(Number(info.subcat)){
-					case 0x00: return new IOLinc(deviceID, this, options);
-					default: return new SensorActuatorDevice(deviceID, this, options);
-				}
-
-			case 0x10:
-				switch(Number(info.subcat)){
-					case 0x01:
-					case 0x03:
-					case 0x04:
-					case 0x05: return new MotionSensor(deviceID, this, options);
-
-					case 0x02:
-					case 0x06:
-					case 0x07:
-					case 0x09:
-					case 0x11:
-					case 0x14:
-					case 0x015: return new OpenCloseSensor(deviceID, this, options);
-
-					case 0x08: return new LeakSensor(deviceID, this, options);
-
-					default: return new SecurityDevice(deviceID, this, options);
-				}
-
-			default: return new InsteonDevice(deviceID, this, options);
-		}
+		return new DeviceClass(deviceID, this, options);
 	}
 
 	//#endregion

@@ -1,7 +1,23 @@
 /* Libraries */
-import { DeviceLinkRecord } from "./devices/InsteonDevice";
+import InsteonDevice, { DeviceLinkRecord } from "./devices/InsteonDevice";
 import { AllLinkRecordType, Byte } from "insteon-packet-parser";
 import { ModemLink } from "./PowerLincModem";
+import deviceDB from './deviceDB.json';
+
+/* Devices */
+import KeypadDimmer from "./devices/DimmableLightingDevice/KeypadDimmer";
+import DimmableLightingDevice from "./devices/DimmableLightingDevice/DimmableLightingDevice";
+import SwitchedLightingDevice from "./devices/SwitchedLightingDevice/SwitchedLightingDevice";
+import SensorActuatorDevice from "./devices/SensorActuatorDevice/SensorActuatorDevice";
+import IOLinc from "./devices/SensorActuatorDevice/IOLinc";
+import MotionSensor from "./devices/SecurityDevice/MotionSensor";
+import OpenCloseSensor from "./devices/SecurityDevice/OpenCloseSensor";
+import LeakSensor from "./devices/SecurityDevice/LeakSensor";
+import SecurityDevice from "./devices/SecurityDevice/SecurityDevice";
+
+interface ClassMap {
+	[index: string]: typeof InsteonDevice
+}
 
 /* General Functions */
 
@@ -41,20 +57,20 @@ export function calculateHighWaterAddress(links: DeviceLinkRecord[]){
 
 	for(var i = 0; i < links.length; i++){
 		highWater = links[i].address;
-	
+
 		for(var j = i; j < links.length; j++){
 			if(toAddressString(links[j].device) !== '00.00.00'){
 				highWater = [];
 			}
 		}
-	
+
 		if(highWater.length) break;
 	}
-	
+
 	if(highWater.length === 0){
 		highWater = nextLinkAddress(links[links.length-1].address);
 	}
-	
+
 	return highWater;
 }
 
@@ -66,6 +82,35 @@ export function clamp(val: number, min: number, max: number) {
 	return val > max ? max : val < min ? min : val;
 }
 
+export async function getDeviceClass(cat: number, subcat: number) {
+
+	const deviceInfo = deviceDB.devices.find(d =>
+		d.cat === toHex(cat) && d.subcat === toHex(subcat)
+	);
+
+	// If no device found then return null
+	if(!deviceInfo)
+		return null;
+
+	return getDeviceClassFromClassName(deviceInfo.class);
+}
+
+export function getDeviceClassFromClassName(className: string) {
+	const classMap: ClassMap = {
+		InsteonDevice,
+		DimmableLightingDevice,
+		KeypadDimmer,
+		SwitchedLightingDevice,
+		IOLinc,
+		SensorActuatorDevice,
+		MotionSensor,
+		OpenCloseSensor,
+		LeakSensor,
+		SecurityDevice
+	};
+
+	return classMap[className];
+}
 
 export function deviceDbToTable(links: DeviceLinkRecord[]){
 

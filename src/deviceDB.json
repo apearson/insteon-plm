@@ -32,4301 +32,2296 @@
       "description": "Unrecognized INSTEON Device",
       "cat": "0xFF",
       "subcat": "0x00",
-      "firmwares": [
-        "0x00"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Unknown Device",
       "description": "Unrecognized INSTEON Device",
       "cat": "0xFF",
       "subcat": "0x01",
-      "firmwares": [
-        "0x00"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "ControLinc",
       "description": "ControLinc [2430]",
       "cat": "0x00",
       "subcat": "0x04",
-      "flags": "0x0020",
-      "firmwares": [
-        "0x20",
-        "0x21",
-        "0x22",
-        "0x23"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "ControLinc",
       "description": "ControLinc [2430]",
       "cat": "0x00",
       "subcat": "0x04",
-      "flags": "0x0020",
-      "firmwares": [
-        "0x30",
-        "0x54",
-        "0x55"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "RemoteLinc",
       "description": "RemoteLinc [2440]",
       "cat": "0x00",
       "subcat": "0x05",
-      "flags": "0x0020",
-      "firmwares": [
-        "0x33",
-        "0x35",
-        "0x7C",
-        "0x80"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 4 Scene",
       "description": "Mini Remote - 4 Scene [2444A2WH4]",
       "cat": "0x00",
       "subcat": "0x10",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 4 Scene",
       "description": "Mini Remote - 4 Scene [2444A2WH4]",
       "cat": "0x00",
       "subcat": "0x10",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x37",
-        "0x94",
-        "0x95",
-        "0x96"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - Switch",
       "description": "Mini Remote - Switch [2444A3]",
       "cat": "0x00",
       "subcat": "0x11",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - Switch",
       "description": "Mini Remote - Switch [2444A3]",
       "cat": "0x00",
       "subcat": "0x11",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x37",
-        "0x94",
-        "0x95",
-        "0x96"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 8 Scene",
       "description": "Mini Remote - 8 Scene [2444A2WH8]",
       "cat": "0x00",
       "subcat": "0x12",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 8 Scene",
       "description": "Mini Remote - 8 Scene [2444A2WH8]",
       "cat": "0x00",
       "subcat": "0x12",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x37",
-        "0x92",
-        "0x93",
-        "0x94",
-        "0x95",
-        "0x96"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 4 Scene",
       "description": "Mini Remote - 4 Scene [2342-432]",
       "cat": "0x00",
       "subcat": "0x14",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - Switch",
       "description": "Mini Remote - Switch [2342-442]",
       "cat": "0x00",
       "subcat": "0x15",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 8 Scene",
       "description": "Mini Remote - 8 Scene [2342-422]",
       "cat": "0x00",
       "subcat": "0x16",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 4 Scene",
       "description": "Mini Remote - 4 Scene [2342-532]",
       "cat": "0x00",
       "subcat": "0x17",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 8 Scene",
       "description": "Mini Remote - 8 Scene [2342-522]",
       "cat": "0x00",
       "subcat": "0x18",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - Switch",
       "description": "Mini Remote - Switch [2342-542]",
       "cat": "0x00",
       "subcat": "0x19",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 4 Scene",
       "description": "Mini Remote - 4 Scene [2342-222]",
       "cat": "0x00",
       "subcat": "0x1A",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x38",
-        "0x39",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - 8 Scene",
       "description": "Mini Remote - 8 Scene [2342-232]",
       "cat": "0x00",
       "subcat": "0x1B",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x38",
-        "0x39",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Mini Remote - Switch",
       "description": "Mini Remote - Switch [2342-242]",
       "cat": "0x00",
       "subcat": "0x1C",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x38",
-        "0x39",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "ICON Tabletop Controller",
       "description": "ICON Tabletop Controller [2830]",
       "cat": "0x00",
       "subcat": "0x06",
-      "flags": "0x0020",
-      "firmwares": [
-        "0x22",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "EZBridge/EZServer",
       "description": "EZBridge/EZServer",
       "cat": "0x00",
       "subcat": "0x08",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "SignaLinc",
       "description": "SignaLinc RF Signal Enhancer [2442]",
       "cat": "0x00",
       "subcat": "0x09",
-      "firmwares": [
-        "0x10",
-        "0x20",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Poolux LCD Controller",
       "description": "Poolux LCD Controller",
       "cat": "0x00",
       "subcat": "0x0A",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Range Extender",
       "description": "Range Extender (Wireless Phase Coupler) [2443]",
       "cat": "0x00",
       "subcat": "0x0B",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Range Extender",
       "description": "Range Extender [2992-222]",
       "cat": "0x00",
       "subcat": "0x1D",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "IES Color Touchscreen",
       "description": "IES Color Touchscreen",
       "cat": "0x00",
       "subcat": "0x0C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "LampLinc Dimmer",
       "description": "LampLinc Dimmer [2456D3]",
       "cat": "0x01",
       "subcat": "0x00",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc Dimmer",
       "description": "LampLinc Dimmer [2456D3]",
       "cat": "0x01",
       "subcat": "0x00",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x35",
-        "0x37",
-        "0x38",
-        "0x9E",
-        "0xA3",
-        "0xA4"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc Dimmer",
       "description": "LampLinc Dimmer [2456D3]",
       "cat": "0x01",
       "subcat": "0x00",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x41",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2476D]",
       "cat": "0x01",
       "subcat": "0x01",
-      "flags": "0x0004",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2476D]",
       "cat": "0x01",
       "subcat": "0x01",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x34",
-        "0x35",
-        "0x37",
-        "0x38",
-        "0x99",
-        "0xA3",
-        "0xA4",
-        "0xA8",
-        "0xAF"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2476D]",
       "cat": "0x01",
       "subcat": "0x19",
-      "flags": "0x0006",
-      "firmwares": [
-        "0x38",
-        "0xAF",
-        "0xC2",
-        "0x40",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2476D]",
       "cat": "0x01",
       "subcat": "0x19",
-      "flags": "0x000F",
-      "firmwares": [
-        "0x41",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xCC",
-        "0xCD",
-        "0xCE",
-        "0xCF",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6",
-        "0xD7"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2476D]",
       "cat": "0x01",
       "subcat": "0x30",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2476D]",
       "cat": "0x01",
       "subcat": "0x30",
-      "flags": "0x000F",
-      "firmwares": [
-        "0x41",
-        "0xCC",
-        "0xCD",
-        "0xCE",
-        "0xCF",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC",
-        "0xBE",
-        "0xBF"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "In-LineLinc Dimmer",
       "description": "In-LineLinc Dimmer [2475D]",
       "cat": "0x01",
       "subcat": "0x02",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "In-LineLinc Dimmer",
       "description": "In-LineLinc Dimmer [2475D]",
       "cat": "0x01",
       "subcat": "0x02",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x34",
-        "0x35",
-        "0x37",
-        "0x38",
-        "0xA3"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "In-LineLinc Dimmer",
       "description": "In-LineLinc Dimmer [2475D]",
       "cat": "0x01",
       "subcat": "0x1A",
-      "flags": "0x0004",
-      "firmwares": [
-        "0x38",
-        "0x3D",
-        "0x40"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "In-LineLinc Dimmer",
       "description": "In-LineLinc Dimmer [2475D]",
       "cat": "0x01",
       "subcat": "0x1A",
-      "flags": "0x0004",
-      "firmwares": [
-        "0x41",
-        "0xCF",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6",
-        "0xD7"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "In-Line Dimmer",
       "description": "In-Line Dimmer [4712]",
       "cat": "0x01",
       "subcat": "0x2C",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ICON Dimmer Switch",
       "description": "ICON Dimmer Switch [2876D]",
       "cat": "0x01",
       "subcat": "0x03",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x26",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C",
-        "0x35",
-        "0x37",
-        "0x38"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer (High Wattage) [2476DH]",
       "cat": "0x01",
       "subcat": "0x04",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer (High Wattage) [2476DH]",
       "cat": "0x01",
       "subcat": "0x04",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x34",
-        "0x35",
-        "0x37",
-        "0x38",
-        "0xA3",
-        "0xA4",
-        "0xA8"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer (High Wattage) [2476DH]",
       "cat": "0x01",
       "subcat": "0x1D",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x38",
-        "0x40",
-        "0xAD",
-        "0xAF"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2477D]",
       "cat": "0x01",
       "subcat": "0x20",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2477D]",
       "cat": "0x01",
       "subcat": "0x20",
-      "flags": "0x0007",
-      "firmwares": [
-        "0xB2",
-        "0xB3",
-        "0xB5",
-        "0xB6",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC",
-        "0xBE",
-        "0xBF",
-        "0xC0",
-        "0x41",
-        "0x42",
-        "0x43",
-        "0x44",
-        "0x45",
-        "0xC2",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc 2-Wire Dimmer",
       "description": "SwitchLinc 2-Wire Dimmer (RF) [2474DWH]",
       "cat": "0x01",
       "subcat": "0x24",
-      "flags": "0x001F",
-      "firmwares": [
-        "0x42",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "INSTEON Ballast Dimmer",
       "description": "INSTEON Ballast Dimmer [2475DA2]",
       "cat": "0x01",
       "subcat": "0x25",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2477DH]",
       "cat": "0x01",
       "subcat": "0x2D",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2477DH]",
       "cat": "0x01",
       "subcat": "0x2D",
-      "flags": "0x000F",
-      "firmwares": [
-        "0xBB",
-        "0xBC",
-        "0x41",
-        "0x42",
-        "0x43",
-        "0x44"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Wall Dimmer - 1000W",
       "description": "Wall Dimmer - 1000W [4711]",
       "cat": "0x01",
       "subcat": "0x2B",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Wall Dimmer",
       "description": "Wall Dimmer [4701]",
       "cat": "0x01",
       "subcat": "0x27",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Keypad Countdown Timer",
       "description": "Keypad Countdown Timer with Dimmer [2484DWH8]",
       "cat": "0x01",
       "subcat": "0x05",
-      "firmwares": [
-        "0x2B",
-        "0x27",
-        "0x2C",
-        "0x2D"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Schedule Timer with Dimmer",
       "description": "KeypadLinc Schedule Timer with Dimmer [2484DST6]",
       "cat": "0x01",
       "subcat": "0x2F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc",
       "description": "LampLinc [2456D2]",
       "cat": "0x01",
       "subcat": "0x06",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc",
       "description": "LampLinc [2456D2]",
       "cat": "0x01",
       "subcat": "0x06",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x34",
-        "0x35",
-        "0x37",
-        "0x38",
-        "0x8C"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ICON LampLinc",
       "description": "ICON LampLinc [2856D2]",
       "cat": "0x01",
       "subcat": "0x07",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x26",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C",
-        "0x32",
-        "0x37",
-        "0x38"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH6]",
       "cat": "0x01",
       "subcat": "0x09",
-      "firmwares": [
-        "0x25",
-        "0x26",
-        "0x28",
-        "0x29"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH6]",
       "cat": "0x01",
       "subcat": "0x09",
-      "firmwares": [
-        "0x2A",
-        "0x2B",
-        "0x2C",
-        "0x2D"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH6]",
       "cat": "0x01",
       "subcat": "0x09",
-      "firmwares": [
-        "0x32",
-        "0x33",
-        "0x34",
-        "0x35",
-        "0x76"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH6]",
       "cat": "0x01",
       "subcat": "0x1B",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x35",
-        "0x36",
-        "0x39",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH6]",
       "cat": "0x01",
       "subcat": "0x1B",
-      "flags": "0x000F",
-      "firmwares": [
-        "0xB2",
-        "0xB3",
-        "0xB5",
-        "0xB6",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC",
-        "0x41"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Keypad Dimmer",
       "description": "Keypad Dimmer[2334-222]",
       "cat": "0x01",
       "subcat": "0x41",
-      "flags": "0x000F",
-      "firmwares": [
-        "CD",
-        "44",
-        "45",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Keypad Dimmer",
       "description": "Keypad Dimmer[2334-232]",
       "cat": "0x01",
       "subcat": "0x42",
-      "flags": "0x021F",
-      "firmwares": [
-        "C0",
-        "0x43",
-        "0x44",
-        "0x45",
-        "CD"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Keypad with Dimmer",
       "description": "Keypad with Dimmer[2334-232]",
       "cat": "0x01",
       "subcat": "0x42",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Wall Keypad Dimmer",
       "description": "Wall Keypad Dimmer [4703]",
       "cat": "0x01",
       "subcat": "0x29",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH8]",
       "cat": "0x01",
       "subcat": "0x1C",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x35",
-        "0x36",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH8]",
       "cat": "0x01",
       "subcat": "0x1C",
-      "flags": "0x000F",
-      "firmwares": [
-        "0x41",
-        "0xB2",
-        "0xB3",
-        "0xB5",
-        "0xB6",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ICON LampLinc",
       "description": "ICON LampLinc [2856D2B]",
       "cat": "0x01",
       "subcat": "0x07",
-      "firmwares": [
-        "0x26",
-        "0x28",
-        "0x32",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ICON In-Wall Controller",
       "description": "ICON In-Wall Controller",
       "cat": "0x01",
       "subcat": "0x0A",
-      "firmwares": [
-        "0x28",
-        "0x2C",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH6]",
       "cat": "0x01",
       "subcat": "0x1B",
-      "firmwares": [
-        "0x2A",
-        "0x2B",
-        "0x2C",
-        "0x2D"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "KeypadLinc Dimmer",
       "description": "KeypadLinc Dimmer[2486DWH8]",
       "cat": "0x01",
       "subcat": "0x0C",
-      "firmwares": [
-        "0x2A",
-        "0x2B",
-        "0x2C",
-        "0x2D"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SocketLinc",
       "description": "SocketLinc [2454D]",
       "cat": "0x01",
       "subcat": "0x0D",
-      "firmwares": [
-        "0x02",
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C",
-        "0x30",
-        "0x81",
-        "0x82"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc Dimmer",
       "description": "LampLinc Dimmer [2457D2]",
       "cat": "0x01",
       "subcat": "0x0E",
-      "flags": "0x0004",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc Dimmer",
       "description": "LampLinc Dimmer [2457D2]",
       "cat": "0x01",
       "subcat": "0x0E",
-      "flags": "0x000C",
-      "firmwares": [
-        "0xCB",
-        "0xCC",
-        "0xCD",
-        "0xCF",
-        "0xD0",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6",
-        "0x41",
-        "0x42",
-        "0x43"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Plug-in Dimmer",
       "description": "Plug-in Dimmer [4705]",
       "cat": "0x01",
       "subcat": "0x2A",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc Dimmer",
       "description": "LampLinc Dimmer [2457D2X]",
       "cat": "0x01",
       "subcat": "0x22",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LampLinc Dimmer",
       "description": "LampLinc Dimmer [2457D2X]",
       "cat": "0x01",
       "subcat": "0x22",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x41",
-        "0xD6"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ToggleLinc Dimmer",
       "description": "ToggleLinc Dimmer [2466DW]",
       "cat": "0x01",
       "subcat": "0x17",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ToggleLinc Dimmer",
       "description": "ToggleLinc Dimmer [2466DW]",
       "cat": "0x01",
       "subcat": "0x17",
-      "firmwares": [
-        "0x35",
-        "0x37",
-        "0x38"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ToggleLinc Dimmer",
       "description": "ToggleLinc Dimmer [2466DW]",
       "cat": "0x01",
       "subcat": "0x1F",
-      "firmwares": [
-        "0x3A",
-        "0x40"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ToggleLinc Dimmer",
       "description": "ToggleLinc Dimmer [2466DW]",
       "cat": "0x01",
       "subcat": "0x1F",
-      "flags": "0x000E",
-      "firmwares": [
-        "0x41",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ICON Dimmer Switch",
       "description": "ICON Dimmer Switch [2876D]",
       "cat": "0x01",
       "subcat": "0x1E",
-      "flags": "0x0005",
-      "firmwares": [
-        "0x39",
-        "0xAF"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "ICON SwitchLinc Dimmer In-line Companion",
       "description": "ICON SwitchLinc Dimmer In-line Companion [2474D]",
       "cat": "0x01",
       "subcat": "0x18",
-      "firmwares": [
-        "0x33",
-        "0x38"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "OutletLinc Dimmer",
       "description": "OutletLinc Dimmer [2472DWH]",
       "cat": "0x01",
       "subcat": "0x21",
-      "flags": "0x0004",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "OutletLinc Dimmer",
       "description": "OutletLinc Dimmer [2472DWH]",
       "cat": "0x01",
       "subcat": "0x21",
-      "flags": "0x0005",
-      "firmwares": [
-        "0xB3",
-        "0xB5",
-        "0xB6",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC",
-        "0x41",
-        "0x44"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "FanLinc",
       "description": "FanLinc [2475F]",
       "cat": "0x01",
       "subcat": "0x2E",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x3B",
-        "0xBA"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "FanLinc",
       "description": "FanLinc [2475F]",
       "cat": "0x01",
       "subcat": "0x2E",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x41",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBB",
-        "0xBC",
-        "0x44",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer (Dual-Band) [2478D]",
       "cat": "0x01",
       "subcat": "0x31",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "SwitchLinc Dimmer",
       "description": "SwitchLinc Dimmer [2478D]",
       "cat": "0x01",
       "subcat": "0x31",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x41",
-        "0xBC",
-        "0xBD"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "In-LineLinc Dimmer",
       "description": "In-LineLinc Dimmer [2475DA1]",
       "cat": "0x01",
       "subcat": "0x32",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x41",
-        "0x44",
-        "0xBD",
-        "0xBE",
-        "0xBF",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Dimmer Module",
       "description": "Dimmer Module [2632-422]",
       "cat": "0x01",
       "subcat": "0x0B",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Dimmer Module",
       "description": "Dimmer Module [2632-432]",
       "cat": "0x01",
       "subcat": "0x0F",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Dimmer Module",
       "description": "Dimmer Module [2632-442]",
       "cat": "0x01",
       "subcat": "0x11",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Dimmer Module",
       "description": "Dimmer Module [2632-522]",
       "cat": "0x01",
       "subcat": "0x12",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Micro Dimmer",
       "description": "Micro Dimmer [2442-222]",
       "cat": "0x01",
       "subcat": "0x35",
-      "flags": "0x009F",
-      "firmwares": [
-        "0x48",
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Micro Dimmer",
       "description": "Micro Dimmer [2442-422]",
       "cat": "0x01",
       "subcat": "0x38",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Micro Dimmer",
       "description": "Micro Dimmer [2442-522]",
       "cat": "0x01",
       "subcat": "0x39",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "DIN Rail Dimmer",
       "description": "DIN Rail Dimmer [2452-222]",
       "cat": "0x01",
       "subcat": "0x34",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "DIN Rail Dimmer",
       "description": "DIN Rail Dimmer [2252-222]",
       "cat": "0x01",
       "subcat": "0x34",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "DIN Rail Dimmer",
       "description": "DIN Rail Dimmer [2452-422]",
       "cat": "0x01",
       "subcat": "0x36",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "DIN Rail Dimmer",
       "description": "DIN Rail Dimmer [2452-522]",
       "cat": "0x01",
       "subcat": "0x37",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED Bulb",
       "description": "LED Bulb [2672-222]",
       "cat": "0x01",
       "subcat": "0x3A",
-      "flags": "0x0045",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED Bulb",
       "description": "LED Bulb [2672-422]",
       "cat": "0x01",
       "subcat": "0x3B",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED Bulb",
       "description": "LED Bulb [2672-522]",
       "cat": "0x01",
       "subcat": "0x3C",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED PAR38 Bulb",
       "description": "LED PAR38 Bulb [2674-222]",
       "cat": "0x01",
       "subcat": "0x49",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED PAR38 Bulb",
       "description": "Light PAR38 Switch [2674-422]",
       "cat": "0x01",
       "subcat": "0x4A",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED PAR38 Bulb",
       "description": "LED PAR38 Bulb [2672-522]",
       "cat": "0x01",
       "subcat": "0x4B",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED Bulb",
       "description": "LED Bulb [2672-522]",
       "cat": "0x01",
       "subcat": "0x4C",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED Bulb",
       "description": "LED Bulb [2672-522]",
       "cat": "0x01",
       "subcat": "0x4D",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED PAR38 Bulb",
       "description": "Light PAR38 Switch [2674-422]",
       "cat": "0x01",
       "subcat": "0x4E",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "LED PAR38 Bulb",
       "description": "LED PAR38 Bulb [2672-522]",
       "cat": "0x01",
       "subcat": "0x4F",
-      "flags": "0x0003",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Ballast Dimmer",
       "description": "Ballast Dimmer (Dual-Band) [2446-422]",
       "cat": "0x01",
       "subcat": "0x3D",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Ballast Dimmer",
       "description": "Ballast Dimmer (Dual-Band) [2446-522]",
       "cat": "0x01",
       "subcat": "0x3E",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Fixture Dimmer",
       "description": "Fixture Dimmer (Dual-Band) [2447-422]",
       "cat": "0x01",
       "subcat": "0x3F",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Fixture Dimmer",
       "description": "Fixture Dimmer (Dual-Band) [2447-522]",
       "cat": "0x01",
       "subcat": "0x40",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "DimmableLightingDevice"
     },
     {
       "name": "Outdoor ApplianceLinc",
       "description": "Outdoor ApplianceLinc [2456S3E]",
       "cat": "0x02",
       "subcat": "0x06",
-      "firmwares": [
-        "0x39",
-        "0x40",
-        "0x99",
-        "0xB1",
-        "0xCA"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Outdoor ApplianceLinc",
       "description": "Outdoor ApplianceLinc [2456S3E]",
       "cat": "0x02",
       "subcat": "0x06",
-      "firmwares": [
-        "0x41",
-        "0xD5",
-        "0xD6"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "On/Off Outdoor Module",
       "description": "On/Off Outdoor Module [2634-222]",
       "cat": "0x02",
       "subcat": "0x38",
-      "firmwares": [
-        "0x43",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "On/Off Outlet",
       "description": "On/Off Outlet [2663-222]",
       "cat": "0x02",
       "subcat": "0x39",
-      "firmwares": [
-        "0x44",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "TimerLinc",
       "description": "TimerLinc [2456S3T]",
       "cat": "0x02",
       "subcat": "0x07",
-      "firmwares": [
-        "0x35",
-        "0x37",
-        "0x38"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "OutletLinc Relay",
       "description": "OutletLinc Relay [2473SWH]",
       "cat": "0x02",
       "subcat": "0x08",
-      "flags": "0x0004",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x37",
-        "0x38",
-        "0xA3",
-        "0xA4",
-        "0xA8"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "OutletLinc Relay",
       "description": "OutletLinc Relay [2473SWH]",
       "cat": "0x02",
       "subcat": "0x08",
-      "flags": "0x0004",
-      "firmwares": [
-        "0xCD",
-        "0xCE",
-        "0xCF",
-        "0xD0",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6",
-        "0x42"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Outlet Switch",
       "description": "Outlet Switch [4707]",
       "cat": "0x02",
       "subcat": "0x21",
-      "flags": "0x0004",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ApplianceLinc",
       "description": "ApplianceLinc (3-Pin) [2456S3]",
       "cat": "0x02",
       "subcat": "0x09",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ApplianceLinc",
       "description": "ApplianceLinc (3-Pin) [2456S3]",
       "cat": "0x02",
       "subcat": "0x09",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x37",
-        "0x38",
-        "0xA3",
-        "0xA4",
-        "0xCA"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ApplianceLinc",
       "description": "ApplianceLinc (3-Pin) [2456S3]",
       "cat": "0x02",
       "subcat": "0x09",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x42",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay",
       "description": "SwitchLinc Relay [2476S]",
       "cat": "0x02",
       "subcat": "0x0A",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay",
       "description": "SwitchLinc Relay [2476S]",
       "cat": "0x02",
       "subcat": "0x0A",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x34",
-        "0x35",
-        "0x37",
-        "0x38",
-        "0xA3",
-        "0xA4",
-        "0x99"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay with Sense",
       "description": "SwitchLinc Relay with Sense [2476S]",
       "cat": "0x02",
       "subcat": "0x15",
-      "flags": "0x0006",
-      "firmwares": [
-        "0x37",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay with Sense",
       "description": "SwitchLinc Relay with Sense [2476S]",
       "cat": "0x02",
       "subcat": "0x15",
-      "flags": "0x000E",
-      "firmwares": [
-        "0x41"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc 220V Relay",
       "description": "SwitchLinc 220V Relay [2494S220]",
       "cat": "0x02",
       "subcat": "0x18",
-      "flags": "0x0004",
-      "firmwares": [
-        "0x33",
-        "0x35",
-        "0x37",
-        "0x38"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc 220V Relay",
       "description": "SwitchLinc 220V Relay [2494S220]",
       "cat": "0x02",
       "subcat": "0x19",
-      "firmwares": [
-        "0x33",
-        "0x35",
-        "0x37",
-        "0x38"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay",
       "description": "SwitchLinc Relay [2476S]",
       "cat": "0x02",
       "subcat": "0x1C",
-      "firmwares": [
-        "0x3A",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay",
       "description": "SwitchLinc Relay [2476S]",
       "cat": "0x02",
       "subcat": "0x1C",
-      "flags": "0x000E",
-      "firmwares": [
-        "0xCC",
-        "0xCD",
-        "0xCE",
-        "0xCF",
-        "0xD0",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6",
-        "0x41"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Wall Switch",
       "description": "Wall Switch [4702]",
       "cat": "0x02",
       "subcat": "0x23",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay (Dual-Band)",
       "description": "SwitchLinc Relay [2477S]",
       "cat": "0x02",
       "subcat": "0x2A",
-      "flags": "0x000F",
-      "firmwares": [
-        "0x44",
-        "0x45",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Wall Keypad Switch 277V",
       "description": "Wall Keypad Switch 277V [4102]",
       "cat": "0x02",
       "subcat": "0x24",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Keypad Countdown Timer 8-button",
       "description": "Keypad Countdown Timer 8-button [2484SWH8]",
       "cat": "0x02",
       "subcat": "0x25",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc Schedule Timer On/Off Switch",
       "description": "KeypadLinc Schedule Timer On/Off Switch [2485SWH6]",
       "cat": "0x02",
       "subcat": "0x26",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ICON On/Off Switch",
       "description": "ICON On/Off Switch [2876S]",
       "cat": "0x02",
       "subcat": "0x0B",
-      "firmwares": [
-        "0x24",
-        "0x26",
-        "0x28",
-        "0x2B",
-        "0x60",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ICON On/Off Switch",
       "description": "ICON On/Off Switch [2876S]",
       "cat": "0x02",
       "subcat": "0x0B",
-      "firmwares": [
-        "0x35",
-        "0x36",
-        "0x37",
-        "0x38"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ICON Appliance Module",
       "description": "ICON Appliance Module [2856S3B]",
       "cat": "0x02",
       "subcat": "0x0C",
-      "firmwares": [
-        "0x25",
-        "0x28"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ICON Appliance Module",
       "description": "ICON Appliance Module [2856S3B]",
       "cat": "0x02",
       "subcat": "0x0C",
-      "firmwares": [
-        "0x32",
-        "0x37",
-        "0x38",
-        "0xAF"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ToggleLinc On/Off",
       "description": "ToggleLinc On/Off [2466SW]",
       "cat": "0x02",
       "subcat": "0x0D",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ToggleLinc On/Off",
       "description": "ToggleLinc On/Off [2466SW]",
       "cat": "0x02",
       "subcat": "0x0D",
-      "firmwares": [
-        "0x35",
-        "0x38"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ToggleLinc On/Off",
       "description": "ToggleLinc On/Off [2466SW]",
       "cat": "0x02",
       "subcat": "0x1A",
-      "flags": "0x0004",
-      "firmwares": [
-        "0x3A"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ToggleLinc On/Off",
       "description": "ToggleLinc On/Off [2466SW]",
       "cat": "0x02",
       "subcat": "0x1A",
-      "flags": "0x000E",
-      "firmwares": [
-        "0x41",
-        "0xD5"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay Countdown Timer",
       "description": "SwitchLinc Relay Countdown Timer [2476ST]",
       "cat": "0x02",
       "subcat": "0x0E",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C",
-        "0x63",
-        "0x35",
-        "0x37",
-        "0x38"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "SwitchLinc Relay Countdown Timer",
       "description": "SwitchLinc Relay Countdown Timer [2476ST]",
       "cat": "0x02",
       "subcat": "0x29",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc On/Off",
       "description": "KeypadLinc On/Off[2486SWH6]",
       "cat": "0x02",
       "subcat": "0x0F",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x36"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc On/Off",
       "description": "KeypadLinc On/Off [2486SWH6]",
       "cat": "0x02",
       "subcat": "0x0F",
-      "flags": "0x0007",
-      "firmwares": [
-        "ANY"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc On/Off",
       "description": "KeypadLinc On/Off [2486SWH6]",
       "cat": "0x02",
       "subcat": "0x0F",
-      "flags": "0x000F",
-      "firmwares": [
-        "0x41",
-        "0xB2",
-        "0xB3",
-        "0xB5",
-        "0xB6",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc On/Off",
       "description": "KeypadLinc On/Off [2487S]",
       "cat": "0x02",
       "subcat": "0x1E",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc On/Off",
       "description": "KeypadLinc On/Off [2487S]",
       "cat": "0x02",
       "subcat": "0x1E",
-      "flags": "0x000F",
-      "firmwares": [
-        "0x41",
-        "0xB2",
-        "0xB3",
-        "0xB5",
-        "0xB6",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc On/Off",
       "description": "KeypadLinc On/Off [2487S-50]",
       "cat": "0x02",
       "subcat": "0x2C",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "KeypadLinc On/Off",
       "description": "KeypadLinc On/Off [2487S]",
       "cat": "0x02",
       "subcat": "0x2C",
-      "flags": "0x000F",
-      "firmwares": [
-        "0x41",
-        "0x44",
-        "0xB6",
-        "0xB7",
-        "0xB8",
-        "0xB9",
-        "0xBA",
-        "0xBB",
-        "0xBC"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Wall Keypad Switch",
       "description": "Wall Keypad Switch [4704]",
       "cat": "0x02",
       "subcat": "0x20",
-      "flags": "0x000F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc Relay",
       "description": "In-LineLinc Relay [2475S]",
       "cat": "0x02",
       "subcat": "0x10",
-      "firmwares": [
-        "0x17",
-        "0x20",
-        "0x22",
-        "0x23",
-        "0x24",
-        "0x27",
-        "0x28",
-        "0x29",
-        "0x2A",
-        "0x2B",
-        "0x2C"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc Relay",
       "description": "In-LineLinc Relay [2475S]",
       "cat": "0x02",
       "subcat": "0x10",
-      "firmwares": [
-        "0x30",
-        "0x31",
-        "0x32",
-        "0x33",
-        "0x38",
-        "0xA0",
-        "0xA3",
-        "0xA4"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc Relay",
       "description": "In-LineLinc Relay [2475S]",
       "cat": "0x02",
       "subcat": "0x10",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x41",
-        "0xD1",
-        "0xD2",
-        "0xD3",
-        "0xD4",
-        "0xD5",
-        "0xD6"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc On/Off",
       "description": "In-LineLinc On/Off [2475SDB]",
       "cat": "0x02",
       "subcat": "0x1F",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc On/Off",
       "description": "In-LineLinc On/Off [2475SDB]",
       "cat": "0x02",
       "subcat": "0x1F",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x41",
-        "0x43",
-        "0xBB",
-        "0xBC"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc On/Off",
       "description": "In-LineLinc On/Off [2475SDB-50]",
       "cat": "0x02",
       "subcat": "0x2B",
-      "flags": "0x0007",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc On/Off)",
       "description": "In-LineLinc On/Off [2475SDB-50]",
       "cat": "0x02",
       "subcat": "0x2B",
-      "flags": "0x0007",
-      "firmwares": [
-        "0x41"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-Line Switch",
       "description": "In-Line Switch [4713]",
       "cat": "0x02",
       "subcat": "0x22",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "EZSwitch30",
       "description": "EZSwitch30 (240V, 30A load controller)",
       "cat": "0x02",
       "subcat": "0x11",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ICON In-LineLinc Relay",
       "description": "ICON In-LineLinc Relay Companion [2474S]",
       "cat": "0x02",
       "subcat": "0x12",
-      "firmwares": [
-        "0x33",
-        "0x38",
-        "0x92"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc Relay with Sense",
       "description": "In-LineLinc Relay with Sense[2475S2]",
       "cat": "0x02",
       "subcat": "0x14",
-      "firmwares": [
-        "0x37",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "In-LineLinc Relay with Sense",
       "description": "In-LineLinc Relay with Sense[2475S2]",
       "cat": "0x02",
       "subcat": "0x14",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x41",
-        "0xD4",
-        "0xD5",
-        "0xD6"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ICON On/Off Switch",
       "description": "ICON On/Off Switch [2876S]",
       "cat": "0x02",
       "subcat": "0x16",
-      "flags": "0x0004",
-      "firmwares": [
-        "0x39",
-        "0xAF"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "ICON Appliance Module",
       "description": "ICON Appliance Module  [2856S3B]",
       "cat": "0x02",
       "subcat": "0x17",
-      "firmwares": [
-        "0x39",
-        "0xAE"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "On/Off Module",
       "description": "On/Off Module [2633-422]",
       "cat": "0x02",
       "subcat": "0x2D",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "On/Off Module",
       "description": "On/Off Module [2633-432]",
       "cat": "0x02",
       "subcat": "0x30",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "On/Off Module",
       "description": "On/Off Module [2633-442]",
       "cat": "0x02",
       "subcat": "0x35",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "On/Off Module",
       "description": "On/Off Module [2633-522]",
       "cat": "0x02",
       "subcat": "0x36",
-      "flags": "0x0093",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "On/Off Module",
       "description": "On/Off Module [2635-222]",
       "cat": "0x02",
       "subcat": "0x37",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Micro On/Off",
       "description": "Micro On/Off [2443-222]",
       "cat": "0x02",
       "subcat": "0x2F",
-      "flags": "0x009F",
-      "firmwares": [
-        "0x48",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Micro On/Off",
       "description": "Micro On/Off [2443-422]",
       "cat": "0x02",
       "subcat": "0x31",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "Micro On/Off",
       "description": "Micro On/Off [2443-522]",
       "cat": "0x02",
       "subcat": "0x32",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "DIN Rail On/Off",
       "description": "DIN Rail On/Off [2453-222]",
       "cat": "0x02",
       "subcat": "0x2E",
-      "flags": "0x009F",
-      "firmwares": [
-        "0x48",
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "DIN Rail On/Off",
       "description": "DIN Rail On/Off [2453-422]",
       "cat": "0x02",
       "subcat": "0x33",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "DIN Rail On/Off",
       "description": "DIN Rail On/Off [2453-522]",
       "cat": "0x02",
       "subcat": "0x34",
-      "flags": "0x009F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SwitchedLightingDevice"
     },
     {
       "name": "PowerLinc Serial",
       "description": "PowerLinc Serial Controller  [2414S]",
       "cat": "0x03",
       "subcat": "0x01",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB",
       "description": "PowerLinc USB Controller [2414U]",
       "cat": "0x03",
       "subcat": "0x02",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "ICON PLC Serial",
       "description": "ICON PLC Serial",
       "cat": "0x03",
       "subcat": "0x03",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "ICON PLC USB",
       "description": "ICON PLC USB",
       "cat": "0x03",
       "subcat": "0x04",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc Serial Modem",
       "description": "PowerLinc Serial Modem [2412S]",
       "cat": "0x03",
       "subcat": "0x05",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc Serial Modem",
       "description": "PowerLinc Serial Modem [2412S]",
       "cat": "0x03",
       "subcat": "0x05",
-      "firmwares": [
-        "0x70",
-        "0x71",
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x85",
-        "0x90",
-        "0x92"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "IRLinc Receiver",
       "description": "IRLinc Receiver [2411R]",
       "cat": "0x03",
       "subcat": "0x06",
-      "firmwares": [
-        "0x22",
-        "0x37",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "IRLinc Receiver",
       "description": "IRLinc Receiver [2411R]",
       "cat": "0x03",
       "subcat": "0x06",
-      "firmwares": [
-        "0x40"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "IRLinc Transmitter",
       "description": "IRLinc Transmitter [2411T]",
       "cat": "0x03",
       "subcat": "0x07",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "IRLinc Transmitter",
       "description": "IRLinc Transmitter [2411T]",
       "cat": "0x03",
       "subcat": "0x07",
-      "firmwares": [
-        "0x4A"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB Modem",
       "description": "PowerLinc USB Modem [2412U]",
       "cat": "0x03",
       "subcat": "0x0B",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB Modem",
       "description": "PowerLinc USB Modem [2412U]",
       "cat": "0x03",
       "subcat": "0x0B",
-      "firmwares": [
-        "0x70",
-        "0x71",
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x85",
-        "0x90"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "SimpleHomeNet EZX10RF",
       "description": "SimpleHomeNet EZX10RF",
       "cat": "0x03",
       "subcat": "0x0D",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "EZX10IR",
       "description": "EZX10IR",
       "cat": "0x03",
       "subcat": "0x0F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "SmartLinc",
       "description": "SmartLinc [2412N]",
       "cat": "0x03",
       "subcat": "0x10",
-      "firmwares": [
-        "0x70",
-        "0x7A",
-        "0x83",
-        "0x85",
-        "0x88"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "SmartLinc",
       "description": "SmartLinc [2412N]",
       "cat": "0x03",
       "subcat": "0x10",
-      "firmwares": [
-        "0x72",
-        "0x90"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "SmartLinc",
       "description": "SmartLinc [2412N]",
       "cat": "0x03",
       "subcat": "0x10",
-      "firmwares": [
-        "0x91",
-        "0x92",
-        "0x98",
-        "0x99",
-        "0xCB",
-        "0xCC",
-        "0xCD",
-        "0xDD",
-        "0xE6"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "SmartLinc",
       "description": "SmartLinc [2412N]",
       "cat": "0x03",
       "subcat": "0x10",
-      "firmwares": [
-        "0xE8",
-        "0x9B"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "SmartLinc",
       "description": "SmartLinc[2412N]",
       "cat": "0x03",
       "subcat": "0x10",
-      "firmwares": [
-        "0xE0",
-        "0xE1",
-        "0xE2",
-        "0xE3",
-        "0xE4"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub, US [2242-222]",
       "cat": "0x03",
       "subcat": "0x2B",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub, EU [2242-422]",
       "cat": "0x03",
       "subcat": "0x2E",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub, UK [2242-442]",
       "cat": "0x03",
       "subcat": "0x30",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub [2242-522]",
       "cat": "0x03",
       "subcat": "0x2F",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub [2242-232]",
       "cat": "0x03",
       "subcat": "0x31",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub [2242-222]",
       "cat": "0x03",
       "subcat": "0x32",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub [2245-555]",
       "cat": "0x03",
       "subcat": "0x33",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub [2245-442]",
       "cat": "0x03",
       "subcat": "0x34",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub [2245-422]",
       "cat": "0x03",
       "subcat": "0x35",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub [2245-522]",
       "cat": "0x03",
       "subcat": "0x36",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Hub",
       "description": "Hub",
       "cat": "0x03",
       "subcat": "0x37",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Central Controller",
       "description": "Central Controller [2243-222]",
       "cat": "0x03",
       "subcat": "0x18",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Central Controller",
       "description": "Central Controller [2243-422]",
       "cat": "0x03",
       "subcat": "0x2C",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Central Controller",
       "description": "Central Controller [2243-442]",
       "cat": "0x03",
       "subcat": "0x2C",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Central Controller",
       "description": "Central Controller [2243-522]",
       "cat": "0x03",
       "subcat": "0x2D",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc Serial Modem",
       "description": "PowerLinc Serial Modem [2413S]",
       "cat": "0x03",
       "subcat": "0x11",
-      "firmwares": [
-        "0x88",
-        "0x92",
-        "0x98",
-        "0x99",
-        "0xE3"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc Serial Modem",
       "description": "PowerLinc Serial Modem [2413S]",
       "cat": "0x03",
       "subcat": "0x11",
-      "firmwares": [
-        "0x9A",
-        "0x9B",
-        "0x3B",
-        "0x9E",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB Modem",
       "description": "PowerLinc USB Modem[2412UH]",
       "cat": "0x03",
       "subcat": "0x13",
-      "firmwares": [
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x85",
-        "0x90",
-        "0xCD"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc Serial Modem",
       "description": "PowerLinc Serial[2412SH]",
       "cat": "0x03",
       "subcat": "0x14",
-      "firmwares": [
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x85",
-        "0x90",
-        "0xCD"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB Modem",
       "description": "PowerLinc USB Modem [2413U]",
       "cat": "0x03",
       "subcat": "0x15",
-      "firmwares": [
-        "0x88",
-        "0x90",
-        "0x92",
-        "0x98",
-        "0x99",
-        "0xE1",
-        "0xE3",
-        "0xE4",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB Modem",
       "description": "PowerLinc USB Modem [2413U]",
       "cat": "0x03",
       "subcat": "0x15",
-      "firmwares": [
-        "0x9A",
-        "0x9B"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc Serial Modem",
       "description": "PowerLinc Serial Modem [2413SH]",
       "cat": "0x03",
       "subcat": "0x19",
-      "firmwares": [
-        "0x92",
-        "0x98",
-        "0x99",
-        "0x9A",
-        "0x9B",
-        "0xC8",
-        "0xC9",
-        "0xCB",
-        "0xCD",
-        "0xCE",
-        "0xE0",
-        "0xE3",
-        "0xE4",
-        "0x3B"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB Modem",
       "description": "PowerLinc USB Modem [2413UH]",
       "cat": "0x03",
       "subcat": "0x1A",
-      "firmwares": [
-        "0x92",
-        "0x98",
-        "0x99",
-        "0xC8",
-        "0xC9",
-        "0xCB",
-        "0xCD",
-        "0xCE",
-        "0xD4",
-        "0xD5",
-        "0xE0",
-        "0xE1",
-        "0xE2",
-        "0xE3",
-        "0xE4",
-        "0xE5"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "PowerLinc USB Modem",
       "description": "PowerLinc USB Modem [2413UH]",
       "cat": "0x03",
       "subcat": "0x1A",
-      "firmwares": [
-        "0xEB",
-        "0xEC",
-        "0xED",
-        "0xEE",
-        "0xEF",
-        "0x9A",
-        "0x9B"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "iGateway",
       "description": "iGateway [2423A4]",
       "cat": "0x03",
       "subcat": "0x1B",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "USB Adapter",
       "description": "USB Adapter [2448A7]",
       "cat": "0x03",
       "subcat": "0x1F",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "USB Adapter",
       "description": "USB Adapter [2448A7]",
       "cat": "0x03",
       "subcat": "0x20",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "USB Adapter",
       "description": "USB Adapter [2448A7H]",
       "cat": "0x03",
       "subcat": "0x21",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "USB Adapter",
       "description": "USB Adapter [2448A7H]",
       "cat": "0x03",
       "subcat": "0x23",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Central Controller Interface",
       "description": "Central Controller Interface [4706A]",
       "cat": "0x03",
       "subcat": "0x22",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "TouchLinc",
       "description": "TouchLinc [2448A7T]",
       "cat": "0x03",
       "subcat": "0x24",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "TouchLinc",
       "description": "TouchLinc [2448A7T]",
       "cat": "0x03",
       "subcat": "0x24",
-      "firmwares": [
-        "0x98"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "TouchLinc",
       "description": "TouchLinc [2448A7T]",
       "cat": "0x03",
       "subcat": "0x27",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "TouchLinc",
       "description": "TouchLinc [2448A7T]",
       "cat": "0x03",
       "subcat": "0x27",
-      "firmwares": [
-        "0x98"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Compacta EZRain Sprinkler Controller",
       "description": "Compacta EZRain Sprinkler Controller [31270]",
       "cat": "0x04",
       "subcat": "0x00",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Broan SMSC080 Exhaust Fan",
       "description": "Broan SMSC080 Exhaust Fan",
       "cat": "0x05",
       "subcat": "0x00",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "EZTherm ",
       "description": "EZTherm",
       "cat": "0x05",
       "subcat": "0x01",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Broan SMSC110 Exhaust Fan ",
       "description": "Broan SMSC110 Exhaust Fan",
       "cat": "0x05",
       "subcat": "0x02",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat Adapter",
       "description": "Thermostat Adapter [2441V]",
       "cat": "0x05",
       "subcat": "0x03",
-      "firmwares": [
-        "0x22",
-        "0x23",
-        "0x24"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat Adapter",
       "description": "Thermostat Adapter [2441V]",
       "cat": "0x05",
       "subcat": "0x03",
-      "firmwares": [
-        "0x25",
-        "0x30",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat Adapter",
       "description": "Thermostat Adapter [2441V]",
       "cat": "0x05",
       "subcat": "0x03",
-      "firmwares": [
-        "0x49"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat Adapter",
       "description": "Thermostat Adapter [2441V]",
       "cat": "0x05",
       "subcat": "0x03",
-      "firmwares": [
-        "0x91",
-        "0x92",
-        "0xCB",
-        "0xCE",
-        "0xCF"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat Adapter",
       "description": "Thermostat Adapter [2441V]",
       "cat": "0x05",
       "subcat": "0x03",
-      "firmwares": [
-        "0x95"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "7 Day Thermostat",
       "description": "7 Day Thermostat [4715]",
       "cat": "0x05",
       "subcat": "0x09",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat",
       "description": "Thermostat [2441TH]",
       "cat": "0x05",
       "subcat": "0x08",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat",
       "description": "Thermostat [2441TH]",
       "cat": "0x05",
       "subcat": "0x0B",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Energy Display",
       "description": "Thermostat [2441TH]",
       "cat": "0x09",
       "subcat": "0x0D",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Wireless Thermostat",
       "description": "Wireless Thermostat [2441ZTH]",
       "cat": "0x05",
       "subcat": "0x07",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Wireless Thermostat",
       "description": "Wireless Thermostat [2441ZTH]",
       "cat": "0x05",
       "subcat": "0x0A",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Integrated Remote Control Thermostat",
       "description": "Integrated Remote Control Thermostat [2491T1E]",
       "cat": "0x05",
       "subcat": "0x0E",
-      "flags": "0x0020",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Integrated Remote Control Thermostat",
       "description": "Integrated Remote Control Thermostat [2491T1E]",
       "cat": "0x05",
       "subcat": "0x0E",
-      "firmwares": [
-        "0x95",
-        "0xD3",
-        "0xD4"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "EZTherm",
       "description": "EZThermx",
       "cat": "0x05",
       "subcat": "0x04",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Broan, Venmar, BEST Rangehoods ",
       "description": "Broan, Venmar, BEST Rangehoods",
       "cat": "0x05",
       "subcat": "0x05",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat",
       "description": "Thermostat [2732-422]",
       "cat": "0x05",
       "subcat": "0x0F",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat",
       "description": "Thermostat [2732-522]",
       "cat": "0x05",
       "subcat": "0x10",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Wireless Thermostat",
       "description": "Wireless Thermostat [2732-432]",
       "cat": "0x05",
       "subcat": "0x11",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Wireless Thermostat",
       "description": "Wireless Thermostat [2732-532]",
       "cat": "0x05",
       "subcat": "0x12",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "EZPool",
       "description": "EZPool",
       "cat": "0x06",
       "subcat": "0x00",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "I/O Linc",
       "description": "I/O Linc [2450]",
       "cat": "0x07",
       "subcat": "0x00",
-      "firmwares": [
-        "0x31",
-        "Any"
-      ]
+      "class": "IOLinc"
     },
     {
       "name": "I/O Linc",
       "description": "I/O Linc [2450]",
       "cat": "0x07",
       "subcat": "0x00",
-      "firmwares": [
-        "0x33",
-        "0x35",
-        "0x36",
-        "0x91",
-        "0x92",
-        "0x99",
-        "0x9F",
-        "0xA0"
-      ]
+      "class": "IOLinc"
     },
     {
       "name": "I/O Linc",
       "description": "I/O Linc [2450]",
       "cat": "0x07",
       "subcat": "0x00",
-      "flags": "0x000C",
-      "firmwares": [
-        "0x40",
-        "0x41",
-        "0xA1",
-        "0xA2",
-        "0xA3",
-        "0xA4",
-        "0xA5",
-        "0xA6",
-        "0xA7",
-        "0xA8"
-      ]
+      "class": "IOLinc"
     },
     {
       "name": "I/O Linc",
       "description": "I/O Linc [2450-50-60]",
       "cat": "0x07",
       "subcat": "0x0D",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "IOLinc"
     },
     {
       "name": "I/O Module",
       "description": "I/O Module [2248-222]",
       "cat": "0x07",
       "subcat": "0x0E",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "I/O Module",
       "description": "I/O Module [2248-422]",
       "cat": "0x07",
       "subcat": "0x0F",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "I/O Module",
       "description": "I/O Module [2248-442]",
       "cat": "0x07",
       "subcat": "0x10",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "I/O Module",
       "description": "I/O Module [2248-522]",
       "cat": "0x07",
       "subcat": "0x11",
-      "flags": "0x000C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZSns1W",
       "description": "EZSns1W Sensor Interface Module",
       "cat": "0x07",
       "subcat": "0x01",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZIO8T I/O Module",
       "description": "EZIO8T I/O Module",
       "cat": "0x07",
       "subcat": "0x02",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZIO2X4",
       "description": "EZIO2X4",
       "cat": "0x07",
       "subcat": "0x03",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZIO8SA",
       "description": "EZIO8SA",
       "cat": "0x07",
       "subcat": "0x04",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZSnsRF",
       "description": "EZSnsRF",
       "cat": "0x07",
       "subcat": "0x05",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZISnsRf",
       "description": "EZISnsRf",
       "cat": "0x07",
       "subcat": "0x06",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZIO6I",
       "description": "EZIO6I",
       "cat": "0x07",
       "subcat": "0x07",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZIO4O",
       "description": "EZIO4O",
       "cat": "0x07",
       "subcat": "0x08",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "SynchroLinc",
       "description": "SynchroLinc [2423A5]",
       "cat": "0x07",
       "subcat": "0x09",
-      "flags": "0x0024",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "SynchroLinc",
       "description": "SynchroLinc [2423A5]",
       "cat": "0x07",
       "subcat": "0x09",
-      "flags": "0x0024",
-      "firmwares": [
-        "0x30"
-      ]
+      "class": "SensorActuatorDevice"
     },
     {
       "name": "EZEnergy",
       "description": "EZEnergy",
       "cat": "0x09",
       "subcat": "0x00",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "OnSitePro Leak Detector",
       "description": "OnSitePro Leak Detector",
       "cat": "0x09",
       "subcat": "0x01",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "OnSitePro Control Valve",
       "description": "OnSitePro Control Valve",
       "cat": "0x09",
       "subcat": "0x02",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "iMeter Solo",
       "description": "iMeter Solo [2423A1]",
       "cat": "0x09",
       "subcat": "0x07",
-      "flags": "0x0044",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "iMeter Solo",
       "description": "iMeter Solo [2423A1]",
       "cat": "0x09",
       "subcat": "0x07",
-      "flags": "0x0044",
-      "firmwares": [
-        "0x30"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "220V/240V 30 AMP Load Controller Normally Open",
       "description": "220V/240V 30 AMP Load Controller Normally Open [2477SA1]",
       "cat": "0x09",
       "subcat": "0x0A",
-      "firmwares": [
-        "0x3A"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "220V/240V 30 AMP Load Controller Normally Open",
       "description": "220V/240V 30 AMP Load Controller Normally Open [2477SA1]",
       "cat": "0x09",
       "subcat": "0x0A",
-      "firmwares": [
-        "0x41",
-        "0xD4",
-        "0xD5"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "220V/240V 30 AMP Load Controller Normally Closed",
       "description": "220V/240V 30 AMP Load Controller Normally Closed [2477SA2]",
       "cat": "0x09",
       "subcat": "0x0B",
-      "firmwares": [
-        "0x3A",
-        "0x40"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "220V/240V 30 AMP Load Controller Normally Closed",
       "description": "220V/240V 30 AMP Load Controller Normally Closed [2477SA2]",
       "cat": "0x09",
       "subcat": "0x0B",
-      "firmwares": [
-        "0x41",
-        "0xC8",
-        "0xC9",
-        "0xD4",
-        "0xD5",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Network Hub",
       "description": "Network Hub [4700]",
       "cat": "0x09",
       "subcat": "0x10",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Somfy Drape Controller RF Bridge",
       "description": "Somfy Drape Controller RF Bridge",
       "cat": "0x0E",
       "subcat": "0x00",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Micro Open/Close",
       "description": "Micro Open/Close [2444-222]",
       "cat": "0x0E",
       "subcat": "0x01",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Micro Open/Close",
       "description": "Micro Open/Close [2444-422]",
       "cat": "0x0E",
       "subcat": "0x02",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Micro Open/Close",
       "description": "Micro Open/Close [2444-522]",
       "cat": "0x0E",
       "subcat": "0x03",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Weiland Doors' Central Drive and Controller",
       "description": "Weiland Doors' Central Drive and Controller",
       "cat": "0x0F",
       "subcat": "0x00",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Weiland Doors' Secondary Central Drive",
       "description": "Weiland Doors' Secondary Central Drive",
       "cat": "0x0F",
       "subcat": "0x01",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Weiland Doors' Assist Drive",
       "description": "Weiland Doors' Assist Drive",
       "cat": "0x0F",
       "subcat": "0x02",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Weiland Doors' Elevation Drive",
       "description": "Weiland Doors' Elevation Drive",
       "cat": "0x0F",
       "subcat": "0x03",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "GarageHawk Garage Unit",
       "description": "GarageHawk Garage Unit",
       "cat": "0x0F",
       "subcat": "0x04",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "GarageHawk Remote Unit",
       "description": "GarageHawk Remote Unit",
       "cat": "0x0F",
       "subcat": "0x05",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "MorningLinc",
       "description": "MorningLinc [2458A1]",
       "cat": "0x0F",
       "subcat": "0x06",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "MorningLinc",
       "description": "MorningLinc [2458A1]",
       "cat": "0x0F",
       "subcat": "0x06",
-      "firmwares": [
-        "0x41",
-        "0xD5",
-        "0xD6"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Lock Controller",
       "description": "Lock Controller [2862-222]",
       "cat": "0x0F",
       "subcat": "0x0A",
-      "firmwares": [
-        "0x43",
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Motion Sensor",
       "description": "Motion Sensor [2420M]",
       "cat": "0x10",
       "subcat": "0x01",
-      "flags": "0x0020",
-      "firmwares": [
-        "0x22",
-        "0x24",
-        "0x26"
-      ]
+      "class": "MotionSensor"
     },
     {
       "name": "Motion Sensor",
       "description": "Motion Sensor [2420M]",
       "cat": "0x10",
       "subcat": "0x01",
-      "flags": "0x0020",
-      "firmwares": [
-        "0x30",
-        "0x34",
-        "0x36",
-        "0x82"
-      ]
+      "class": "MotionSensor"
     },
     {
       "name": "Motion Sensor",
       "description": "Motion Sensor [2842-222]",
       "cat": "0x10",
       "subcat": "0x01",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x8E",
-        "0x8F",
-        "0x93",
-        "0x41",
-        "Any"
-      ]
+      "class": "MotionSensor"
     },
     {
       "name": "Motion Sensor",
       "description": "Motion Sensor [4716]",
       "cat": "0x10",
       "subcat": "0x03",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "MotionSensor"
     },
     {
       "name": "Motion Sensor",
       "description": "Motion Sensor [2842-422]",
       "cat": "0x10",
       "subcat": "0x04",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "MotionSensor"
     },
     {
       "name": "Motion Sensor",
       "description": "Motion Sensor [2842-522]",
       "cat": "0x10",
       "subcat": "0x05",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "MotionSensor"
     },
     {
       "name": "Deadbolt",
       "description": "Deadbolt [2863-222]",
       "cat": "0x0F",
       "subcat": "0x07",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Deadbolt",
       "description": "Deadbolt [2863-422]",
       "cat": "0x0F",
       "subcat": "0x08",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Deadbolt",
       "description": "Deadbolt [2863-522]",
       "cat": "0x0F",
       "subcat": "0x09",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Open/Close Sensor",
       "description": "Open/Close Sensor [2421]",
       "cat": "0x10",
       "subcat": "0x02",
-      "flags": "0x0020",
-      "firmwares": [
-        "0x28"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Open/Close Sensor",
       "description": "Open/Close Sensor [2843-222]",
       "cat": "0x10",
       "subcat": "0x02",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x32",
-        "0x33",
-        "0x34",
-        "0x81",
-        "0x83",
-        "0x84",
-        "0x86",
-        "0x87",
-        "0x40",
-        "0x41",
-        "0x42",
-        "0x43"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Open/Close Sensor",
       "description": "Open/Close Sensor [2843-222]",
       "cat": "0x10",
       "subcat": "0x02",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x88"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Open/Close Sensor",
       "description": "Open/Close Sensor [2843-422]",
       "cat": "0x10",
       "subcat": "0x06",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Open/Close Sensor",
       "description": "Open/Close Sensor [2843-522]",
       "cat": "0x10",
       "subcat": "0x07",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Leak Sensor",
       "description": "Leak Sensor [2852-222]",
       "cat": "0x10",
       "subcat": "0x08",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "LeakSensor"
     },
     {
       "name": "Door Sensor",
       "description": "Door Sensor [2843-232]",
       "cat": "0x10",
       "subcat": "0x09",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Door Sensor",
       "description": "Door Sensor [2845-222]",
       "cat": "0x10",
       "subcat": "0x11",
-      "flags": "0x0028",
-      "firmwares": [
-        "0x45",
-        "Any"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Door Sensor",
       "description": "Door Sensor [2845-422]",
       "cat": "0x10",
       "subcat": "0x14",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Door Sensor",
       "description": "Door Sensor [2845-522]",
       "cat": "0x10",
-      "subcat": "0x015",
-      "flags": "0x0028",
-      "firmwares": [
-        "Any"
-      ]
+      "subcat": "0x15",
+      "class": "OpenCloseSensor"
     },
     {
       "name": "Smoke Bridge",
       "description": "Smoke Detector [2982-222]",
       "cat": "0x10",
       "subcat": "0x0A",
-      "flags": "0x003C",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "SecurityDevice"
     },
     {
       "name": "Thermostat Heat Pump",
       "description": "Thermostat Heat Pump [2732-232]",
       "cat": "0x05",
       "subcat": "0x13",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat Heat Pump",
       "description": "Thermostat Heat Pump [2732-432]",
       "cat": "0x05",
       "subcat": "0x14",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Thermostat Heat Pump",
       "description": "Thermostat Heat Pump [2732-532]",
       "cat": "0x05",
       "subcat": "0x15",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": "Insteon Thermostat",
       "description": "Thermostat Heat Pump [2441TH]",
       "cat": "0x05",
       "subcat": "0x16",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": " Insteon Thermostat",
       "description": "Thermostat Heat Pump [2732-422]",
       "cat": "0x05",
       "subcat": "0x17",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     },
     {
       "name": " Insteon Thermostat",
       "description": "Thermostat Heat Pump [2732-522]",
       "cat": "0x05",
       "subcat": "0x18",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    }
-  ],
-  "gateways": [
-    {
-      "name": "PowerLinc USB Modem",
-      "description": "PowerLinc USB Modem [2412S]",
-      "cat": "0x03",
-      "subcat": "0x05",
-      "firmwares": [
-        "0x70",
-        "0x71",
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x81",
-        "0x82",
-        "0x85",
-        "0x90",
-        "0xCD"
-      ]
-    },
-    {
-      "name": "PowerLinc USB Modem",
-      "description": "PowerLinc USB Modem [2412U]",
-      "cat": "0x03",
-      "subcat": "0x0B",
-      "firmwares": [
-        "0x70",
-        "0x71",
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x81",
-        "0x82",
-        "0x85",
-        "0x90",
-        "0xCD"
-      ]
-    },
-    {
-      "name": "PowerLinc USB Modem",
-      "description": "PowerLinc USB Modem [2412UH]",
-      "cat": "0x03",
-      "subcat": "0x13",
-      "firmwares": [
-        "0x70",
-        "0x71",
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x81",
-        "0x82",
-        "0x85",
-        "0x90",
-        "0xCD"
-      ]
-    },
-    {
-      "name": "PowerLinc Serial Modem",
-      "description": "PowerLinc Serial [2412SH]",
-      "cat": "0x03",
-      "subcat": "0x14",
-      "firmwares": [
-        "0x70",
-        "0x71",
-        "0x72",
-        "0x73",
-        "0x74",
-        "0x75",
-        "0x76",
-        "0x77",
-        "0x78",
-        "0x79",
-        "0x7A",
-        "0x80",
-        "0x81",
-        "0x82",
-        "0x85",
-        "0x90",
-        "0xCD"
-      ]
-    },
-    {
-      "name": "PowerLinc Serial Modem",
-      "description": "PowerLinc Serial Modem [2413S]",
-      "cat": "0x03",
-      "subcat": "0x11",
-      "firmwares": [
-        "0x92",
-        "0x98",
-        "0x99",
-        "0x9A",
-        "0x9B",
-        "0xC8",
-        "0xC9",
-        "0xCB",
-        "0xCD",
-        "0xCE",
-        "0xE0",
-        "0xE3",
-        "0xE4",
-        "0x3B",
-        "Any"
-      ]
-    },
-    {
-      "name": "PowerLinc Serial Modem",
-      "description": "PowerLinc Serial Modem [2413SH]",
-      "cat": "0x03",
-      "subcat": "0x19",
-      "firmwares": [
-        "0x92",
-        "0x98",
-        "0x99",
-        "0x9A",
-        "0x9B",
-        "0xC8",
-        "0xC9",
-        "0xCB",
-        "0xCD",
-        "0xCE",
-        "0xE0",
-        "0xE3",
-        "0xE4"
-      ]
-    },
-    {
-      "name": "PowerLinc USB Modem",
-      "description": "PowerLinc USB Modem [2413UH]",
-      "cat": "0x03",
-      "subcat": "0x1A",
-      "firmwares": [
-        "0xC8",
-        "0xC9",
-        "0xCB",
-        "0xCD"
-      ]
-    },
-    {
-      "name": "PowerLinc USB Modem",
-      "description": "PowerLinc USB Modem [2413U]",
-      "cat": "0x03",
-      "subcat": "0x15",
-      "firmwares": [
-        "0xC8",
-        "0xC9",
-        "0xCB",
-        "0xCD"
-      ]
-    },
-    {
-      "name": "PowerLinc USB Modem",
-      "description": "PowerLinc USB Modem [2413UH]",
-      "cat": "0x03",
-      "subcat": "0x1A",
-      "firmwares": [
-        "0x92",
-        "0x98",
-        "0x99",
-        "0x9A",
-        "0x9B",
-        "0xCE",
-        "0xD4",
-        "0xD5",
-        "0xE0",
-        "0xE1",
-        "0xE2",
-        "0xE3",
-        "0xE4",
-        "0xE5",
-        "0xEB",
-        "0xEC",
-        "0xED",
-        "0xEE",
-        "0xEF"
-      ]
-    },
-    {
-      "name": "PowerLinc USB Modem",
-      "description": "PowerLinc USB Modem [2413U]",
-      "cat": "0x03",
-      "subcat": "0x15",
-      "firmwares": [
-        "0x92",
-        "0x98",
-        "0x99",
-        "0x9A",
-        "0x9B",
-        "0xCE",
-        "0xD4",
-        "0xD5",
-        "0xE0",
-        "0xE1",
-        "0xE2",
-        "0xE3",
-        "0xE4",
-        "0xE5",
-        "0x9E",
-        "Any"
-      ]
-    },
-    {
-      "name": "USB Adapter",
-      "description": "USB Adapter",
-      "cat": "0x03",
-      "subcat": "0x1F",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "USB Adapter",
-      "description": "USB Adapter",
-      "cat": "0x03",
-      "subcat": "0x20",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "USB Adapter",
-      "description": "USB Adapter [2448A7H]",
-      "cat": "0x03",
-      "subcat": "0x21",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Central Controller Interface",
-      "description": "Central Controller Interface [4706A]",
-      "cat": "0x03",
-      "subcat": "0x22",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "USB Adapter",
-      "description": "USB Adapter [2448A7H]",
-      "cat": "0x03",
-      "subcat": "0x23",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "SmartLinc",
-      "description": "SmartLinc [2412N]",
-      "cat": "0x03",
-      "subcat": "0x10",
-      "firmwares": [
-        "0x91",
-        "0x92",
-        "0x98",
-        "0xCB",
-        "0xCC",
-        "0xCD",
-        "0xDD"
-      ]
-    },
-    {
-      "name": "SmartLinc",
-      "description": "SmartLinc [2412N]",
-      "cat": "0x03",
-      "subcat": "0x10",
-      "firmwares": [
-        "0x9B"
-      ]
-    },
-    {
-      "name": "SmartLinc",
-      "description": "SmartLinc [2412N]",
-      "cat": "0x03",
-      "subcat": "0x10",
-      "firmwares": [
-        "0xE0",
-        "0xE1",
-        "0xE2",
-        "0xE3",
-        "0xE4"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub, US [2242-222]",
-      "cat": "0x03",
-      "subcat": "0x2B",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub, EU [2242-422]",
-      "cat": "0x03",
-      "subcat": "0x2E",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub, UK [2242-442]",
-      "cat": "0x03",
-      "subcat": "0x30",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub, AU [2242-522]",
-      "cat": "0x03",
-      "subcat": "0x2F",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub, [2242-232]",
-      "cat": "0x03",
-      "subcat": "0x31",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub, [2242-232]",
-      "cat": "0x03",
-      "subcat": "0x31",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub [2242-222]",
-      "cat": "0x03",
-      "subcat": "0x32",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub [2245-555]",
-      "cat": "0x03",
-      "subcat": "0x33",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub [2245-442]",
-      "cat": "0x03",
-      "subcat": "0x34",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub [2245-422]",
-      "cat": "0x03",
-      "subcat": "0x35",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub [2245-522]",
-      "cat": "0x03",
-      "subcat": "0x36",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
-    },
-    {
-      "name": "Hub",
-      "description": "Hub",
-      "cat": "0x03",
-      "subcat": "0x37",
-      "flags": "0x0008",
-      "firmwares": [
-        "Any"
-      ]
+      "class": "InsteonDevice"
     }
   ]
 }

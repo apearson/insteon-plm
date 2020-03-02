@@ -1,24 +1,18 @@
 {
 	"compilerOptions": {
-		// Strict typechecking
 		"strict": true,
 
-		// Modules
 		"module": "commonjs",
 		"moduleResolution": "node",
-		"esModuleInterop": true,
 		"resolveJsonModule": true,
+		"esModuleInterop": true,
 
-		// Output
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
 		"target": "es2015",
 		"rootDir": "./src",
 		"outDir": "dist",
-
-		// Build and Debugging
-		"composite": true,
 	},
 	"include": [
 		"./src/**/*.ts",

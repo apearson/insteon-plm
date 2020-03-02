@@ -3,8 +3,8 @@ import { delay } from 'bluebird';
 import { EventEmitter2 } from 'eventemitter2';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import PowerLincModem from '../PowerLincModem';
-import { Device } from '../typings/database';
 import { toHex, toAddressString } from '../utils';
+import { Device } from '../typings/Device';
 //#endregion
 
 //#region Interfaces
