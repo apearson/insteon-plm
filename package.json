@@ -1,6 +1,6 @@
 {
 	"name": "insteon-plm",
-	"version": "0.4.2",
+	"version": "0.5.0",
 	"description": "Insteon PLM is a TypeScript/JavaScript library for the Insteon PowerLinc Modem family of devices",
 	"main": "./dist/main.js",
 	"types": "./dist/main.d.ts",
