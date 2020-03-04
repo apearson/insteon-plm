@@ -19,7 +19,7 @@ export interface DeviceInfo {
 	cat: Byte;
 	subcat: Byte;
 	firmware: Byte;
-	hardward: Byte;
+	hardware: Byte;
 }
 export interface DeviceOptions {
 	debug: boolean;
@@ -72,7 +72,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	public cat: Byte = 0x00;
 	public subcat: Byte = 0x00;
 	public firmware: Byte = 0x00;
-	public hardward: Byte = 0x00;
+	public hardware: Byte = 0x00;
 	public links: DeviceLinkRecord[] = [];
 
 	/* Inernal Variables */
@@ -189,7 +189,7 @@ export default class InsteonDevice extends EventEmitter2 {
 		this.cat = info.cat;
 		this.subcat = info.subcat;
 		this.firmware = info.firmware;
-		this.hardward = info.hardward;
+		this.hardware = info.hardware;
 
 		// Returning device info
 		return info;
@@ -223,10 +223,16 @@ export default class InsteonDevice extends EventEmitter2 {
 			cat: data.to[0],
 			subcat: data.to[1],
 			firmware: data.to[2],
-			hardward: data.cmd2
+			hardware: data.cmd2
 		};
 
 		return deviceInfo;
+	}
+
+	public async getFullDeviceInfo(){
+		const info = await this.getDeviceInfo();
+
+		return PowerLincModem.getFullDeviceInfo(info.cat, info.subcat, info.firmware);
 	}
 
 	public clearDatabaseRecord(address: Byte[], highwater: boolean = false){

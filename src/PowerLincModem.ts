@@ -10,7 +10,7 @@ import Bluebird, { delay, promisify } from 'bluebird';
 import { Device } from './typings/Device';
 
 /* Generic Insteon Device */
-import InsteonDevice, { DeviceOptions } from './devices/InsteonDevice';
+import InsteonDevice, { DeviceOptions, DeviceInfo } from './devices/InsteonDevice';
 
 /* Interfaces and Types */
 import { PacketID, Byte, AllLinkRecordOperation, AllLinkRecordType, AnyPacket, MessageSubtype } from 'insteon-packet-parser';
@@ -898,7 +898,7 @@ export default class PowerLincModem extends EventEmitter2 {
 						res({
 							id: plm.info.id,
 							path: p.path,
-							info: PowerLincModem.getDeviceInfo(plm.info.devcat, plm.info.subcat, plm.info.firmware)
+							info: PowerLincModem.getFullDeviceInfo(plm.info.devcat, plm.info.subcat, plm.info.firmware)
 						});
 
 						plm.close();
@@ -922,7 +922,7 @@ export default class PowerLincModem extends EventEmitter2 {
 		});
 	}
 
-	public static getDeviceInfo = (cat: Byte, subcat: Byte, firmware: Byte): Device | undefined => {
+	public static getFullDeviceInfo = (cat: Byte, subcat: Byte, firmware: Byte): Device | undefined => {
 		let info = deviceDB.devices.find(d => Number(d.cat) === cat && Number(d.subcat) === subcat) as Device;
 
 		if(info !== undefined){
@@ -937,23 +937,31 @@ export default class PowerLincModem extends EventEmitter2 {
 	//#region Device Methods
 
 	/* Send an insteon command from the modem to a device to find out what it is */
-	public queryDeviceInfo = (deviceID: Byte[], options?: DeviceOptions) => new Bluebird<Device>((resolve, reject) => {
-		// We got cached device info, no need to query the device.
-		if(options?.cache){
-			resolve(options?.cache.info);
-			return;
-		}
-
+	public queryDeviceInfo = (deviceID: Byte[]) => new Bluebird<DeviceInfo>((resolve, reject) => {
 		// Catching broadcast message
 		this.once(
 			['p', PacketID.StandardMessageReceived.toString(16), MessageSubtype.BroadcastMessage.toString(16), toAddressString(deviceID)],
-			(data: Packet.StandardMessageRecieved) =>
-				resolve(PowerLincModem.getDeviceInfo(data.to[0],data.to[1],data.to[2]))
+			(data: Packet.StandardMessageRecieved) => {
+				const deviceInfo: DeviceInfo = {
+					cat: data.to[0],
+					subcat: data.to[1],
+					firmware: data.to[2],
+					hardware: data.cmd2
+				}
+
+				resolve(deviceInfo);
+			}
 		);
 
 		debug(`queryDeviceInfo: ${toAddressString(deviceID)}`);
 		this.sendStandardCommand(deviceID, 0x10, 0x00);
 	});
+
+	public async queryFullDeviceInfo(deviceID: Byte[]){
+		const info = await this.queryDeviceInfo(deviceID);
+
+		return PowerLincModem.getFullDeviceInfo(info.cat, info.subcat, info.firmware);
+	}
 
 
 	/**
@@ -962,9 +970,9 @@ export default class PowerLincModem extends EventEmitter2 {
 	 * thus returns an instance of a DimmableLightingDevice
 	 **/
 	public async getDeviceInstance(deviceID: Byte[], options?: DeviceOptions){
-		const info = await this.queryDeviceInfo(deviceID, options);
+		const info = await this.queryDeviceInfo(deviceID);
 
-		const DeviceClass = await Utilities.getDeviceClass(Number(info.cat), Number(info.subcat));
+		const DeviceClass = await Utilities.getDeviceClass(info.cat, info.subcat);
 
 		if(DeviceClass == null)
 			throw new Error('Device does not have class map');
