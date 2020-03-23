@@ -384,7 +384,7 @@ export default class InsteonDevice extends EventEmitter2 {
 			};
 
 			// If link is a highwater mark then remove listener and fullfil promise, else add link to cache
-			if(links.length - 1 === numberOfRecords || link.Type.highWater){
+			if((numberOfRecords !== 0 && links.length - 1 === numberOfRecords) || link.Type.highWater){
 				this.removeListener(dbRecordEvent, handleDbRecordResponse);
 
 				links.push(link);
