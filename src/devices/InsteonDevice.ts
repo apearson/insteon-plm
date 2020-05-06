@@ -4,7 +4,6 @@ import { EventEmitter2 } from 'eventemitter2';
 import { Byte, PacketID, Packet, MessageSubtype, AllLinkRecordType } from 'insteon-packet-parser'
 import PowerLincModem from '../PowerLincModem';
 import { toHex, toAddressString } from '../utils';
-import { Device } from '../typings/Device';
 //#endregion
 
 //#region Interfaces
@@ -25,11 +24,6 @@ export interface DeviceOptions {
 	debug: boolean;
 	syncInfo?: boolean;
 	syncLinks?: boolean;
-	cache?: DeviceCache;
-}
-export interface DeviceCache {
-	info: Device;
-	links: DeviceLinkRecord[];
 }
 export interface DeviceLinkRecord {
 	address: Byte[];
@@ -106,17 +100,7 @@ export default class InsteonDevice extends EventEmitter2 {
 	}
 
 	public async initalize(){
-		// If a cache was provided, set the device's links and info to the cache data
-		if(this.options.cache){
-			this.cat = parseInt(this.options.cache.info.cat,16) as Byte;
-			this.subcat = parseInt(this.options.cache.info.subcat,16) as Byte;
-			// this.firmware = parsethis.options.cache.info.firmware;
-			// this.hardward = this.options.cache.info.hardward;
-
-			this.links = this.options.cache.links;
-		}
-
-		// Syncing data (will overwrite cached data)
+		// Syncing data
 		if(this.options.syncInfo !== false)
 			await this.syncInfo();
 
@@ -383,7 +367,7 @@ export default class InsteonDevice extends EventEmitter2 {
 				rampRate: data.extendedData[11]
 			};
 
-			// If link is a highwater mark then remove listener and fullfil promise, else add link to cache
+			// If link is a highwater mark then remove listener and fullfil promise, else add link to links
 			if((numberOfRecords !== 0 && links.length - 1 === numberOfRecords) || link.Type.highWater){
 				this.removeListener(dbRecordEvent, handleDbRecordResponse);
 
